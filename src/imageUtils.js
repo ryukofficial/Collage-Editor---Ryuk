@@ -7,10 +7,6 @@
  * - Source images are kept as Blob URLs (in-memory) to avoid re-encoding
  */
 
-/**
- * Load a File object into memory as a Blob URL.
- * Returns metadata + URL without any compression.
- */
 export function loadImageFile(file) {
   return new Promise((resolve, reject) => {
     const blobUrl = URL.createObjectURL(file)
@@ -33,10 +29,6 @@ export function loadImageFile(file) {
   })
 }
 
-/**
- * Load multiple files in parallel batches to avoid memory spikes.
- * batchSize controls how many are decoded simultaneously.
- */
 export async function loadImageFiles(files, { batchSize = 8, onProgress } = {}) {
   const results = []
   const errors = []
@@ -53,55 +45,20 @@ export async function loadImageFiles(files, { batchSize = 8, onProgress } = {}) 
     })
 
     if (onProgress) onProgress(done / files.length)
-
-    // Yield to browser to keep UI responsive
     await new Promise(r => setTimeout(r, 0))
   }
 
   return { results, errors }
 }
 
-/**
- * Export a Konva Stage to PNG at FULL resolution (no compression).
- * Uses toBlob with mimeType image/png for lossless output.
- */
 export async function exportToPNG(stage, canvasSize, options = {}) {
-  const { onProgress } = options
+  const { onProgress, profileImage } = options
 
   onProgress?.(0.1)
 
-  // Get the pixel ratio to ensure full resolution
   const dataUrl = stage.toDataURL({
     mimeType: 'image/png',
-    quality: 1,        // PNG ignores quality but set anyway
-    pixelRatio: 1,     // We handle scaling ourselves
-    x: 0,
-    y: 0,
-    width: canvasSize.width,
-    height: canvasSize.height,
-  })
-
-  onProgress?.(0.8)
-
-  // Convert to blob for large file support
-  const blob = dataURLtoBlob(dataUrl)
-
-  onProgress?.(1.0)
-  return blob
-}
-
-/**
- * Export to JPG at maximum quality (quality=1 = 100%).
- * Note: JPEG is inherently lossy by format, but this is as close to lossless as JPEG allows.
- */
-export async function exportToJPG(stage, canvasSize, quality = 1, options = {}) {
-  const { onProgress } = options
-
-  onProgress?.(0.1)
-
-  const dataUrl = stage.toDataURL({
-    mimeType: 'image/jpeg',
-    quality: quality,  // 1.0 = highest quality, minimal compression artifacts
+    quality: 1,
     pixelRatio: 1,
     x: 0,
     y: 0,
@@ -109,40 +66,115 @@ export async function exportToJPG(stage, canvasSize, quality = 1, options = {}) 
     height: canvasSize.height,
   })
 
-  onProgress?.(0.8)
+  onProgress?.(0.6)
 
-  const blob = dataURLtoBlob(dataUrl)
+  // If no profile image, just return the stage export
+  if (!profileImage) {
+    const blob = dataURLtoBlob(dataUrl)
+    onProgress?.(1.0)
+    return blob
+  }
 
+  // Stitch profile image on top of the collage
+  const blob = await stitchProfileOnTop(profileImage, dataUrl, canvasSize, onProgress)
   onProgress?.(1.0)
   return blob
 }
 
 /**
- * For very large canvases (>8192px), we use tile-based export:
- * render each tile separately then stitch with OffscreenCanvas.
- * This avoids browser canvas size limits.
+ * Stitches profile image on top of collage with no gaps, no compression.
+ * Profile image is scaled to match collage width exactly.
  */
-export async function exportLargeCanvas(stage, canvasSize, format = 'png', quality = 1, onProgress) {
+async function stitchProfileOnTop(profileSrc, collageDataUrl, canvasSize, onProgress) {
+  // Load profile image
+  const profileImg = await new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = profileSrc
+  })
+
+  // Load collage image
+  const collageImg = await new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = collageDataUrl
+  })
+
+  onProgress?.(0.8)
+
+  // Scale profile to match collage width, maintain aspect ratio
+  const profileScale = canvasSize.width / profileImg.naturalWidth
+  const profileH = Math.round(profileImg.naturalHeight * profileScale)
+
+  // Final canvas = profile height + collage height, same width
+  const finalCanvas = document.createElement('canvas')
+  finalCanvas.width = canvasSize.width
+  finalCanvas.height = profileH + canvasSize.height
+  const ctx = finalCanvas.getContext('2d')
+  ctx.imageSmoothingEnabled = false // no quality loss
+
+  // Draw profile at top
+  ctx.drawImage(profileImg, 0, 0, canvasSize.width, profileH)
+
+  // Draw collage directly below
+  ctx.drawImage(collageImg, 0, profileH, canvasSize.width, canvasSize.height)
+
+  onProgress?.(0.95)
+
+  return new Promise((resolve) => {
+    finalCanvas.toBlob(resolve, 'image/png', 1)
+  })
+}
+
+export async function exportToJPG(stage, canvasSize, quality = 1, options = {}) {
+  const { onProgress, profileImage } = options
+
+  onProgress?.(0.1)
+
+  const dataUrl = stage.toDataURL({
+    mimeType: 'image/jpeg',
+    quality: quality,
+    pixelRatio: 1,
+    x: 0,
+    y: 0,
+    width: canvasSize.width,
+    height: canvasSize.height,
+  })
+
+  onProgress?.(0.6)
+
+  if (!profileImage) {
+    const blob = dataURLtoBlob(dataUrl)
+    onProgress?.(1.0)
+    return blob
+  }
+
+  const blob = await stitchProfileOnTop(profileImage, dataUrl, canvasSize, onProgress)
+  onProgress?.(1.0)
+  return blob
+}
+
+export async function exportLargeCanvas(stage, canvasSize, format = 'png', quality = 1, onProgress, profileImage) {
   const MAX_TILE = 4096
   const { width, height } = canvasSize
 
   if (width <= MAX_TILE && height <= MAX_TILE) {
-    // Small enough — direct export
-    if (format === 'png') return exportToPNG(stage, canvasSize, { onProgress })
-    return exportToJPG(stage, canvasSize, quality, { onProgress })
+    if (format === 'png') return exportToPNG(stage, canvasSize, { onProgress, profileImage })
+    return exportToJPG(stage, canvasSize, quality, { onProgress, profileImage })
   }
 
-  // Tiled export for huge canvases
   const cols = Math.ceil(width / MAX_TILE)
   const rows = Math.ceil(height / MAX_TILE)
   const totalTiles = cols * rows
 
-  // Final canvas
   const finalCanvas = document.createElement('canvas')
-  finalCanvas.width  = width
+  finalCanvas.width = width
   finalCanvas.height = height
   const ctx = finalCanvas.getContext('2d', { willReadFrequently: false })
-  ctx.imageSmoothingEnabled = false  // No smoothing = no quality loss
+  ctx.imageSmoothingEnabled = false
 
   let tilesDone = 0
 
@@ -174,13 +206,17 @@ export async function exportLargeCanvas(stage, canvasSize, format = 'png', quali
 
       tilesDone++
       onProgress?.(tilesDone / totalTiles * 0.9)
-
-      // Yield to browser
       await new Promise(r => setTimeout(r, 0))
     }
   }
 
   onProgress?.(0.95)
+
+  // Stitch profile on top if provided
+  if (profileImage) {
+    const collageDataUrl = finalCanvas.toDataURL('image/png', 1)
+    return stitchProfileOnTop(profileImage, collageDataUrl, canvasSize, onProgress)
+  }
 
   return new Promise((resolve) => {
     const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
@@ -188,10 +224,6 @@ export async function exportLargeCanvas(stage, canvasSize, format = 'png', quali
   })
 }
 
-/**
- * Convert dataURL to Blob efficiently.
- * Avoids the overhead of atob for large images.
- */
 export function dataURLtoBlob(dataUrl) {
   const arr = dataUrl.split(',')
   const mime = arr[0].match(/:(.*?);/)[1]
@@ -202,9 +234,6 @@ export function dataURLtoBlob(dataUrl) {
   return new Blob([u8arr], { type: mime })
 }
 
-/**
- * Download a Blob as a file.
- */
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -216,9 +245,6 @@ export function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
 
-/**
- * Format bytes for display.
- */
 export function formatBytes(bytes) {
   if (!bytes) return '0 B'
   const k = 1024
@@ -227,16 +253,10 @@ export function formatBytes(bytes) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
 }
 
-/**
- * Calculate fit scale so an image fills a region without distortion.
- */
 export function calcFitScale(imgW, imgH, boxW, boxH) {
   return Math.min(boxW / imgW, boxH / imgH)
 }
 
-/**
- * Calculate fill scale so an image covers a region (may crop).
- */
 export function calcFillScale(imgW, imgH, boxW, boxH) {
   return Math.max(boxW / imgW, boxH / imgH)
 }
