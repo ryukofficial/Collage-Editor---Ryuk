@@ -5,6 +5,7 @@ import useStore from './store/useStore'
 import { useDrop } from './useDrop'
 import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
+import HeroPicker from './components/HeroPicker'
 
 function CanvasImage({ img, isSelected, onSelect, onChange }) {
   const [image] = useImage(img.src)
@@ -111,6 +112,7 @@ export default function App() {
           <button className="btn-ghost text-sm px-2" onClick={redo}>Redo</button>
           <button className="btn-ghost text-sm px-2" onClick={clearAll}>Clear</button>
           <button className="btn-ghost text-sm px-2" onClick={() => fileInputRef.current.click()}>Upload</button>
+          <HeroPicker />
           <button className="btn-primary text-sm px-3" onClick={handleExport}>Export PNG</button>
         </div>
       </header>
@@ -134,22 +136,25 @@ export default function App() {
         {/* Empty state */}
         {images.length === 0 && !isDragging && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p className="text-dim text-lg">Drop images here or click Upload</p>
-            <label className="btn-primary cursor-pointer">
-              Upload Images
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={e => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    handleFiles(e.target.files)
-                    e.target.value = ''
-                  }
-                }}
-              />
-            </label>
+            <p className="text-dim text-lg">Pick a hero or upload images</p>
+            <div className="flex gap-3">
+              <HeroPicker />
+              <label className="btn-ghost cursor-pointer text-sm px-3">
+                Upload
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleFiles(e.target.files)
+                      e.target.value = ''
+                    }
+                  }}
+                />
+              </label>
+            </div>
           </div>
         )}
 
