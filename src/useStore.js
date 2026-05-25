@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { nanoid } from './utils/nanoid'
+import { nanoid } from './nanoid'
 
 // Default canvas size
 const DEFAULT_CANVAS = { width: 3840, height: 2160 }
