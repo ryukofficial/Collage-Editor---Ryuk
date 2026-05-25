@@ -18,11 +18,24 @@ const CATEGORY_COLORS = {
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
 
+// Preloads an image and returns its natural dimensions.
+// crossOrigin must be set before src for raw.githubusercontent.com to work.
+function preloadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    img.onerror = () => resolve({ width: 300, height: 450 }) // safe fallback
+    img.src = src
+  })
+}
+
 export default function HeroPicker() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedHero, setSelectedHero] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedSkins, setSelectedSkins] = useState([])
+  const [isAdding, setIsAdding] = useState(false)
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
 
@@ -39,22 +52,31 @@ export default function HeroPicker() {
     })
   }
 
-  const handleAddToCanvas = () => {
-    if (!selectedSkins.length) return
+  const handleAddToCanvas = async () => {
+    if (!selectedSkins.length || isAdding) return
+    setIsAdding(true)
     saveSnapshot()
-    const newImages = selectedSkins.map((skin, i) => ({
-      id: Date.now() + Math.random() + i,
-      src: skin.image,
-      x: 80 + i * 30,
-      y: 80 + i * 30,
-      naturalWidth: 300,
-      naturalHeight: 450,
-      scaleX: 1,
-      scaleY: 1,
-      rotation: 0,
-      opacity: 1,
-    }))
+
+    // Preload all selected skin images to get real dimensions
+    const newImages = await Promise.all(
+      selectedSkins.map(async (skin, i) => {
+        const { width, height } = await preloadImage(skin.image)
+        return {
+          src: skin.image,
+          x: 80 + i * 30,
+          y: 80 + i * 30,
+          naturalWidth: width,
+          naturalHeight: height,
+          scaleX: 1,
+          scaleY: 1,
+          rotation: 0,
+          opacity: 1,
+        }
+      })
+    )
+
     addImages(newImages)
+    setIsAdding(false)
     setIsOpen(false)
     setSelectedHero(null)
     setSelectedSkins([])
@@ -153,7 +175,6 @@ export default function HeroPicker() {
             {/* Skin List */}
             {selectedHero && (
               <>
-                {/* Selected count info */}
                 <div className="px-4 py-2 shrink-0 flex items-center justify-between">
                   <span className="text-[#888] text-xs">
                     {selectedSkins.length > 0
@@ -193,7 +214,6 @@ export default function HeroPicker() {
                             className="w-full h-36 object-cover bg-[#1a1a2e]"
                             onError={e => { e.target.src = PLACEHOLDER }}
                           />
-                          {/* Selected checkmark */}
                           {isSelected && (
                             <div className="absolute top-2 right-2 w-6 h-6 bg-[#6c63ff] rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-bold">✓</span>
@@ -220,14 +240,16 @@ export default function HeroPicker() {
                 <div className="px-4 py-3 border-t border-[#252535] shrink-0">
                   <button
                     onClick={handleAddToCanvas}
-                    disabled={selectedSkins.length === 0}
+                    disabled={selectedSkins.length === 0 || isAdding}
                     className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
-                      selectedSkins.length > 0
+                      selectedSkins.length > 0 && !isAdding
                         ? 'bg-[#6c63ff] text-white hover:bg-[#5a52dd]'
                         : 'bg-[#1a1a2e] text-[#555] cursor-not-allowed'
                     }`}
                   >
-                    {selectedSkins.length > 0
+                    {isAdding
+                      ? 'Loading...'
+                      : selectedSkins.length > 0
                       ? `Add ${selectedSkins.length} Skin${selectedSkins.length > 1 ? 's' : ''} to Canvas`
                       : 'Select skins to add'}
                   </button>
