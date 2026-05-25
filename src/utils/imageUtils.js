@@ -1,11 +1,16 @@
-export async function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
-  const results = []
-  const errors = []
-  const fileArray = Array.from(files)
-  
-  for (let i = 0; i < fileArray.length; i += batchSize) {
-    const batch = fileArray.slice(i, i + batchSize)
-    await Promise.all(batch.map(file => new Promise((resolve) => {
+export function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
+  return new Promise((resolve) => {
+    const results = []
+    const errors = []
+    const fileArray = Array.from(files)
+    let completed = 0
+
+    if (fileArray.length === 0) {
+      resolve({ results, errors })
+      return
+    }
+
+    fileArray.forEach((file) => {
       const reader = new FileReader()
       reader.onload = (e) => {
         const img = new Image()
@@ -13,20 +18,29 @@ export async function loadImageFiles(files, { batchSize = 6, onProgress } = {}) 
           results.push({
             src: e.target.result,
             name: file.name,
-            naturalWidth: img.width,
-            naturalHeight: img.height,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight,
             fileSize: file.size,
           })
-          resolve()
+          completed++
+          onProgress && onProgress(completed / fileArray.length)
+          if (completed === fileArray.length) resolve({ results, errors })
         }
-        img.onerror = () => { errors.push(file.name); resolve() }
+        img.onerror = () => {
+          errors.push(file.name)
+          completed++
+          if (completed === fileArray.length) resolve({ results, errors })
+        }
         img.src = e.target.result
       }
+      reader.onerror = () => {
+        errors.push(file.name)
+        completed++
+        if (completed === fileArray.length) resolve({ results, errors })
+      }
       reader.readAsDataURL(file)
-    })))
-    onProgress && onProgress((i + batch.length) / fileArray.length)
-  }
-  return { results, errors }
+    })
+  })
 }
 
 export async function exportLargeCanvas(stage, canvasSize, format, quality, onProgress) {
