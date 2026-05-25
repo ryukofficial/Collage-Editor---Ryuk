@@ -91,7 +91,7 @@ export default function App() {
 
       <header className="bg-panel border-b border-border shrink-0">
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="font-display font-bold text-lg text-gradient shrink-0">PixelForge</span>
+          <span className="font-display font-bold text-lg text-gradient shrink-0">Ryuk Creates</span>
           <div className="flex gap-2 items-center">
             <HeroPicker />
             <button className="btn-primary text-sm px-3" onClick={handleExport}>
@@ -190,4 +190,4 @@ export default function App() {
       </div>
     </div>
   )
-                    }
+}
