@@ -7,7 +7,7 @@ import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
 import HeroPicker from './components/HeroPicker'
 
-function CanvasImage({ img, isSelected, onSelect, onChange }) {
+function CanvasImage({ img, isSelected, onSelect }) {
   const [image] = useImage(img.src)
   return (
     <KonvaImage
@@ -20,10 +20,8 @@ function CanvasImage({ img, isSelected, onSelect, onChange }) {
       scaleY={img.scaleY}
       rotation={img.rotation}
       opacity={img.opacity}
-      draggable
       onClick={() => onSelect(img.id)}
       onTap={() => onSelect(img.id)}
-      onDragEnd={e => onChange(img.id, { x: e.target.x(), y: e.target.y() })}
       stroke={isSelected ? '#6c63ff' : null}
       strokeWidth={isSelected ? 2 : 0}
     />
@@ -41,7 +39,6 @@ export default function App() {
   const stagePos = useStore(s => s.stagePos)
   const backgroundColor = useStore(s => s.backgroundColor)
   const selectImage = useStore(s => s.selectImage)
-  const updateImage = useStore(s => s.updateImage)
   const clearSelection = useStore(s => s.clearSelection)
   const setStageScale = useStore(s => s.setStageScale)
   const setStagePos = useStore(s => s.setStagePos)
@@ -89,7 +86,6 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -104,9 +100,7 @@ export default function App() {
         }}
       />
 
-      {/* Header - Two rows on mobile */}
       <header className="bg-panel border-b border-border shrink-0">
-        {/* Row 1: Logo + Create + Export */}
         <div className="flex items-center justify-between px-4 py-2">
           <span className="font-display font-bold text-lg text-gradient shrink-0">PixelForge</span>
           <div className="flex gap-2 items-center">
@@ -116,7 +110,6 @@ export default function App() {
             </button>
           </div>
         </div>
-        {/* Row 2: Utility buttons */}
         <div className="flex items-center gap-2 px-4 pb-2">
           <button className="btn-ghost text-sm px-2" onClick={undo}>Undo</button>
           <button className="btn-ghost text-sm px-2" onClick={redo}>Redo</button>
@@ -140,7 +133,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Canvas Area */}
       <div
         id="canvas-container"
         className="flex-1 relative bg-grid overflow-hidden"
@@ -149,14 +141,12 @@ export default function App() {
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* Drop overlay */}
         {isDragging && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-accent/10 border-2 border-dashed border-accent">
             <p className="text-accent text-xl font-semibold">Drop images here</p>
           </div>
         )}
 
-        {/* Empty state */}
         {images.length === 0 && !isDragging && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <p className="text-dim text-lg">Pick a hero or upload images</p>
@@ -204,7 +194,6 @@ export default function App() {
                 img={img}
                 isSelected={selectedIds.includes(img.id)}
                 onSelect={selectImage}
-                onChange={updateImage}
               />
             ))}
           </Layer>
