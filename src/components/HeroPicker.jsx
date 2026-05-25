@@ -62,6 +62,12 @@ export default function HeroPicker() {
     const cols = Math.ceil(Math.sqrt(selectedSkins.length))
     const cellSize = 300
 
+    // Offset new skins below existing images so they don't overlap
+    const existingMaxY = images.length > 0
+      ? Math.max(...images.map(img => img.y + img.naturalHeight * (img.scaleY ?? 1)))
+      : 0
+    const offsetY = images.length > 0 ? existingMaxY + 40 : 0
+
     const newImages = await Promise.all(
       selectedSkins.map(async (skin, i) => {
         const { width, height } = await preloadImage(skin.image)
@@ -70,7 +76,7 @@ export default function HeroPicker() {
         return {
           src: skin.image,
           x: col * cellSize,
-          y: row * cellSize,
+          y: offsetY + row * cellSize,
           naturalWidth: width,
           naturalHeight: height,
           scaleX: cellSize / width,
