@@ -1,271 +1,383 @@
-/**
- * cropUtils.js - ML Skin card auto-cropper
- * 
- * Handles the standard ML shop layout:
- * - Left sidebar ~17% of image width (ignored)
- * - 5 skin cards evenly across the remaining space
- * - Each card: art fills top ~78%, name+button at bottom ~22%
- * - Crops the art portion only, 1:1 square from top, zero compression PNG
- */
-
-function loadImg(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = typeof src === 'string' ? src : URL.createObjectURL(src)
-  })
-}
-
-function getImageData(img) {
-  const canvas = document.createElement('canvas')
-  canvas.width = img.naturalWidth
-  canvas.height = img.naturalHeight
-  const ctx = canvas.getContext('2d')
-  ctx.drawImage(img, 0, 0)
-  return ctx.getImageData(0, 0, canvas.width, canvas.height)
-}
+import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { downloadCrops } from '../utils/cropUtils'
 
 /**
- * Compute average brightness for each column (x) between rowStart and rowEnd.
+ * CropTool - Tap-to-crop skin tool
+ * Upload a screenshot → tap each skin card → it crops 1:1 → download all
+ * Zero compression PNG output.
  */
-function columnBrightnessInRange(imageData, rowStart, rowEnd) {
-  const { width, data } = imageData
-  const step = Math.max(1, Math.floor((rowEnd - rowStart) / 60))
-  const brightness = new Float32Array(width)
-  for (let x = 0; x < width; x++) {
-    let sum = 0, count = 0
-    for (let y = rowStart; y < rowEnd; y += step) {
-      const i = (y * width + x) * 4
-      sum += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114
-      count++
+export default function CropTool() {
+  const [showPanel, setShowPanel] = useState(false)
+  const [imgSrc, setImgSrc] = useState(null)
+  const [imgNaturalW, setImgNaturalW] = useState(0)
+  const [imgNaturalH, setImgNaturalH] = useState(0)
+  const [crops, setCrops] = useState([])       // { blob, filename, previewUrl, x, y }
+  const [cropSize, setCropSize] = useState(300) // size in natural pixels
+  const [status, setStatus] = useState('idle') // idle | loaded | done
+  const [preview, setPreview] = useState(null) // show a hover preview box
+
+  const fileInputRef = useRef()
+  const canvasRef = useRef()
+  const imgRef = useRef()
+  const containerRef = useRef()
+
+  // Scale factor: displayed size vs natural size
+  const [scale, setScale] = useState(1)
+
+  const reset = () => {
+    setImgSrc(null)
+    setCrops([])
+    setStatus('idle')
+    setPreview(null)
+  }
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setImgSrc(url)
+    setCrops([])
+    setStatus('loaded')
+  }
+
+  // When image loads, compute scale
+  const handleImgLoad = (e) => {
+    const img = e.target
+    setImgNaturalW(img.naturalWidth)
+    setImgNaturalH(img.naturalHeight)
+    // displayed width is container width
+    if (containerRef.current) {
+      const dispW = containerRef.current.clientWidth
+      setScale(dispW / img.naturalWidth)
+      // set cropSize to ~20% of image width as default (one skin card)
+      setCropSize(Math.floor(img.naturalWidth * 0.18))
     }
-    brightness[x] = sum / count
   }
-  return brightness
-}
 
-/**
- * Compute average brightness for each row (y) between colStart and colEnd.
- */
-function rowBrightnessInRange(imageData, colStart, colEnd) {
-  const { width, height, data } = imageData
-  const step = Math.max(1, Math.floor((colEnd - colStart) / 60))
-  const brightness = new Float32Array(height)
-  for (let y = 0; y < height; y++) {
-    let sum = 0, count = 0
-    for (let x = colStart; x < colEnd; x += step) {
-      const i = (y * width + x) * 4
-      sum += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114
-      count++
+  // On tap/click: crop a 1:1 square centered on click position
+  const handleImageClick = useCallback(async (e) => {
+    if (status !== 'loaded') return
+    const img = imgRef.current
+    if (!img) return
+
+    const rect = img.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const clickY = e.clientY - rect.top
+
+    // Convert to natural pixels
+    const natX = clickX / scale
+    const natY = clickY / scale
+
+    const half = cropSize / 2
+    const srcX = Math.max(0, Math.min(imgNaturalW - cropSize, natX - half))
+    const srcY = Math.max(0, Math.min(imgNaturalH - cropSize, natY - half))
+
+    // Draw crop on offscreen canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = cropSize
+    canvas.height = cropSize
+    const ctx = canvas.getContext('2d')
+
+    // Draw from natural image
+    const naturalImg = new Image()
+    naturalImg.onload = () => {
+      ctx.drawImage(naturalImg, srcX, srcY, cropSize, cropSize, 0, 0, cropSize, cropSize)
+      canvas.toBlob(blob => {
+        const previewUrl = URL.createObjectURL(blob)
+        setCrops(prev => [...prev, {
+          blob,
+          filename: `skin-${prev.length + 1}.png`,
+          previewUrl,
+          // store display coords for the marker dot
+          dotX: clickX,
+          dotY: clickY,
+        }])
+      }, 'image/png', 1.0)
     }
-    brightness[y] = sum / count
-  }
-  return brightness
-}
+    naturalImg.src = imgSrc
+  }, [status, scale, cropSize, imgNaturalW, imgNaturalH, imgSrc])
 
-function smooth(arr, win) {
-  const out = new Float32Array(arr.length)
-  for (let i = 0; i < arr.length; i++) {
-    let s = 0, c = 0
-    for (let d = -win; d <= win; d++) {
-      const n = i + d
-      if (n >= 0 && n < arr.length) { s += arr[n]; c++ }
-    }
-    out[i] = s / c
-  }
-  return out
-}
+  // Mouse move: show preview box
+  const handleMouseMove = useCallback((e) => {
+    if (status !== 'loaded') return
+    const img = imgRef.current
+    if (!img) return
+    const rect = img.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const halfDisp = (cropSize * scale) / 2
+    setPreview({ x: x - halfDisp, y: y - halfDisp, size: cropSize * scale })
+  }, [status, scale, cropSize])
 
-/**
- * Find the darkest N-1 positions to split into N segments.
- * Searches near expected positions with a radius.
- */
-function findSplits(brightness, numSegments, rangeStart, rangeEnd) {
-  const len = rangeEnd - rangeStart
-  const splits = []
-  const searchRadius = Math.floor(len / numSegments * 0.3)
+  const handleMouseLeave = () => setPreview(null)
 
-  for (let i = 1; i < numSegments; i++) {
-    const expected = rangeStart + Math.round(len / numSegments * i)
-    const left = Math.max(rangeStart, expected - searchRadius)
-    const right = Math.min(rangeEnd - 1, expected + searchRadius)
-    let minVal = Infinity, minPos = expected
-    for (let x = left; x <= right; x++) {
-      if (brightness[x] < minVal) { minVal = brightness[x]; minPos = x }
-    }
-    splits.push(minPos)
-  }
-  return splits
-}
-
-/**
- * Find where the sidebar ends by looking for a sharp brightness increase
- * going left-to-right (sidebar is dark, card area is brighter/more colorful).
- * Searches only in the left 30% of the image.
- */
-function detectSidebarEnd(imageData) {
-  const { width, height } = imageData
-  const searchLimit = Math.floor(width * 0.30)
-  const midRow = Math.floor(height * 0.5)
-  const rowH = Math.floor(height * 0.3)
-
-  const brightness = columnBrightnessInRange(imageData, midRow - rowH, midRow + rowH)
-  const sm = smooth(brightness, Math.floor(width * 0.005))
-
-  // Find where brightness jumps up significantly â€” that's where cards start
-  // Look for the first x where brightness exceeds the mean of the left portion
-  let leftMean = 0
-  for (let x = 0; x < searchLimit; x++) leftMean += sm[x]
-  leftMean /= searchLimit
-
-  // Walk left to right, find first x past 10% where it clearly exceeds leftMean * 1.3
-  for (let x = Math.floor(width * 0.10); x < searchLimit; x++) {
-    if (sm[x] > leftMean * 1.3) return x
+  const handleDownloadAll = () => {
+    downloadCrops(crops)
   }
 
-  // Fallback: assume sidebar is 17% of width
-  return Math.floor(width * 0.17)
-}
-
-/**
- * Detect the top of the card grid by finding where colorful art starts.
- * Looks for the first row (from top) where brightness jumps into the card zone.
- */
-function detectCardGridTop(imageData, colStart, colEnd) {
-  const { height } = imageData
-  const brightness = rowBrightnessInRange(imageData, colStart, colEnd)
-  const sm = smooth(brightness, Math.floor(height * 0.01))
-
-  // Compute mean brightness of the whole column range
-  let mean = 0
-  for (let y = 0; y < height; y++) mean += sm[y]
-  mean /= height
-
-  // Find first row from top that is above mean (card art is bright/colorful)
-  // Skip the very top UI bar (top 8%)
-  const skipTop = Math.floor(height * 0.08)
-  for (let y = skipTop; y < height; y++) {
-    if (sm[y] > mean * 0.85) return y
-  }
-  return skipTop
-}
-
-/**
- * Detect the bottom of a card's art region (where the name text bar starts).
- * The name+button area at the bottom is typically darker/more uniform.
- * We find the row where brightness drops and stays low near the bottom.
- */
-function detectCardArtBottom(imageData, colStart, colEnd, gridTop) {
-  const { height } = imageData
-  const brightness = rowBrightnessInRange(imageData, colStart, colEnd)
-  const sm = smooth(brightness, Math.floor(height * 0.008))
-
-  // The name bar starts somewhere in the bottom 30% of the card area
-  // Look for a sustained dark band from the bottom going up
-  const searchFrom = Math.floor(gridTop + (height - gridTop) * 0.55)
-  const searchTo = height
-
-  let mean = 0
-  for (let y = searchFrom; y < searchTo; y++) mean += sm[y]
-  mean /= (searchTo - searchFrom)
-
-  // Find where brightness drops (name/button area)
-  for (let y = searchFrom; y < searchTo; y++) {
-    if (sm[y] < mean * 0.75) return y
+  const removeCrop = (idx) => {
+    setCrops(prev => prev.filter((_, i) => i !== idx))
   }
 
-  // Fallback: art takes top 78% of card area
-  return Math.floor(gridTop + (height - gridTop) * 0.78)
-}
+  return (
+    <>
+      <button
+        className="btn-ghost"
+        onClick={() => { setShowPanel(v => !v); reset() }}
+      >
+        Crop Skins
+      </button>
 
-/**
- * Crop one card to 1:1 square from the top of the art region.
- * Zero compression PNG.
- */
-function cropCard(img, colLeft, colRight, artTop, artBottom) {
-  const colWidth = colRight - colLeft
-  const artHeight = artBottom - artTop
-  const size = Math.min(colWidth, artHeight)
+      {showPanel && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 2000,
+          background: 'rgba(5,5,7,0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          fontFamily: 'DM Sans, sans-serif',
+          color: '#c8c8e8',
+        }}>
+          {/* Top bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            borderBottom: '1px solid #252535',
+            background: '#1a1a26',
+            shrink: 0,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontWeight: 700, fontSize: '15px', color: '#eeeef8' }}>
+                Crop Skins
+              </span>
+              {status === 'loaded' && (
+                <span style={{ fontSize: '12px', color: '#6c63ff' }}>
+                  Tap each skin to crop it
+                </span>
+              )}
+            </div>
 
-  // Center horizontally within the card column
-  const srcX = colLeft + Math.floor((colWidth - size) / 2)
-  // Start from very top of art
-  const srcY = artTop
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {status === 'loaded' && (
+                <>
+                  {/* Crop size slider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '11px', color: '#4a4a6a' }}>Size</span>
+                    <input
+                      type="range"
+                      min={Math.floor(imgNaturalW * 0.08)}
+                      max={Math.floor(imgNaturalW * 0.35)}
+                      value={cropSize}
+                      onChange={e => setCropSize(Number(e.target.value))}
+                      style={{ width: '80px' }}
+                    />
+                    <span style={{ fontSize: '11px', color: '#4a4a6a', minWidth: '36px' }}>
+                      {cropSize}px
+                    </span>
+                  </div>
+                  <button className="btn-ghost" onClick={reset} style={{ fontSize: '12px' }}>
+                    New
+                  </button>
+                </>
+              )}
+              {crops.length > 0 && (
+                <button className="btn-primary" onClick={handleDownloadAll} style={{ fontSize: '12px' }}>
+                  Download All ({crops.length})
+                </button>
+              )}
+              <button
+                onClick={() => { setShowPanel(false); reset() }}
+                style={{
+                  background: 'none', border: 'none',
+                  color: '#4a4a6a', cursor: 'pointer',
+                  fontSize: '20px', lineHeight: 1, padding: '0 4px',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
 
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  ctx.drawImage(img, srcX, srcY, size, size, 0, 0, size, size)
+          {/* Main area */}
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-  return new Promise(resolve => {
-    canvas.toBlob(blob => resolve(blob), 'image/png', 1.0)
-  })
-}
+            {/* Image panel */}
+            <div
+              ref={containerRef}
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                position: 'relative',
+                display: 'flex',
+                alignItems: status === 'idle' ? 'center' : 'flex-start',
+                justifyContent: status === 'idle' ? 'center' : 'flex-start',
+              }}
+            >
+              {status === 'idle' && (
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ color: '#4a4a6a', marginBottom: '16px', fontSize: '14px' }}>
+                    Upload your ML shop screenshot
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFile}
+                  />
+                  <button
+                    className="btn-primary"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    Upload Screenshot
+                  </button>
+                </div>
+              )}
 
-/**
- * Main export.
- * @param {File|string} source - screenshot file or data URL
- * @param {number} numCards - number of skin cards visible in the row
- * @param {string} baseName - base filename for outputs
- */
-export async function autoCropSkins(source, numCards, baseName = 'skin') {
-  const img = await loadImg(source)
-  const imageData = getImageData(img)
+              {status === 'loaded' && imgSrc && (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img
+                    ref={imgRef}
+                    src={imgSrc}
+                    alt="screenshot"
+                    onLoad={handleImgLoad}
+                    onClick={handleImageClick}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      cursor: 'crosshair',
+                      userSelect: 'none',
+                    }}
+                    draggable={false}
+                  />
 
-  const W = img.naturalWidth
-  const H = img.naturalHeight
+                  {/* Hover preview box */}
+                  {preview && (
+                    <div style={{
+                      position: 'absolute',
+                      left: preview.x,
+                      top: preview.y,
+                      width: preview.size,
+                      height: preview.size,
+                      border: '2px solid #6c63ff',
+                      borderRadius: '4px',
+                      background: 'rgba(108,99,255,0.1)',
+                      pointerEvents: 'none',
+                      boxSizing: 'border-box',
+                    }} />
+                  )}
 
-  // Step 1: Find where sidebar ends and cards begin
-  const cardsStart = detectSidebarEnd(imageData)
+                  {/* Dot markers for already-cropped spots */}
+                  {crops.map((c, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: 'absolute',
+                        left: c.dotX - 10,
+                        top: c.dotY - 10,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: '#6c63ff',
+                        border: '2px solid #fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: '#fff',
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-  // Step 2: Detect top of the card grid (skip top UI bar)
-  const gridTop = detectCardGridTop(imageData, cardsStart, W)
-
-  // Step 3: Find the bottom of the art area
-  const artBottom = detectCardArtBottom(imageData, cardsStart, W, gridTop)
-
-  // Step 4: Split the card area into N columns using brightness gaps
-  const midRow = Math.floor(gridTop + (artBottom - gridTop) * 0.4)
-  const rowH = Math.floor((artBottom - gridTop) * 0.3)
-  const colBright = smooth(
-    columnBrightnessInRange(imageData, midRow - rowH, midRow + rowH),
-    Math.floor(W * 0.003)
+            {/* Right sidebar: cropped thumbnails */}
+            {crops.length > 0 && (
+              <div style={{
+                width: '160px',
+                borderLeft: '1px solid #252535',
+                background: '#12121a',
+                overflowY: 'auto',
+                padding: '10px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                flexShrink: 0,
+              }}>
+                <p style={{ fontSize: '11px', color: '#4a4a6a', margin: '0 0 4px' }}>
+                  {crops.length} crop{crops.length > 1 ? 's' : ''}
+                </p>
+                {crops.map((c, i) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <img
+                      src={c.previewUrl}
+                      alt={`Crop ${i + 1}`}
+                      style={{
+                        width: '100%',
+                        aspectRatio: '1',
+                        objectFit: 'cover',
+                        borderRadius: '6px',
+                        border: '1px solid #252535',
+                        display: 'block',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => downloadCrops([c])}
+                      title="Click to download"
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '3px',
+                      left: '5px',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      color: '#fff',
+                      textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                    }}>
+                      {i + 1}
+                    </div>
+                    <button
+                      onClick={() => removeCrop(i)}
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        background: 'rgba(0,0,0,0.7)',
+                        border: 'none',
+                        borderRadius: '50%',
+                        color: '#ff6b6b',
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        lineHeight: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
-  const splits = findSplits(colBright, numCards, cardsStart, W)
-
-  // Build column segments
-  const colBounds = []
-  let prev = cardsStart
-  for (const s of splits) { colBounds.push([prev, s]); prev = s }
-  colBounds.push([prev, W])
-
-  // Step 5: Crop each card
-  const results = []
-  for (let i = 0; i < colBounds.length; i++) {
-    const [colLeft, colRight] = colBounds[i]
-    const blob = await cropCard(img, colLeft, colRight, gridTop, artBottom)
-    results.push({ blob, filename: `${baseName}-skin-${i + 1}.png` })
-  }
-
-  return results
-}
-
-export function downloadCrops(crops) {
-  crops.forEach(({ blob, filename }, index) => {
-    setTimeout(() => {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => {
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-      }, 500)
-    }, index * 300)
-  })
-}
+                }
+                      
