@@ -99,7 +99,19 @@ export default function App() {
   const blob = await exportCollage(images, canvasSize, backgroundColor)
   downloadBlob(blob, `collage-${Date.now()}.png`)
 }}>Export PNG</button>
-          <button className="btn-primary" onClick={() => exportAs('png')}>Export PNG</button>
+          <button className="btn-primary" onClick={async () => {
+  if (!images.length) return
+  const toast = (await import('react-hot-toast')).default
+  const id = toast.loading('Exporting collage...')
+  try {
+    const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
+    const blob = await exportCollage(images, backgroundColor)
+    downloadBlob(blob, `collage-${Date.now()}.png`)
+    toast.success('Exported!', { id })
+  } catch(e) {
+    toast.error('Export failed', { id })
+  }
+}}>Export PNG</button>
         </div>
       </header>
 
