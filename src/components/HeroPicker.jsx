@@ -18,7 +18,6 @@ const CATEGORY_COLORS = {
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
 const CELL_SIZE = 300
-const GRID_COLS = 4
 
 function preloadImage(src) {
   return new Promise((resolve) => {
@@ -62,14 +61,18 @@ export default function HeroPicker() {
     setIsAdding(true)
     saveSnapshot()
 
+    // Calculate cols for a near-square grid based on total images
+    const totalAfter = images.length + selectedSkins.length
+    const cols = Math.ceil(Math.sqrt(totalAfter))
+
     const newImages = await Promise.all(
       selectedSkins.map(async (skin, i) => {
         const { width, height } = await preloadImage(skin.image)
         const globalIndex = images.length + i
         return {
           src: skin.image,
-          x: (globalIndex % GRID_COLS) * CELL_SIZE,
-          y: Math.floor(globalIndex / GRID_COLS) * CELL_SIZE,
+          x: (globalIndex % cols) * CELL_SIZE,
+          y: Math.floor(globalIndex / cols) * CELL_SIZE,
           naturalWidth: width,
           naturalHeight: height,
           scaleX: CELL_SIZE / width,
@@ -80,11 +83,11 @@ export default function HeroPicker() {
       })
     )
 
-    // Reflow ALL existing images into the unified grid (no gaps)
+    // Reflow ALL existing images with the new cols value so grid is consistent
     images.forEach((img, i) => {
       updateImage(img.id, {
-        x: (i % GRID_COLS) * CELL_SIZE,
-        y: Math.floor(i / GRID_COLS) * CELL_SIZE,
+        x: (i % cols) * CELL_SIZE,
+        y: Math.floor(i / cols) * CELL_SIZE,
         scaleX: CELL_SIZE / img.naturalWidth,
         scaleY: CELL_SIZE / img.naturalHeight,
       })
