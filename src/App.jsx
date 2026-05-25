@@ -102,10 +102,25 @@ export default function App() {
         {images.length === 0 && !isDragging && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
             <p className="text-dim text-lg">Drop images here or click Upload</p>
-            <label className="btn-primary pointer-events-auto cursor-pointer">
-              Upload Images
-              <input type="file" multiple accept="image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
-            </label>
+            <button
+  className="btn-primary pointer-events-auto cursor-pointer"
+  onClick={() => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.multiple = true
+    input.accept = 'image/*'
+    input.onchange = (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(e.target.files)
+      }
+    }
+    document.body.appendChild(input)
+    input.click()
+    document.body.removeChild(input)
+  }}
+>
+  Upload Images
+</button>
           </div>
         )}
 
