@@ -66,7 +66,7 @@ export async function exportCollage(images, backgroundColor) {
         const destY = row * cellSize
 
         const image = new Image()
-        image.crossOrigin = 'anonymous' // ← MUST be before .src
+        image.crossOrigin = 'anonymous'   // must be before .src
         image.onload = () => {
           const srcSize = Math.min(image.naturalWidth, image.naturalHeight)
           const srcX = (image.naturalWidth - srcSize) / 2
@@ -74,8 +74,8 @@ export async function exportCollage(images, backgroundColor) {
           ctx.drawImage(image, srcX, srcY, srcSize, srcSize, destX, destY, cellSize, cellSize)
           resolve()
         }
-        image.onerror = () => resolve() // skip broken images, don't block export
-        image.src = img.src             // ← set AFTER crossOrigin
+        image.onerror = () => resolve()
+        image.src = img.src               // set after crossOrigin
       })
     )
   )
