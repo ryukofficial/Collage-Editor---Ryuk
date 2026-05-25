@@ -4,6 +4,20 @@ import { nanoid } from './nanoid'
 
 const DEFAULT_CANVAS = { width: 3840, height: 2160 }
 
+function layoutImages(allImages, canvasWidth) {
+  const count = allImages.length
+  if (count === 0) return []
+  const cols = Math.ceil(Math.sqrt(count))
+  const cellSize = Math.floor(canvasWidth / cols)
+  return allImages.map((img, i) => ({
+    ...img,
+    x: (i % cols) * cellSize,
+    y: Math.floor(i / cols) * cellSize,
+    scaleX: cellSize / img.naturalWidth,
+    scaleY: cellSize / img.naturalHeight,
+  }))
+}
+
 const useStore = create(
   subscribeWithSelector((set, get) => ({
     canvasSize: { ...DEFAULT_CANVAS },
@@ -39,51 +53,48 @@ const useStore = create(
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
 
     addImages: (newImages) => set(s => {
-      const startZ = s.images.length
-      const totalImages = s.images.length + newImages.length
-      const cols = Math.ceil(Math.sqrt(totalImages))
-      const cellSize = Math.floor(s.canvasSize.width / cols)
-
-      const imgs = newImages.map((img, i) => {
-        const globalIndex = startZ + i
-        const col = globalIndex % cols
-        const row = Math.floor(globalIndex / cols)
-        return {
-          id: nanoid(),
-          src: img.src,
-          name: img.name || 'Image',
-          naturalWidth: img.naturalWidth,
-          naturalHeight: img.naturalHeight,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          x: col * cellSize,
-          y: row * cellSize,
-          scaleX: 1,
-          scaleY: 1,
-          rotation: 0,
-          opacity: 1,
-          visible: true,
-          locked: false,
-          zIndex: startZ + i,
-          fileSize: img.fileSize || 0,
-        }
-      })
-      return { images: [...s.images, ...imgs] }
+      const prepared = newImages.map((img, i) => ({
+        id: nanoid(),
+        src: img.src,
+        name: img.name || 'Image',
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        rotation: 0,
+        opacity: 1,
+        visible: true,
+        locked: false,
+        zIndex: s.images.length + i,
+        fileSize: img.fileSize || 0,
+      }))
+      const allImages = [...s.images, ...prepared]
+      const laid = layoutImages(allImages, s.canvasSize.width)
+      return { images: laid }
     }),
 
     updateImage: (id, updates) => set(s => ({
       images: s.images.map(img => img.id === id ? { ...img, ...updates } : img)
     })),
 
-    removeImage: (id) => set(s => ({
-      images: s.images.filter(img => img.id !== id),
-      selectedIds: s.selectedIds.filter(sid => sid !== id),
-    })),
+    removeImage: (id) => set(s => {
+      const filtered = s.images.filter(img => img.id !== id)
+      const laid = layoutImages(filtered, s.canvasSize.width)
+      return {
+        images: laid,
+        selectedIds: s.selectedIds.filter(sid => sid !== id),
+      }
+    }),
 
-    removeSelected: () => set(s => ({
-      images: s.images.filter(img => !s.selectedIds.includes(img.id)),
-      selectedIds: [],
-    })),
+    removeSelected: () => set(s => {
+      const filtered = s.images.filter(img => !s.selectedIds.includes(img.id))
+      const laid = layoutImages(filtered, s.canvasSize.width)
+      return { images: laid, selectedIds: [] }
+    }),
 
     duplicateSelected: () => set(s => {
       const newImgs = s.selectedIds
@@ -92,11 +103,11 @@ const useStore = create(
         .map(img => ({
           ...img,
           id: nanoid(),
-          x: img.x + 30,
-          y: img.y + 30,
           zIndex: s.images.length,
         }))
-      return { images: [...s.images, ...newImgs], selectedIds: newImgs.map(i => i.id) }
+      const allImages = [...s.images, ...newImgs]
+      const laid = layoutImages(allImages, s.canvasSize.width)
+      return { images: laid, selectedIds: newImgs.map(i => i.id) }
     }),
 
     clearAll: () => set({ images: [], selectedIds: [] }),
@@ -137,26 +148,6 @@ const useStore = create(
     sendToBack: (id) => set(s => {
       const minZ = Math.min(...s.images.map(i => i.zIndex))
       return { images: s.images.map(i => i.id === id ? { ...i, zIndex: minZ - 1 } : i) }
-    }),
-
-    applyGridLayout: (cols = 4, gap = 0) => set(s => {
-      if (!s.images.length) return {}
-      const cw = s.canvasSize.width
-      const cellW = (cw - gap * (cols - 1)) / cols
-      const updated = s.images.map((img, i) => {
-        const row = Math.floor(i / cols)
-        const col = i % cols
-        const scale = cellW / img.naturalWidth
-        return {
-          ...img,
-          x: col * (cellW + gap),
-          y: row * (img.naturalHeight * scale + gap),
-          scaleX: scale,
-          scaleY: scale,
-          rotation: 0,
-        }
-      })
-      return { images: updated }
     }),
 
     history: [],
