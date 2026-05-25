@@ -18,14 +18,12 @@ const CATEGORY_COLORS = {
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
 
-// Preloads an image and returns its natural dimensions.
-// crossOrigin must be set before src for raw.githubusercontent.com to work.
 function preloadImage(src) {
   return new Promise((resolve) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-    img.onerror = () => resolve({ width: 300, height: 450 }) // safe fallback
+    img.onerror = () => resolve({ width: 300, height: 450 })
     img.src = src
   })
 }
@@ -36,8 +34,10 @@ export default function HeroPicker() {
   const [search, setSearch] = useState('')
   const [selectedSkins, setSelectedSkins] = useState([])
   const [isAdding, setIsAdding] = useState(false)
+
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
+  const autoFitImages = useStore(s => s.autoFitImages)
 
   const filtered = skinsData.filter(h =>
     h.name.toLowerCase().includes(search.toLowerCase())
@@ -57,18 +57,22 @@ export default function HeroPicker() {
     setIsAdding(true)
     saveSnapshot()
 
-    // Preload all selected skin images to get real dimensions
+    const cols = Math.ceil(Math.sqrt(selectedSkins.length))
+    const cellSize = 300
+
     const newImages = await Promise.all(
       selectedSkins.map(async (skin, i) => {
         const { width, height } = await preloadImage(skin.image)
+        const col = i % cols
+        const row = Math.floor(i / cols)
         return {
           src: skin.image,
-          x: 80 + i * 30,
-          y: 80 + i * 30,
+          x: col * cellSize,
+          y: row * cellSize,
           naturalWidth: width,
           naturalHeight: height,
-          scaleX: 1,
-          scaleY: 1,
+          scaleX: cellSize / width,
+          scaleY: cellSize / width,
           rotation: 0,
           opacity: 1,
         }
@@ -76,6 +80,8 @@ export default function HeroPicker() {
     )
 
     addImages(newImages)
+    setTimeout(() => autoFitImages(), 60)
+
     setIsAdding(false)
     setIsOpen(false)
     setSelectedHero(null)
@@ -96,7 +102,6 @@ export default function HeroPicker() {
 
   return (
     <>
-      {/* Trigger Button */}
       <button
         className="btn-primary text-sm px-3"
         onClick={() => { setIsOpen(true); setSelectedHero(null); setSearch('') }}
@@ -104,12 +109,10 @@ export default function HeroPicker() {
         + Create
       </button>
 
-      {/* Modal Overlay */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="w-full sm:w-[480px] max-h-[85vh] bg-[#0e0e1a] border border-[#252535] rounded-t-2xl sm:rounded-2xl flex flex-col overflow-hidden shadow-2xl">
 
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#252535] shrink-0">
               <div className="flex items-center gap-2">
                 {selectedHero ? (
@@ -134,7 +137,6 @@ export default function HeroPicker() {
               </button>
             </div>
 
-            {/* Hero List */}
             {!selectedHero && (
               <>
                 <div className="px-4 py-2 shrink-0">
@@ -172,7 +174,6 @@ export default function HeroPicker() {
               </>
             )}
 
-            {/* Skin List */}
             {selectedHero && (
               <>
                 <div className="px-4 py-2 shrink-0 flex items-center justify-between">
@@ -182,10 +183,7 @@ export default function HeroPicker() {
                       : 'Tap skins to select'}
                   </span>
                   {selectedSkins.length > 0 && (
-                    <button
-                      className="text-[#6c63ff] text-xs"
-                      onClick={() => setSelectedSkins([])}
-                    >
+                    <button className="text-[#6c63ff] text-xs" onClick={() => setSelectedSkins([])}>
                       Clear all
                     </button>
                   )}
@@ -236,7 +234,6 @@ export default function HeroPicker() {
                   </div>
                 </div>
 
-                {/* Add to Canvas Button */}
                 <div className="px-4 py-3 border-t border-[#252535] shrink-0">
                   <button
                     onClick={handleAddToCanvas}
