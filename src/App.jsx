@@ -22,8 +22,11 @@ function CanvasImage({ img, isSelected, onSelect }) {
       opacity={img.opacity}
       onClick={() => onSelect(img.id)}
       onTap={() => onSelect(img.id)}
-      stroke={isSelected ? '#6c63ff' : null}
+      stroke={isSelected ? '#6c63ff' : undefined}
       strokeWidth={isSelected ? 2 : 0}
+      strokeScaleEnabled={false}
+      hitStrokeWidth={0}
+      perfectDrawEnabled={false}
     />
   )
 }
@@ -85,20 +88,6 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={e => {
-          if (e.target.files && e.target.files.length > 0) {
-            handleFiles(e.target.files)
-            e.target.value = ''
-          }
-        }}
-      />
 
       <header className="bg-panel border-b border-border shrink-0">
         <div className="flex items-center justify-between px-4 py-2">
@@ -201,4 +190,4 @@ export default function App() {
       </div>
     </div>
   )
-}
+                    }
