@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  
+  input[type="range"] {
+    @apply appearance-none bg-transparent cursor-pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    @apply h-1 rounded-full bg-muted;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    @apply appearance-none w-3 h-3 rounded-full bg-accent -mt-1 transition-transform;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb {
+    @apply scale-125;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accentL active:scale-95 shadow-glow;
+  }
+  .btn-ghost {
+    @apply btn text-soft hover:text-text hover:bg-card active:scale-95;
+  }
+  .btn-outline {
+    @apply btn border border-border text-soft hover:text-text hover:border-dim active:scale-95;
+  }
+  .panel-section {
+    @apply border-b border-border/50 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0;
+  }
+  .label {
+    @apply block text-xs font-medium text-soft mb-1.5 uppercase tracking-wider;
+  }
+  .input-field {
+    @apply w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-dim focus:outline-none focus:border-accent/60 transition-colors;
+  }
+  .tool-btn {
+    @apply flex flex-col items-center gap-1 p-2.5 rounded-xl text-dim hover:text-text hover:bg-card transition-all cursor-pointer select-none;
+  }
+  .tool-btn.active {
+    @apply text-accent bg-accent/10;
+  }
+  .separator {
+    @apply w-full h-px bg-border/50 my-1;
+  }
+}
+
+@layer utilities {
+  .no-select { user-select: none; -webkit-user-select: none; }
+  .text-gradient {
+    background: linear-gradient(135deg, #6c63ff, #f5c842);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .bg-grid {
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #252535; border-radius: 2px; }
+}
+
+/* Konva canvas cursor overrides */
+.konvajs-content canvas { touch-action: none !important; }
+
+/* Tooltip override */
+.react-tooltip {
+  background: #1a1a26 !important;
+  color: #c8c8e8 !important;
+  border: 1px solid #252535 !important;
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  z-index: 9999 !important;
+}
+
+/* Color picker override */
+.react-colorful { width: 100% !important; }
+.react-colorful__saturation { border-radius: 6px 6px 0 0 !important; height: 140px !important; }
+.react-colorful__hue { height: 16px !important; border-radius: 0 0 6px 6px !important; }
+.react-colorful__pointer { width: 18px !important; height: 18px !important; }
