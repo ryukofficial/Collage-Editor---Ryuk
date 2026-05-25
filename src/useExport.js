@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
-import useStore from '../store/useStore'
-import { exportLargeCanvas, downloadBlob } from '../utils/imageUtils'
+import useStore from './store/useStore'
+import { exportLargeCanvas, downloadBlob } from './utils/imageUtils'
 import toast from 'react-hot-toast'
 
 export function useExport(stageRef) {
