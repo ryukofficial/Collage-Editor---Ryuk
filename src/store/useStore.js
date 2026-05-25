@@ -18,7 +18,7 @@ const useStore = create(
     setBackgroundColor: (c) => set({ backgroundColor: c }),
     setBackgroundTransparent: (v) => set({ backgroundTransparent: v }),
 
-    zoomIn:  () => set(s => ({ stageScale: Math.min(s.stageScale * 1.15, 5) })),
+    zoomIn: () => set(s => ({ stageScale: Math.min(s.stageScale * 1.15, 5) })),
     zoomOut: () => set(s => ({ stageScale: Math.max(s.stageScale / 1.15, 0.02) })),
     zoomFit: () => {
       const { canvasSize } = get()
@@ -39,54 +39,33 @@ const useStore = create(
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
 
     addImages: (newImages) => set(s => {
-  const startZ = s.images.length
-  const total = s.images.length + newImages.length
-  const cols = Math.ceil(Math.sqrt(total))
-  const cellSize = Math.floor(s.canvasSize.width / cols)
+      const startZ = s.images.length
+      const totalImages = s.images.length + newImages.length
+      const cols = Math.ceil(Math.sqrt(totalImages))
+      const cellSize = Math.floor(s.canvasSize.width / cols)
 
-  const allImages = [...s.images, ...newImages]
-  const imgs = newImages.map((img, i) => {
-    const globalIndex = startZ + i
-    const col = globalIndex % cols
-    const row = Math.floor(globalIndex / cols)
-    return {
-      id: nanoid(),
-      src: img.src,
-      name: img.name || 'Image',
-      naturalWidth: img.naturalWidth,
-      naturalHeight: img.naturalHeight,
-      x: col * cellSize,
-      y: row * cellSize,
-      scaleX: cellSize / img.naturalWidth,
-      scaleY: cellSize / img.naturalHeight,
-      rotation: 0,
-      opacity: 1,
-      visible: true,
-      locked: false,
-      zIndex: startZ + i,
-      fileSize: img.fileSize || 0,
-    }
-  })
-  return { images: [...s.images, ...imgs] }
-}),
-        id: nanoid(),
-        src: img.src,
-        name: img.name || 'Image',
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        x: img.x ?? Math.random() * (s.canvasSize.width * 0.6),
-        y: img.y ?? Math.random() * (s.canvasSize.height * 0.6),
-        scaleX: img.scaleX ?? 1,
-        scaleY: img.scaleY ?? 1,
-        rotation: img.rotation ?? 0,
-        opacity: 1,
-        visible: true,
-        locked: false,
-        zIndex: startZ + i,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-        fileSize: img.fileSize || 0,
-      }))
+      const imgs = newImages.map((img, i) => {
+        const globalIndex = startZ + i
+        const col = globalIndex % cols
+        const row = Math.floor(globalIndex / cols)
+        return {
+          id: nanoid(),
+          src: img.src,
+          name: img.name || 'Image',
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          x: col * cellSize,
+          y: row * cellSize,
+          scaleX: cellSize / img.naturalWidth,
+          scaleY: cellSize / img.naturalHeight,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          zIndex: startZ + i,
+          fileSize: img.fileSize || 0,
+        }
+      })
       return { images: [...s.images, ...imgs] }
     }),
 
@@ -135,7 +114,7 @@ const useStore = create(
       const imgs = [...s.images]
       const idx = imgs.findIndex(i => i.id === id)
       if (idx < imgs.length - 1) {
-        [imgs[idx].zIndex, imgs[idx + 1].zIndex] = [imgs[idx + 1].zIndex, imgs[idx].zIndex]
+        ;[imgs[idx].zIndex, imgs[idx + 1].zIndex] = [imgs[idx + 1].zIndex, imgs[idx].zIndex]
         return { images: [...imgs].sort((a, b) => a.zIndex - b.zIndex) }
       }
       return {}
@@ -144,7 +123,7 @@ const useStore = create(
       const imgs = [...s.images]
       const idx = imgs.findIndex(i => i.id === id)
       if (idx > 0) {
-        [imgs[idx].zIndex, imgs[idx - 1].zIndex] = [imgs[idx - 1].zIndex, imgs[idx].zIndex]
+        ;[imgs[idx].zIndex, imgs[idx - 1].zIndex] = [imgs[idx - 1].zIndex, imgs[idx].zIndex]
         return { images: [...imgs].sort((a, b) => a.zIndex - b.zIndex) }
       }
       return {}
@@ -204,11 +183,11 @@ const useStore = create(
     gridSize: 50,
     rulerVisible: false,
 
-    toggleLayers:    () => set(s => ({ showLayers: !s.showLayers })),
-    toggleProperties:() => set(s => ({ showProperties: !s.showProperties })),
-    toggleGrid:      () => set(s => ({ showGrid: !s.showGrid })),
-    toggleSnap:      () => set(s => ({ snapToGrid: !s.snapToGrid })),
-    setGridSize:     (v) => set({ gridSize: v }),
+    toggleLayers: () => set(s => ({ showLayers: !s.showLayers })),
+    toggleProperties: () => set(s => ({ showProperties: !s.showProperties })),
+    toggleGrid: () => set(s => ({ showGrid: !s.showGrid })),
+    toggleSnap: () => set(s => ({ snapToGrid: !s.snapToGrid })),
+    setGridSize: (v) => set({ gridSize: v }),
   }))
 )
 
