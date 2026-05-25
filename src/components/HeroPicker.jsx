@@ -22,6 +22,7 @@ export default function HeroPicker() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedHero, setSelectedHero] = useState(null)
   const [search, setSearch] = useState('')
+  const [selectedSkins, setSelectedSkins] = useState([])
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
 
@@ -29,26 +30,46 @@ export default function HeroPicker() {
     h.name.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleAddSkin = (skin) => {
-    if (!skin.image || skin.image === 'PASTE_URL_HERE') {
-      alert('Image not added yet for this skin!')
-      return
-    }
+  const toggleSkin = (skin) => {
+    if (!skin.image || skin.image === 'PASTE_URL_HERE') return
+    setSelectedSkins(prev => {
+      const exists = prev.find(s => s.name === skin.name)
+      if (exists) return prev.filter(s => s.name !== skin.name)
+      return [...prev, skin]
+    })
+  }
+
+  const handleAddToCanvas = () => {
+    if (!selectedSkins.length) return
     saveSnapshot()
-    addImages([{
-      id: Date.now() + Math.random(),
+    const newImages = selectedSkins.map((skin, i) => ({
+      id: Date.now() + Math.random() + i,
       src: skin.image,
-      x: 100,
-      y: 100,
+      x: 80 + i * 30,
+      y: 80 + i * 30,
       naturalWidth: 300,
       naturalHeight: 450,
       scaleX: 1,
       scaleY: 1,
       rotation: 0,
       opacity: 1,
-    }])
+    }))
+    addImages(newImages)
     setIsOpen(false)
     setSelectedHero(null)
+    setSelectedSkins([])
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+    setSelectedHero(null)
+    setSelectedSkins([])
+    setSearch('')
+  }
+
+  const handleBackToHeroes = () => {
+    setSelectedHero(null)
+    setSelectedSkins([])
   }
 
   return (
@@ -68,22 +89,24 @@ export default function HeroPicker() {
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#252535] shrink-0">
-              {selectedHero ? (
-                <button
-                  className="text-[#6c63ff] text-sm font-medium flex items-center gap-1"
-                  onClick={() => setSelectedHero(null)}
-                >
-                  ← Back
-                </button>
-              ) : (
-                <span className="text-white font-bold text-base">Select Hero</span>
-              )}
-              {selectedHero && (
-                <span className="text-white font-bold text-base">{selectedHero.name} Skins</span>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedHero ? (
+                  <button
+                    className="text-[#6c63ff] text-sm font-medium flex items-center gap-1"
+                    onClick={handleBackToHeroes}
+                  >
+                    ← Back
+                  </button>
+                ) : (
+                  <span className="text-white font-bold text-base">Select Hero</span>
+                )}
+                {selectedHero && (
+                  <span className="text-white font-bold text-base">{selectedHero.name}</span>
+                )}
+              </div>
               <button
                 className="text-[#888] hover:text-white text-xl leading-none"
-                onClick={() => { setIsOpen(false); setSelectedHero(null) }}
+                onClick={handleClose}
               >
                 ✕
               </button>
@@ -129,42 +152,87 @@ export default function HeroPicker() {
 
             {/* Skin List */}
             {selectedHero && (
-              <div className="overflow-y-auto flex-1 px-3 py-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {selectedHero.skins.map((skin, i) => {
-                    const hasImage = skin.image && skin.image !== 'PASTE_URL_HERE'
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleAddSkin(skin)}
-                        className={`relative rounded-xl overflow-hidden border transition-all text-left ${
-                          hasImage
-                            ? 'border-[#252535] hover:border-[#6c63ff]'
-                            : 'border-[#1a1a2e] opacity-50 cursor-not-allowed'
-                        }`}
-                      >
-                        <img
-                          src={hasImage ? skin.image : PLACEHOLDER}
-                          alt={skin.name}
-                          className="w-full h-36 object-cover bg-[#1a1a2e]"
-                          onError={e => { e.target.src = PLACEHOLDER }}
-                        />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2">
-                          <p className="text-white text-xs font-semibold leading-tight">{skin.name}</p>
-                          <span className={`text-[10px] text-white px-1.5 py-0.5 rounded-full mt-1 inline-block ${CATEGORY_COLORS[skin.category] || 'bg-gray-500'}`}>
-                            {skin.category}
-                          </span>
-                        </div>
-                        {!hasImage && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-[#555] text-xs">No image</span>
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
+              <>
+                {/* Selected count info */}
+                <div className="px-4 py-2 shrink-0 flex items-center justify-between">
+                  <span className="text-[#888] text-xs">
+                    {selectedSkins.length > 0
+                      ? `${selectedSkins.length} skin${selectedSkins.length > 1 ? 's' : ''} selected`
+                      : 'Tap skins to select'}
+                  </span>
+                  {selectedSkins.length > 0 && (
+                    <button
+                      className="text-[#6c63ff] text-xs"
+                      onClick={() => setSelectedSkins([])}
+                    >
+                      Clear all
+                    </button>
+                  )}
                 </div>
-              </div>
+
+                <div className="overflow-y-auto flex-1 px-3 pb-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedHero.skins.map((skin, i) => {
+                      const hasImage = skin.image && skin.image !== 'PASTE_URL_HERE'
+                      const isSelected = selectedSkins.find(s => s.name === skin.name)
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => toggleSkin(skin)}
+                          className={`relative rounded-xl overflow-hidden border-2 transition-all text-left ${
+                            !hasImage
+                              ? 'border-[#1a1a2e] opacity-40 cursor-not-allowed'
+                              : isSelected
+                              ? 'border-[#6c63ff] scale-[0.97]'
+                              : 'border-[#252535] hover:border-[#6c63ff]'
+                          }`}
+                        >
+                          <img
+                            src={hasImage ? skin.image : PLACEHOLDER}
+                            alt={skin.name}
+                            className="w-full h-36 object-cover bg-[#1a1a2e]"
+                            onError={e => { e.target.src = PLACEHOLDER }}
+                          />
+                          {/* Selected checkmark */}
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 w-6 h-6 bg-[#6c63ff] rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">✓</span>
+                            </div>
+                          )}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2">
+                            <p className="text-white text-xs font-semibold leading-tight">{skin.name}</p>
+                            <span className={`text-[10px] text-white px-1.5 py-0.5 rounded-full mt-1 inline-block ${CATEGORY_COLORS[skin.category] || 'bg-gray-500'}`}>
+                              {skin.category}
+                            </span>
+                          </div>
+                          {!hasImage && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-[#555] text-xs">No image</span>
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Add to Canvas Button */}
+                <div className="px-4 py-3 border-t border-[#252535] shrink-0">
+                  <button
+                    onClick={handleAddToCanvas}
+                    disabled={selectedSkins.length === 0}
+                    className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
+                      selectedSkins.length > 0
+                        ? 'bg-[#6c63ff] text-white hover:bg-[#5a52dd]'
+                        : 'bg-[#1a1a2e] text-[#555] cursor-not-allowed'
+                    }`}
+                  >
+                    {selectedSkins.length > 0
+                      ? `Add ${selectedSkins.length} Skin${selectedSkins.length > 1 ? 's' : ''} to Canvas`
+                      : 'Select skins to add'}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
