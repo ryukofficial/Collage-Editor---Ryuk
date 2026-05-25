@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
-import useStore from './useStore'
+import useStore from './store/useStore'
 import { useDrop } from './useDrop'
 import { useExport } from './useExport'
 import { useKeyboard } from './useKeyboard'
