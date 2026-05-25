@@ -3,7 +3,6 @@ import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
 import { useDrop } from './useDrop'
-import { useExport } from './useExport'
 import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
 
@@ -12,9 +11,12 @@ function CanvasImage({ img, isSelected, onSelect, onChange }) {
   return (
     <KonvaImage
       image={image}
-      x={img.x} y={img.y}
-      width={img.naturalWidth} height={img.naturalHeight}
-      scaleX={img.scaleX} scaleY={img.scaleY}
+      x={img.x}
+      y={img.y}
+      width={img.naturalWidth}
+      height={img.naturalHeight}
+      scaleX={img.scaleX}
+      scaleY={img.scaleY}
       rotation={img.rotation}
       opacity={img.opacity}
       draggable
@@ -30,6 +32,7 @@ function CanvasImage({ img, isSelected, onSelect, onChange }) {
 export default function App() {
   const stageRef = useRef()
   const fileInputRef = useRef()
+
   const images = useStore(s => s.images)
   const selectedIds = useStore(s => s.selectedIds)
   const canvasSize = useStore(s => s.canvasSize)
@@ -46,7 +49,6 @@ export default function App() {
   const redo = useStore(s => s.redo)
 
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
-  const { exportAs } = useExport(stageRef)
 
   useKeyboard()
 
@@ -66,6 +68,20 @@ export default function App() {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     })
+  }
+
+  const handleExport = async () => {
+    if (!images.length) return
+    const toast = (await import('react-hot-toast')).default
+    const id = toast.loading('Exporting collage...')
+    try {
+      const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
+      const blob = await exportCollage(images, backgroundColor)
+      downloadBlob(blob, `collage-${Date.now()}.png`)
+      toast.success('Exported! Check your downloads.', { id })
+    } catch (e) {
+      toast.error('Export failed: ' + e.message, { id })
+    }
   }
 
   return (
@@ -90,28 +106,12 @@ export default function App() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-panel border-b border-border shrink-0">
         <span className="font-display font-bold text-lg text-gradient">PixelForge</span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <button className="btn-ghost" onClick={undo}>Undo</button>
           <button className="btn-ghost" onClick={redo}>Redo</button>
           <button className="btn-ghost" onClick={clearAll}>Clear</button>
-          <button className="btn-primary" onClick={async () => {
-  const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
-  const blob = await exportCollage(images, canvasSize, backgroundColor)
-  downloadBlob(blob, `collage-${Date.now()}.png`)
-}}>Export PNG</button>
-          <button className="btn-primary" onClick={async () => {
-  if (!images.length) return
-  const toast = (await import('react-hot-toast')).default
-  const id = toast.loading('Exporting collage...')
-  try {
-    const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
-    const blob = await exportCollage(images, backgroundColor)
-    downloadBlob(blob, `collage-${Date.now()}.png`)
-    toast.success('Exported!', { id })
-  } catch(e) {
-    toast.error('Export failed', { id })
-  }
-}}>Export PNG</button>
+          <button className="btn-ghost" onClick={() => fileInputRef.current.click()}>Upload</button>
+          <button className="btn-primary" onClick={handleExport}>Export PNG</button>
         </div>
       </header>
 
@@ -156,7 +156,11 @@ export default function App() {
           onClick={e => { if (e.target === e.target.getStage()) clearSelection() }}
         >
           <Layer>
-            <Rect width={canvasSize.width} height={canvasSize.height} fill={backgroundColor} />
+            <Rect
+              width={canvasSize.width}
+              height={canvasSize.height}
+              fill={backgroundColor}
+            />
             {images.map(img => (
               <CanvasImage
                 key={img.id}
