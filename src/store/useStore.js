@@ -39,8 +39,36 @@ const useStore = create(
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
 
     addImages: (newImages) => set(s => {
-      const startZ = s.images.length
-      const imgs = newImages.map((img, i) => ({
+  const startZ = s.images.length
+  const total = s.images.length + newImages.length
+  const cols = Math.ceil(Math.sqrt(total))
+  const cellSize = Math.floor(s.canvasSize.width / cols)
+
+  const allImages = [...s.images, ...newImages]
+  const imgs = newImages.map((img, i) => {
+    const globalIndex = startZ + i
+    const col = globalIndex % cols
+    const row = Math.floor(globalIndex / cols)
+    return {
+      id: nanoid(),
+      src: img.src,
+      name: img.name || 'Image',
+      naturalWidth: img.naturalWidth,
+      naturalHeight: img.naturalHeight,
+      x: col * cellSize,
+      y: row * cellSize,
+      scaleX: cellSize / img.naturalWidth,
+      scaleY: cellSize / img.naturalHeight,
+      rotation: 0,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      zIndex: startZ + i,
+      fileSize: img.fileSize || 0,
+    }
+  })
+  return { images: [...s.images, ...imgs] }
+}),
         id: nanoid(),
         src: img.src,
         name: img.name || 'Image',
