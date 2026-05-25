@@ -38,6 +38,9 @@ export default function HeroPicker() {
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
   const autoFitImages = useStore(s => s.autoFitImages)
+  const images = useStore(s => s.images)  // to know if canvas has images
+
+  const hasImages = images.length > 0
 
   const filtered = skinsData.filter(h =>
     h.name.toLowerCase().includes(search.toLowerCase())
@@ -102,11 +105,12 @@ export default function HeroPicker() {
 
   return (
     <>
+      {/* Button label changes based on whether canvas has images */}
       <button
         className="btn-primary text-sm px-3"
         onClick={() => { setIsOpen(true); setSelectedHero(null); setSearch('') }}
       >
-        + Create
+        {hasImages ? '+ Add More' : '+ Create'}
       </button>
 
       {isOpen && (
@@ -190,7 +194,8 @@ export default function HeroPicker() {
                 </div>
 
                 <div className="overflow-y-auto flex-1 px-3 pb-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* 3 columns instead of 2 */}
+                  <div className="grid grid-cols-3 gap-2">
                     {selectedHero.skins.map((skin, i) => {
                       const hasImage = skin.image && skin.image !== 'PASTE_URL_HERE'
                       const isSelected = selectedSkins.find(s => s.name === skin.name)
@@ -209,17 +214,17 @@ export default function HeroPicker() {
                           <img
                             src={hasImage ? skin.image : PLACEHOLDER}
                             alt={skin.name}
-                            className="w-full h-36 object-cover bg-[#1a1a2e]"
+                            className="w-full h-28 object-cover bg-[#1a1a2e]"
                             onError={e => { e.target.src = PLACEHOLDER }}
                           />
                           {isSelected && (
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-[#6c63ff] rounded-full flex items-center justify-center">
+                            <div className="absolute top-1 right-1 w-5 h-5 bg-[#6c63ff] rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-bold">✓</span>
                             </div>
                           )}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2">
-                            <p className="text-white text-xs font-semibold leading-tight">{skin.name}</p>
-                            <span className={`text-[10px] text-white px-1.5 py-0.5 rounded-full mt-1 inline-block ${CATEGORY_COLORS[skin.category] || 'bg-gray-500'}`}>
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1.5">
+                            <p className="text-white text-[10px] font-semibold leading-tight truncate">{skin.name}</p>
+                            <span className={`text-[9px] text-white px-1 py-0.5 rounded-full mt-0.5 inline-block ${CATEGORY_COLORS[skin.category] || 'bg-gray-500'}`}>
                               {skin.category}
                             </span>
                           </div>
