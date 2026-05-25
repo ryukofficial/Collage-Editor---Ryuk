@@ -104,14 +104,14 @@ export default function App() {
       />
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 bg-panel border-b border-border shrink-0">
-        <span className="font-display font-bold text-lg text-gradient">PixelForge</span>
-        <div className="flex gap-2 items-center">
-          <button className="btn-ghost" onClick={undo}>Undo</button>
-          <button className="btn-ghost" onClick={redo}>Redo</button>
-          <button className="btn-ghost" onClick={clearAll}>Clear</button>
-          <button className="btn-ghost" onClick={() => fileInputRef.current.click()}>Upload</button>
-          <button className="btn-primary" onClick={handleExport}>Export PNG</button>
+      <header className="flex items-center justify-between px-4 py-2 bg-panel border-b border-border shrink-0 overflow-x-auto">
+        <span className="font-display font-bold text-lg text-gradient shrink-0 mr-3">PixelForge</span>
+        <div className="flex gap-2 items-center shrink-0">
+          <button className="btn-ghost text-sm px-2" onClick={undo}>Undo</button>
+          <button className="btn-ghost text-sm px-2" onClick={redo}>Redo</button>
+          <button className="btn-ghost text-sm px-2" onClick={clearAll}>Clear</button>
+          <button className="btn-ghost text-sm px-2" onClick={() => fileInputRef.current.click()}>Upload</button>
+          <button className="btn-primary text-sm px-3" onClick={handleExport}>Export PNG</button>
         </div>
       </header>
 
