@@ -94,7 +94,11 @@ export default function App() {
           <button className="btn-ghost" onClick={undo}>Undo</button>
           <button className="btn-ghost" onClick={redo}>Redo</button>
           <button className="btn-ghost" onClick={clearAll}>Clear</button>
-          <button className="btn-ghost" onClick={() => fileInputRef.current.click()}>Upload</button>
+          <button className="btn-primary" onClick={async () => {
+  const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
+  const blob = await exportCollage(images, canvasSize, backgroundColor)
+  downloadBlob(blob, `collage-${Date.now()}.png`)
+}}>Export PNG</button>
           <button className="btn-primary" onClick={() => exportAs('png')}>Export PNG</button>
         </div>
       </header>
