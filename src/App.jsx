@@ -2,7 +2,6 @@ import React, { useRef } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
-import CropTool from './components/CropTool'
 import { useDrop } from './useDrop'
 import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
@@ -112,7 +111,6 @@ export default function App() {
           <button className="btn-ghost" onClick={redo}>Redo</button>
           <button className="btn-ghost" onClick={clearAll}>Clear</button>
           <button className="btn-ghost" onClick={() => fileInputRef.current.click()}>Upload</button>
-          <CropTool />
           <button className="btn-primary" onClick={handleExport}>Export PNG</button>
         </div>
       </header>
