@@ -89,7 +89,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* Hidden file input for header Upload button */}
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -104,16 +104,39 @@ export default function App() {
         }}
       />
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 bg-panel border-b border-border shrink-0 overflow-x-auto">
-        <span className="font-display font-bold text-lg text-gradient shrink-0 mr-3">PixelForge</span>
-        <div className="flex gap-2 items-center shrink-0">
+      {/* Header - Two rows on mobile */}
+      <header className="bg-panel border-b border-border shrink-0">
+        {/* Row 1: Logo + Create + Export */}
+        <div className="flex items-center justify-between px-4 py-2">
+          <span className="font-display font-bold text-lg text-gradient shrink-0">PixelForge</span>
+          <div className="flex gap-2 items-center">
+            <HeroPicker />
+            <button className="btn-primary text-sm px-3" onClick={handleExport}>
+              Export PNG
+            </button>
+          </div>
+        </div>
+        {/* Row 2: Utility buttons */}
+        <div className="flex items-center gap-2 px-4 pb-2">
           <button className="btn-ghost text-sm px-2" onClick={undo}>Undo</button>
           <button className="btn-ghost text-sm px-2" onClick={redo}>Redo</button>
           <button className="btn-ghost text-sm px-2" onClick={clearAll}>Clear</button>
-          <button className="btn-ghost text-sm px-2" onClick={() => fileInputRef.current.click()}>Upload</button>
-          <HeroPicker />
-          <button className="btn-primary text-sm px-3" onClick={handleExport}>Export PNG</button>
+          <label className="btn-ghost text-sm px-2 cursor-pointer">
+            Upload
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => {
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFiles(e.target.files)
+                  e.target.value = ''
+                }
+              }}
+            />
+          </label>
         </div>
       </header>
 
@@ -161,7 +184,7 @@ export default function App() {
         <Stage
           ref={stageRef}
           width={window.innerWidth}
-          height={window.innerHeight - 48}
+          height={window.innerHeight - 80}
           scaleX={stageScale}
           scaleY={stageScale}
           x={stagePos.x}
