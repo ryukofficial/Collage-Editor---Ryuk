@@ -1,0 +1,173 @@
+[
+  {
+    "id": "gusion",
+    "name": "Gusion",
+    "role": "Assassin",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Holy Blade", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Moonlight Sonata", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Hair Stylist", "category": "Elite", "image": "PASTE_URL_HERE" },
+      { "name": "Cyber Ops", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Dangerous Liaison", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "V.E.N.O.M. Emperor Scorpion", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "K'", "category": "Collab", "image": "PASTE_URL_HERE" },
+      { "name": "Cosmic Gleam", "category": "Legend", "image": "PASTE_URL_HERE" },
+      { "name": "Night Owl", "category": "Collector", "image": "PASTE_URL_HERE" },
+      { "name": "Soul Revelation", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Minato Namikaze", "category": "Collab", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "franco",
+    "name": "Franco",
+    "role": "Tank",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Frozen Warrior", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Masterchef", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Apocalypse", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Locomotive", "category": "Season", "image": "PASTE_URL_HERE" },
+      { "name": "Wheatfield Nightmare", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Blazing Axe", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Valhalla Ruler", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Bone Crusher", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "King of Hell", "category": "Legend", "image": "PASTE_URL_HERE" },
+      { "name": "Quantum Vanguard", "category": "Mythic", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "johnson",
+    "name": "Johnson",
+    "role": "Tank",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Wild Engine", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Fire Chief", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "S.A.B.E.R. Automata", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Jeepney Racer", "category": "Elite", "image": "PASTE_URL_HERE" },
+      { "name": "Wreck King", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Death Ride", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Optimus Prime", "category": "Collab", "image": "PASTE_URL_HERE" },
+      { "name": "Starblazer", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Sovereign of Realms", "category": "Legend", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "odette",
+    "name": "Odette",
+    "role": "Mage",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Swan Princess", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Black Swan", "category": "Elite", "image": "PASTE_URL_HERE" },
+      { "name": "Butterfly Goddess", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Christmas Carnival", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Mermaid Princess", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Virgo", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Auspicious Charm", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Sage of the Currents", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Song of Devotion", "category": "Special", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "lancelot",
+    "name": "Lancelot",
+    "role": "Assassin",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Blade of Rose", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Masked Knight", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Christmas Carnival", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Royal Matador", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Dark Earl", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Pisces", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Floral Knight", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Swordmaster", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Bren Esports", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Empyrean Blade", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Alvaro", "category": "Collector", "image": "PASTE_URL_HERE" },
+      { "name": "Blade of Devotion", "category": "Special", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "alucard",
+    "name": "Alucard",
+    "role": "Fighter",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Demon Hunter", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Lone Hero", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Fiery Inferno", "category": "Season", "image": "PASTE_URL_HERE" },
+      { "name": "Child of the Fall", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Viscount", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Romantic Fantasy", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Obsidian Blade", "category": "Legend", "image": "PASTE_URL_HERE" },
+      { "name": "Lightborn - Striker", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Obito Uchiha", "category": "Collab", "image": "PASTE_URL_HERE" },
+      { "name": "Subway Surf", "category": "Collab", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "vexana",
+    "name": "Vexana",
+    "role": "Mage",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Shimmering Hope", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Toxic Kiss", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Sanguine Rose", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Lucent Beacon", "category": "Collector", "image": "PASTE_URL_HERE" },
+      { "name": "The Sunken World", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Twisted Fairytale", "category": "Collector", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "layla",
+    "name": "Layla",
+    "role": "Marksman",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Energy Gunner", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Green Flash", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Bunny Babe", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Classic Malefic Gunner", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Blue Specter", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Blazing Gun", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Miss Hikari", "category": "Collab", "image": "PASTE_URL_HERE" },
+      { "name": "Twilight Waltz", "category": "Starlight", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "miya",
+    "name": "Miya",
+    "role": "Marksman",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Moonlight Archer", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Burning Bow", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Captain Thorns", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Honor", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Modeo Butterfly", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Sweet Fantasy", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Suzuhime", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Moon Priestess", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Doom Catalyst", "category": "Collector", "image": "PASTE_URL_HERE" },
+      { "name": "Atomic Pop Miya", "category": "Special", "image": "PASTE_URL_HERE" }
+    ]
+  },
+  {
+    "id": "ling",
+    "name": "Ling",
+    "role": "Assassin",
+    "image": "PASTE_HERO_IMAGE_URL_HERE",
+    "skins": [
+      { "name": "Cyan Finch", "category": "Basic", "image": "PASTE_URL_HERE" },
+      { "name": "Street Punk", "category": "Starlight", "image": "PASTE_URL_HERE" },
+      { "name": "Night Shade", "category": "Epic", "image": "PASTE_URL_HERE" },
+      { "name": "Cosmo Guard", "category": "Special", "image": "PASTE_URL_HERE" },
+      { "name": "Serene Plume", "category": "Collector", "image": "PASTE_URL_HERE" },
+      { "name": "Lord Shen", "category": "Collab", "image": "PASTE_URL_HERE" }
+    ]
+  }
+]
