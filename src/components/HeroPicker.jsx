@@ -18,6 +18,13 @@ const CATEGORY_COLORS = {
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
 const CELL_SIZE = 300
+const GRID_COLS = 4
+
+function getHeroImage(hero) {
+  if (hero.image && hero.image !== 'PASTE_HERO_IMAGE_URL_HERE') return hero.image
+  const firstSkin = hero.skins.find(s => s.image && s.image !== 'PASTE_URL_HERE')
+  return firstSkin?.image || HERO_PLACEHOLDER
+}
 
 function preloadImage(src) {
   return new Promise((resolve) => {
@@ -61,7 +68,6 @@ export default function HeroPicker() {
     setIsAdding(true)
     saveSnapshot()
 
-    // Calculate cols for a near-square grid based on total images
     const totalAfter = images.length + selectedSkins.length
     const cols = Math.ceil(Math.sqrt(totalAfter))
 
@@ -83,7 +89,7 @@ export default function HeroPicker() {
       })
     )
 
-    // Reflow ALL existing images with the new cols value so grid is consistent
+    // Reflow all existing images with new cols
     images.forEach((img, i) => {
       updateImage(img.id, {
         x: (i % cols) * CELL_SIZE,
@@ -170,7 +176,7 @@ export default function HeroPicker() {
                         className="flex items-center gap-3 bg-[#1a1a2e] hover:bg-[#252545] border border-[#252535] hover:border-[#6c63ff] rounded-xl p-3 transition-all text-left"
                       >
                         <img
-                          src={hero.image !== 'PASTE_HERO_IMAGE_URL_HERE' ? hero.image : HERO_PLACEHOLDER}
+                          src={getHeroImage(hero)}
                           alt={hero.name}
                           className="w-12 h-12 rounded-lg object-cover shrink-0 bg-[#252535]"
                           onError={e => { e.target.src = HERO_PLACEHOLDER }}
