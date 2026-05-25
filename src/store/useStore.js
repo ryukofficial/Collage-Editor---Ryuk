@@ -4,22 +4,9 @@ import { nanoid } from './nanoid'
 
 const DEFAULT_CANVAS = { width: 3840, height: 2160 }
 
-function layoutImages(allImages, canvasWidth) {
-  const count = allImages.length
-  if (count === 0) return []
-  const cols = Math.ceil(Math.sqrt(count))
-  const cellSize = Math.floor(canvasWidth / cols)
-  return allImages.map((img, i) => ({
-    ...img,
-    x: (i % cols) * cellSize,
-    y: Math.floor(i / cols) * cellSize,
-    scaleX: cellSize / img.naturalWidth,
-    scaleY: cellSize / img.naturalHeight,
-  }))
-}
-
 const useStore = create(
   subscribeWithSelector((set, get) => ({
+    // ─── Canvas ────────────────────────────────────────────────
     canvasSize: { ...DEFAULT_CANVAS },
     stageScale: 0.15,
     stagePos: { x: 0, y: 0 },
@@ -32,7 +19,7 @@ const useStore = create(
     setBackgroundColor: (c) => set({ backgroundColor: c }),
     setBackgroundTransparent: (v) => set({ backgroundTransparent: v }),
 
-    zoomIn: () => set(s => ({ stageScale: Math.min(s.stageScale * 1.15, 5) })),
+    zoomIn:  () => set(s => ({ stageScale: Math.min(s.stageScale * 1.15, 5) })),
     zoomOut: () => set(s => ({ stageScale: Math.max(s.stageScale / 1.15, 0.02) })),
     zoomFit: () => {
       const { canvasSize } = get()
@@ -46,6 +33,38 @@ const useStore = create(
     },
     zoomActual: () => set({ stageScale: 1 }),
 
+    // ─── Auto-fit all images to screen ────────────────────────
+    autoFitImages: () => {
+      const { images } = get()
+      if (!images.length) return
+      const container = document.getElementById('canvas-container')
+      if (!container) return
+      const { clientWidth: cw, clientHeight: ch } = container
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      images.forEach(img => {
+        const w = img.naturalWidth * (img.scaleX ?? 1)
+        const h = img.naturalHeight * (img.scaleY ?? 1)
+        minX = Math.min(minX, img.x)
+        minY = Math.min(minY, img.y)
+        maxX = Math.max(maxX, img.x + w)
+        maxY = Math.max(maxY, img.y + h)
+      })
+
+      const contentW = maxX - minX
+      const contentH = maxY - minY
+      const padding = 32
+      const scale = Math.min(
+        (cw - padding * 2) / contentW,
+        (ch - padding * 2) / contentH,
+        1
+      )
+      const x = (cw - contentW * scale) / 2 - minX * scale
+      const y = (ch - contentH * scale) / 2 - minY * scale
+      set({ stageScale: scale, stagePos: { x, y } })
+    },
+
+    // ─── Images / Layers ───────────────────────────────────────
     images: [],
     selectedIds: [],
     activeTool: 'select',
@@ -53,48 +72,42 @@ const useStore = create(
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
 
     addImages: (newImages) => set(s => {
-      const prepared = newImages.map((img, i) => ({
+      const startZ = s.images.length
+      const imgs = newImages.map((img, i) => ({
         id: nanoid(),
         src: img.src,
         name: img.name || 'Image',
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
         width: img.naturalWidth,
         height: img.naturalHeight,
-        x: 0,
-        y: 0,
-        scaleX: 1,
-        scaleY: 1,
-        rotation: 0,
+        x: img.x ?? Math.random() * (s.canvasSize.width * 0.6),
+        y: img.y ?? Math.random() * (s.canvasSize.height * 0.6),
+        scaleX: img.scaleX ?? 1,
+        scaleY: img.scaleY ?? 1,
+        rotation: img.rotation ?? 0,
         opacity: 1,
         visible: true,
         locked: false,
-        zIndex: s.images.length + i,
+        zIndex: startZ + i,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
         fileSize: img.fileSize || 0,
       }))
-      const allImages = [...s.images, ...prepared]
-      const laid = layoutImages(allImages, s.canvasSize.width)
-      return { images: laid }
+      return { images: [...s.images, ...imgs] }
     }),
 
     updateImage: (id, updates) => set(s => ({
       images: s.images.map(img => img.id === id ? { ...img, ...updates } : img)
     })),
 
-    removeImage: (id) => set(s => {
-      const filtered = s.images.filter(img => img.id !== id)
-      const laid = layoutImages(filtered, s.canvasSize.width)
-      return {
-        images: laid,
-        selectedIds: s.selectedIds.filter(sid => sid !== id),
-      }
-    }),
+    removeImage: (id) => set(s => ({
+      images: s.images.filter(img => img.id !== id),
+      selectedIds: s.selectedIds.filter(sid => sid !== id),
+    })),
 
-    removeSelected: () => set(s => {
-      const filtered = s.images.filter(img => !s.selectedIds.includes(img.id))
-      const laid = layoutImages(filtered, s.canvasSize.width)
-      return { images: laid, selectedIds: [] }
-    }),
+    removeSelected: () => set(s => ({
+      images: s.images.filter(img => !s.selectedIds.includes(img.id)),
+      selectedIds: [],
+    })),
 
     duplicateSelected: () => set(s => {
       const newImgs = s.selectedIds
@@ -103,11 +116,11 @@ const useStore = create(
         .map(img => ({
           ...img,
           id: nanoid(),
+          x: img.x + 30,
+          y: img.y + 30,
           zIndex: s.images.length,
         }))
-      const allImages = [...s.images, ...newImgs]
-      const laid = layoutImages(allImages, s.canvasSize.width)
-      return { images: laid, selectedIds: newImgs.map(i => i.id) }
+      return { images: [...s.images, ...newImgs], selectedIds: newImgs.map(i => i.id) }
     }),
 
     clearAll: () => set({ images: [], selectedIds: [] }),
@@ -150,6 +163,27 @@ const useStore = create(
       return { images: s.images.map(i => i.id === id ? { ...i, zIndex: minZ - 1 } : i) }
     }),
 
+    applyGridLayout: (cols = 4, gap = 0) => set(s => {
+      if (!s.images.length) return {}
+      const cw = s.canvasSize.width
+      const cellW = (cw - gap * (cols - 1)) / cols
+      const updated = s.images.map((img, i) => {
+        const row = Math.floor(i / cols)
+        const col = i % cols
+        const scale = cellW / img.naturalWidth
+        return {
+          ...img,
+          x: col * (cellW + gap),
+          y: row * (img.naturalHeight * scale + gap),
+          scaleX: scale,
+          scaleY: scale,
+          rotation: 0,
+        }
+      })
+      return { images: updated }
+    }),
+
+    // ─── History ───────────────────────────────────────────────
     history: [],
     historyIndex: -1,
 
@@ -172,10 +206,12 @@ const useStore = create(
     canUndo: () => get().historyIndex > 0,
     canRedo: () => get().historyIndex < get().history.length - 1,
 
+    // ─── Export ────────────────────────────────────────────────
     isExporting: false,
     exportProgress: 0,
     setExporting: (v, p = 0) => set({ isExporting: v, exportProgress: p }),
 
+    // ─── UI state ──────────────────────────────────────────────
     showLayers: true,
     showProperties: true,
     showGrid: false,
@@ -183,11 +219,11 @@ const useStore = create(
     gridSize: 50,
     rulerVisible: false,
 
-    toggleLayers: () => set(s => ({ showLayers: !s.showLayers })),
+    toggleLayers:     () => set(s => ({ showLayers: !s.showLayers })),
     toggleProperties: () => set(s => ({ showProperties: !s.showProperties })),
-    toggleGrid: () => set(s => ({ showGrid: !s.showGrid })),
-    toggleSnap: () => set(s => ({ snapToGrid: !s.snapToGrid })),
-    setGridSize: (v) => set({ gridSize: v }),
+    toggleGrid:       () => set(s => ({ showGrid: !s.showGrid })),
+    toggleSnap:       () => set(s => ({ snapToGrid: !s.snapToGrid })),
+    setGridSize:      (v) => set({ gridSize: v }),
   }))
 )
 
