@@ -32,7 +32,7 @@
       { "name": "Blazing Axe", "category": "Epic", "image": "PASTE_URL_HERE" },
       { "name": "Valhalla Ruler", "category": "Epic", "image": "PASTE_URL_HERE" },
       { "name": "Bone Crusher", "category": "Special", "image": "PASTE_URL_HERE" },
-      { "name": "King of Hell", "category": "Legend", "image": https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/IMG_20260526_024230.jpg},
+      { "name": "King of Hell", "category": "Legend", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/IMG_20260526_024230.jpg" },
       { "name": "Quantum Vanguard", "category": "Mythic", "image": "PASTE_URL_HERE" }
     ]
   },
