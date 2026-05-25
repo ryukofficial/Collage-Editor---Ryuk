@@ -13,7 +13,7 @@ function CanvasImage({ img, isSelected, onSelect, onChange }) {
     <KonvaImage
       image={image}
       x={img.x} y={img.y}
-      width={img.width} height={img.height}
+      width={img.naturalWidth} height={img.naturalHeight}
       scaleX={img.scaleX} scaleY={img.scaleY}
       rotation={img.rotation}
       opacity={img.opacity}
@@ -29,6 +29,7 @@ function CanvasImage({ img, isSelected, onSelect, onChange }) {
 
 export default function App() {
   const stageRef = useRef()
+  const fileInputRef = useRef()
   const images = useStore(s => s.images)
   const selectedIds = useStore(s => s.selectedIds)
   const canvasSize = useStore(s => s.canvasSize)
@@ -71,6 +72,21 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={e => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFiles(e.target.files)
+            e.target.value = ''
+          }
+        }}
+      />
+
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-panel border-b border-border shrink-0">
         <span className="font-display font-bold text-lg text-gradient">PixelForge</span>
@@ -78,6 +94,7 @@ export default function App() {
           <button className="btn-ghost" onClick={undo}>Undo</button>
           <button className="btn-ghost" onClick={redo}>Redo</button>
           <button className="btn-ghost" onClick={clearAll}>Clear</button>
+          <button className="btn-ghost" onClick={() => fileInputRef.current.click()}>Upload</button>
           <button className="btn-primary" onClick={() => exportAs('png')}>Export PNG</button>
         </div>
       </header>
@@ -100,27 +117,14 @@ export default function App() {
 
         {/* Empty state */}
         {images.length === 0 && !isDragging && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <p className="text-dim text-lg">Drop images here or click Upload</p>
             <button
-  className="btn-primary pointer-events-auto cursor-pointer"
-  onClick={() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.multiple = true
-    input.accept = 'image/*'
-    input.onchange = (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        handleFiles(e.target.files)
-      }
-    }
-    document.body.appendChild(input)
-    input.click()
-    document.body.removeChild(input)
-  }}
->
-  Upload Images
-</button>
+              className="btn-primary"
+              onClick={() => fileInputRef.current.click()}
+            >
+              Upload Images
+            </button>
           </div>
         )}
 
