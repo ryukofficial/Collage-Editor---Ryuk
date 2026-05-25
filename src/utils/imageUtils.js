@@ -43,6 +43,51 @@ export function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
   })
 }
 
+export async function exportCollage(images, canvasSize, backgroundColor) {
+  // Create a full resolution offscreen canvas
+  const cellSize = Math.floor(canvasSize.width / Math.ceil(Math.sqrt(images.length)))
+  const cols = Math.ceil(Math.sqrt(images.length))
+  const rows = Math.ceil(images.length / cols)
+  const totalWidth = cols * cellSize
+  const totalHeight = rows * cellSize
+
+  const canvas = document.createElement('canvas')
+  canvas.width = totalWidth
+  canvas.height = totalHeight
+  const ctx = canvas.getContext('2d')
+
+  // Background
+  ctx.fillStyle = backgroundColor || '#000000'
+  ctx.fillRect(0, 0, totalWidth, totalHeight)
+
+  // Draw each image at full quality into its cell
+  await Promise.all(images.map((img, i) => new Promise((resolve) => {
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const x = col * cellSize
+    const y = row * cellSize
+
+    const image = new Image()
+    image.onload = () => {
+      // Cover the cell maintaining aspect ratio
+      const scale = Math.max(cellSize / image.naturalWidth, cellSize / image.naturalHeight)
+      const drawW = image.naturalWidth * scale
+      const drawH = image.naturalHeight * scale
+      const offsetX = x + (cellSize - drawW) / 2
+      const offsetY = y + (cellSize - drawH) / 2
+
+      ctx.drawImage(image, offsetX, offsetY, drawW, drawH)
+      resolve()
+    }
+    image.onerror = resolve
+    image.src = img.src
+  })))
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0)
+  })
+}
+
 export async function exportLargeCanvas(stage, canvasSize, format, quality, onProgress) {
   onProgress && onProgress(0.1)
   const dataURL = stage.toDataURL({
