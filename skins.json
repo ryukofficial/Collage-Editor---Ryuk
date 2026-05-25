@@ -26,8 +26,8 @@
     "skins": [
       { "name": "Frozen Warrior", "category": "Basic", "image": "PASTE_URL_HERE" },
       { "name": "Masterchef", "category": "Special", "image": "PASTE_URL_HERE" },
-      { "name": "Apocalypse", "category": "Starlight", "image": "PASTE_URL_HERE" },
-      { "name": "Locomotive", "category": "Season", "image": "PASTE_URL_HERE" },
+      { "name": "Apocalypse", "category": "Starlight", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/IMG_20260526_024154.jpg" },
+      { "name": "Locomotive", "category": "Season", "image": "https://github.com/ryukofficial/mlbb-assets/blob/main/IMG_20260526_024154.jpg" },
       { "name": "Wheatfield Nightmare", "category": "Special", "image": "PASTE_URL_HERE" },
       { "name": "Blazing Axe", "category": "Epic", "image": "PASTE_URL_HERE" },
       { "name": "Valhalla Ruler", "category": "Epic", "image": "PASTE_URL_HERE" },
