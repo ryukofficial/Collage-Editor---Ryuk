@@ -54,10 +54,12 @@ const useStore = create(
           name: img.name || 'Image',
           naturalWidth: img.naturalWidth,
           naturalHeight: img.naturalHeight,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
           x: col * cellSize,
           y: row * cellSize,
-          scaleX: cellSize / img.naturalWidth,
-          scaleY: cellSize / img.naturalHeight,
+          scaleX: 1,
+          scaleY: 1,
           rotation: 0,
           opacity: 1,
           visible: true,
@@ -145,7 +147,14 @@ const useStore = create(
         const row = Math.floor(i / cols)
         const col = i % cols
         const scale = cellW / img.naturalWidth
-        return { ...img, x: col * (cellW + gap), y: row * (img.naturalHeight * scale + gap), scaleX: scale, scaleY: scale, rotation: 0 }
+        return {
+          ...img,
+          x: col * (cellW + gap),
+          y: row * (img.naturalHeight * scale + gap),
+          scaleX: scale,
+          scaleY: scale,
+          rotation: 0,
+        }
       })
       return { images: updated }
     }),
