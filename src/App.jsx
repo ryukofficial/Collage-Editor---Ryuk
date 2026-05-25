@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
@@ -34,6 +34,10 @@ function CanvasImage({ img, isSelected, onSelect }) {
 export default function App() {
   const stageRef = useRef()
   const fileInputRef = useRef()
+  const profileInputRef = useRef()
+
+  const [profileImage, setProfileImage] = useState(null)
+  const [profileName, setProfileName] = useState('')
 
   const images = useStore(s => s.images)
   const selectedIds = useStore(s => s.selectedIds)
@@ -52,6 +56,21 @@ export default function App() {
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
   useKeyboard()
+
+  const handleProfileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setProfileImage(url)
+    setProfileName(file.name)
+    e.target.value = ''
+  }
+
+  const handleRemoveProfile = () => {
+    if (profileImage) URL.revokeObjectURL(profileImage)
+    setProfileImage(null)
+    setProfileName('')
+  }
 
   const handleWheel = (e) => {
     e.evt.preventDefault()
@@ -76,9 +95,12 @@ export default function App() {
     const toast = (await import('react-hot-toast')).default
     const id = toast.loading('Exporting collage...')
     try {
-      const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
-      const blob = await exportCollage(images, backgroundColor)
-      downloadBlob(blob, `collage-${Date.now()}.png`)
+      const { exportToPNG, downloadBlob } = await import('./utils/imageUtils')
+      const blob = await exportToPNG(stageRef.current, canvasSize, {
+        profileImage: profileImage || null,
+        onProgress: () => {},
+      })
+      downloadBlob(blob, `ryukcreates-${Date.now()}.png`)
       toast.success('Exported! Check your downloads.', { id })
     } catch (e) {
       toast.error('Export failed: ' + e.message, { id })
@@ -88,6 +110,14 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
+
+      <input
+        ref={profileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleProfileUpload}
+      />
 
       <header className="bg-panel border-b border-border shrink-0">
         <div className="flex items-center justify-between px-4 py-2">
@@ -99,7 +129,7 @@ export default function App() {
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-4 pb-2">
+        <div className="flex items-center gap-2 px-4 pb-2 flex-wrap">
           <button className="btn-ghost text-sm px-2" onClick={undo}>Undo</button>
           <button className="btn-ghost text-sm px-2" onClick={redo}>Redo</button>
           <button className="btn-ghost text-sm px-2" onClick={clearAll}>Clear</button>
@@ -119,6 +149,31 @@ export default function App() {
               }}
             />
           </label>
+
+          {/* Profile button */}
+          {!profileImage ? (
+            <button
+              className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border-[#6c63ff]/40 rounded"
+              onClick={() => profileInputRef.current?.click()}
+            >
+              + Add Profile
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-[#1a1a2e] border border-[#6c63ff]/40 rounded px-2 py-1">
+              <img
+                src={profileImage}
+                alt="profile"
+                className="w-5 h-5 rounded object-cover"
+              />
+              <span className="text-xs text-[#6c63ff] max-w-[80px] truncate">{profileName}</span>
+              <button
+                className="text-[#888] hover:text-red-400 text-xs ml-1"
+                onClick={handleRemoveProfile}
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
