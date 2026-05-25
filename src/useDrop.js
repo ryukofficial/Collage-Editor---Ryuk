@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { loadImageFiles } from '../utils/imageUtils'
-import useStore from '../store/useStore'
+import { loadImageFiles } from './utils/imageUtils'
+import useStore from './store/useStore'
 import toast from 'react-hot-toast'
 
 export function useDrop() {
