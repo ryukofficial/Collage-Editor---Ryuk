@@ -1,10 +1,11 @@
-export function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
+export function loadImageFiles(files, { onProgress } = {}) {
   return new Promise((resolve) => {
     const results = []
     const errors = []
     const fileArray = Array.from(files)
     let completed = 0
     if (fileArray.length === 0) { resolve({ results, errors }); return }
+
     fileArray.forEach((file) => {
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -21,10 +22,18 @@ export function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
           onProgress && onProgress(completed / fileArray.length)
           if (completed === fileArray.length) resolve({ results, errors })
         }
-        img.onerror = () => { errors.push(file.name); completed++; if (completed === fileArray.length) resolve({ results, errors }) }
+        img.onerror = () => {
+          errors.push(file.name)
+          completed++
+          if (completed === fileArray.length) resolve({ results, errors })
+        }
         img.src = e.target.result
       }
-      reader.onerror = () => { errors.push(file.name); completed++; if (completed === fileArray.length) resolve({ results, errors }) }
+      reader.onerror = () => {
+        errors.push(file.name)
+        completed++
+        if (completed === fileArray.length) resolve({ results, errors })
+      }
       reader.readAsDataURL(file)
     })
   })
@@ -33,10 +42,9 @@ export function loadImageFiles(files, { batchSize = 6, onProgress } = {}) {
 export async function exportCollage(images, backgroundColor) {
   if (!images.length) return null
 
-  // Each cell is the average size of uploaded images
   const avgW = Math.round(images.reduce((s, i) => s + i.naturalWidth, 0) / images.length)
   const avgH = Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
-  const cellSize = Math.min(avgW, avgH) // square cell
+  const cellSize = Math.min(avgW, avgH)
 
   const cols = Math.ceil(Math.sqrt(images.length))
   const rows = Math.ceil(images.length / cols)
@@ -49,32 +57,34 @@ export async function exportCollage(images, backgroundColor) {
   ctx.fillStyle = backgroundColor || '#000000'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  await Promise.all(images.map((img, i) => new Promise((resolve) => {
-    const col = i % cols
-    const row = Math.floor(i / cols)
-    const destX = col * cellSize
-    const destY = row * cellSize
+  await Promise.all(
+    images.map((img, i) =>
+      new Promise((resolve) => {
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        const destX = col * cellSize
+        const destY = row * cellSize
 
-    const image = new Image()
-    image.onload = () => {
-      // Center crop to square
-      const srcSize = Math.min(image.naturalWidth, image.naturalHeight)
-      const srcX = (image.naturalWidth - srcSize) / 2
-      const srcY = (image.naturalHeight - srcSize) / 2
+        const image = new Image()
+        image.crossOrigin = 'anonymous' // ← MUST be before .src
+        image.onload = () => {
+          const srcSize = Math.min(image.naturalWidth, image.naturalHeight)
+          const srcX = (image.naturalWidth - srcSize) / 2
+          const srcY = (image.naturalHeight - srcSize) / 2
+          ctx.drawImage(image, srcX, srcY, srcSize, srcSize, destX, destY, cellSize, cellSize)
+          resolve()
+        }
+        image.onerror = () => resolve() // skip broken images, don't block export
+        image.src = img.src             // ← set AFTER crossOrigin
+      })
+    )
+  )
 
-      ctx.drawImage(
-        image,
-        srcX, srcY, srcSize, srcSize,  // source: center crop
-        destX, destY, cellSize, cellSize  // dest: full cell
-      )
-      resolve()
-    }
-    image.onerror = resolve
-    image.src = img.src
-  })))
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0)
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob)
+      else reject(new Error('Canvas export produced empty blob'))
+    }, 'image/png', 1.0)
   })
 }
 
