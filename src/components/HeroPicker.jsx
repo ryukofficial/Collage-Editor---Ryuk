@@ -17,13 +17,15 @@ const CATEGORY_COLORS = {
 
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
+const CELL_SIZE = 300
+const GRID_COLS = 4
 
 function preloadImage(src) {
   return new Promise((resolve) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-    img.onerror = () => resolve({ width: 300, height: 450 })
+    img.onerror = () => resolve({ width: 300, height: 300 })
     img.src = src
   })
 }
@@ -37,6 +39,7 @@ export default function HeroPicker() {
 
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
+  const updateImage = useStore(s => s.updateImage)
   const images = useStore(s => s.images)
 
   const hasImages = images.length > 0
@@ -59,33 +62,33 @@ export default function HeroPicker() {
     setIsAdding(true)
     saveSnapshot()
 
-    const cols = Math.ceil(Math.sqrt(selectedSkins.length))
-    const cellSize = 300
-
-    // Offset new skins below existing images so they don't overlap
-    const existingMaxY = images.length > 0
-      ? Math.max(...images.map(img => img.y + img.naturalHeight * (img.scaleY ?? 1)))
-      : 0
-    const offsetY = images.length > 0 ? existingMaxY + 40 : 0
-
     const newImages = await Promise.all(
       selectedSkins.map(async (skin, i) => {
         const { width, height } = await preloadImage(skin.image)
-        const col = i % cols
-        const row = Math.floor(i / cols)
+        const globalIndex = images.length + i
         return {
           src: skin.image,
-          x: col * cellSize,
-          y: offsetY + row * cellSize,
+          x: (globalIndex % GRID_COLS) * CELL_SIZE,
+          y: Math.floor(globalIndex / GRID_COLS) * CELL_SIZE,
           naturalWidth: width,
           naturalHeight: height,
-          scaleX: cellSize / width,
-          scaleY: cellSize / width,
+          scaleX: CELL_SIZE / width,
+          scaleY: CELL_SIZE / height,
           rotation: 0,
           opacity: 1,
         }
       })
     )
+
+    // Reflow ALL existing images into the unified grid (no gaps)
+    images.forEach((img, i) => {
+      updateImage(img.id, {
+        x: (i % GRID_COLS) * CELL_SIZE,
+        y: Math.floor(i / GRID_COLS) * CELL_SIZE,
+        scaleX: CELL_SIZE / img.naturalWidth,
+        scaleY: CELL_SIZE / img.naturalHeight,
+      })
+    })
 
     addImages(newImages)
 
