@@ -162,12 +162,15 @@
     "role": "Assassin",
     "image": "PASTE_HERO_IMAGE_URL_HERE",
     "skins": [
-      { "name": "Cyan Finch", "category": "Basic", "image": "PASTE_URL_HERE" },
-      { "name": "Street Punk", "category": "Starlight", "image": "PASTE_URL_HERE" },
-      { "name": "Night Shade", "category": "Epic", "image": "PASTE_URL_HERE" },
-      { "name": "Cosmo Guard", "category": "Special", "image": "PASTE_URL_HERE" },
-      { "name": "Serene Plume", "category": "Collector", "image": "PASTE_URL_HERE" },
-      { "name": "Lord Shen", "category": "Collab", "image": "PASTE_URL_HERE" }
+      { "name": "Cyan Finch", "category": "Basic", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20basic.jpg" },
+      { "name": "Street Punk", "category": "Starlight", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20starlight.jpg" },
+      { "name": "Night Shade", "category": "Epic", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20epic.jpg" },
+      { "name": "Cosmo Guard", "category": "Special", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20special.jpg" },
+      { "name": "Serene Plume", "category": "Collector", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20coll.jpg" },
+      { "name": "Lord Shen", "category": "Collab", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20kung%20fu%20panda.jpg" },
+      { "name": "Ling Tides", "category": "Special", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20tidez.jpg" },
+      { "name": "Neo Beast", "category": "Special", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20neo%20beast.jpg" },
+      { "name": "M World", "category": "Special", "image": "https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/ling%20m%20world.jpg" }
     ]
   }
 ]
