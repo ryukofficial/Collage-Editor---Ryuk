@@ -37,8 +37,7 @@ export default function HeroPicker() {
 
   const addImages = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
-  const autoFitImages = useStore(s => s.autoFitImages)
-  const images = useStore(s => s.images)  // to know if canvas has images
+  const images = useStore(s => s.images)
 
   const hasImages = images.length > 0
 
@@ -83,7 +82,6 @@ export default function HeroPicker() {
     )
 
     addImages(newImages)
-    setTimeout(() => autoFitImages(), 60)
 
     setIsAdding(false)
     setIsOpen(false)
@@ -105,7 +103,6 @@ export default function HeroPicker() {
 
   return (
     <>
-      {/* Button label changes based on whether canvas has images */}
       <button
         className="btn-primary text-sm px-3"
         onClick={() => { setIsOpen(true); setSelectedHero(null); setSearch('') }}
@@ -194,7 +191,6 @@ export default function HeroPicker() {
                 </div>
 
                 <div className="overflow-y-auto flex-1 px-3 pb-4">
-                  {/* 3 columns instead of 2 */}
                   <div className="grid grid-cols-3 gap-2">
                     {selectedHero.skins.map((skin, i) => {
                       const hasImage = skin.image && skin.image !== 'PASTE_URL_HERE'
