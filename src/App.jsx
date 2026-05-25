@@ -88,7 +88,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* Hidden file input */}
+      {/* Hidden file input for header Upload button */}
       <input
         ref={fileInputRef}
         type="file"
@@ -135,12 +135,21 @@ export default function App() {
         {images.length === 0 && !isDragging && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <p className="text-dim text-lg">Drop images here or click Upload</p>
-            <button
-              className="btn-primary"
-              onClick={() => fileInputRef.current.click()}
-            >
+            <label className="btn-primary cursor-pointer">
               Upload Images
-            </button>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFiles(e.target.files)
+                    e.target.value = ''
+                  }
+                }}
+              />
+            </label>
           </div>
         )}
 
