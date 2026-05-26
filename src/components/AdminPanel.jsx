@@ -28,6 +28,8 @@ export default function AdminPanel({ onClose }) {
   const [saved, setSaved] = useState(false)
   const [selected, setSelected] = useState(new Set())
   const [bulkMode, setBulkMode] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [publishStatus, setPublishStatus] = useState(null) // 'success' | 'error' | null
 
   const allSkins = useMemo(() => {
     const list = []
@@ -82,8 +84,7 @@ export default function AdminPanel({ onClose }) {
   }
 
   const selectAll = () => {
-    // Only select unassigned skins
-    setSelected(new Set(filtered.filter(s => !assignments[`${s.heroId}__${s.skinName}`]).map(s => `${s.heroId}__${s.skinName}`)))
+    setSelected(new Set(filtered.map(s => `${s.heroId}__${s.skinName}`)))
   }
 
   const clearSelection = () => setSelected(new Set())
@@ -105,6 +106,61 @@ export default function AdminPanel({ onClose }) {
     URL.revokeObjectURL(url)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    setPublishStatus(null)
+    try {
+      const token = import.meta.env.VITE_GITHUB_TOKEN
+      const repo = import.meta.env.VITE_GITHUB_REPO
+      const filePath = import.meta.env.VITE_GITHUB_FILE_PATH
+
+      // Build updated skins.json content
+      const updated = skinsData.map(hero => ({
+        ...hero,
+        skins: hero.skins.map(skin => ({
+          ...skin,
+          tier: assignments[`${hero.id}__${skin.name}`] || '',
+        }))
+      }))
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+
+      // Get current file SHA (required by GitHub API to update a file)
+      const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+        }
+      })
+      const getData = await getRes.json()
+      const sha = getData.sha
+
+      // Commit updated file
+      const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Update skin tiers from admin panel',
+          content,
+          sha,
+        })
+      })
+
+      if (putRes.ok) {
+        setPublishStatus('success')
+      } else {
+        setPublishStatus('error')
+      }
+    } catch (e) {
+      setPublishStatus('error')
+    }
+    setPublishing(false)
+    setTimeout(() => setPublishStatus(null), 3000)
   }
 
   const stats = useMemo(() => {
@@ -153,16 +209,42 @@ export default function AdminPanel({ onClose }) {
           >
             {bulkMode ? '✓ Bulk ON' : 'Bulk Select'}
           </button>
+
+          {/* Export button */}
           <button
             onClick={handleExport}
             style={{
-              background: saved ? '#065f46' : 'linear-gradient(135deg, #6c63ff, #a855f7)',
-              border: 'none', borderRadius: '8px', padding: '7px 14px',
-              color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+              background: saved ? '#065f46' : '#12121a',
+              border: `1px solid ${saved ? '#34d399' : '#333'}`,
+              borderRadius: '8px', padding: '7px 14px',
+              color: saved ? '#34d399' : '#888',
+              fontWeight: 700, fontSize: '12px', cursor: 'pointer',
             }}
           >
-            {saved ? '✓ Saved!' : '⬇ Export'}
+            {saved ? '✓ Exported' : '⬇ Export'}
           </button>
+
+          {/* Publish button */}
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            style={{
+              background: publishStatus === 'success' ? '#065f46'
+                : publishStatus === 'error' ? '#3a0a0a'
+                : 'linear-gradient(135deg, #6c63ff, #a855f7)',
+              border: `1px solid ${publishStatus === 'success' ? '#34d399' : publishStatus === 'error' ? '#ef4444' : 'transparent'}`,
+              borderRadius: '8px', padding: '7px 14px',
+              color: '#fff', fontWeight: 700, fontSize: '12px',
+              cursor: publishing ? 'not-allowed' : 'pointer',
+              opacity: publishing ? 0.7 : 1,
+            }}
+          >
+            {publishing ? '⏳ Publishing...'
+              : publishStatus === 'success' ? '✓ Published!'
+              : publishStatus === 'error' ? '✕ Failed'
+              : '🚀 Publish'}
+          </button>
+
           <button
             onClick={onClose}
             style={{
@@ -232,7 +314,6 @@ export default function AdminPanel({ onClose }) {
           padding: '8px 16px', background: '#0e0e1a',
           borderBottom: '1px solid #252535', flexShrink: 0,
         }}>
-          {/* Select all / clear row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ color: '#888', fontSize: '12px' }}>
               {selected.size > 0 ? `${selected.size} selected` : 'Tap checkbox to select'}
@@ -249,7 +330,6 @@ export default function AdminPanel({ onClose }) {
             )}
           </div>
 
-          {/* Assign to tier buttons */}
           {selected.size > 0 && (
             <div>
               <p style={{ color: '#555', fontSize: '11px', margin: '0 0 6px' }}>Assign {selected.size} skin{selected.size > 1 ? 's' : ''} to:</p>
@@ -295,7 +375,6 @@ export default function AdminPanel({ onClose }) {
             const currentTier = assignments[key] || ''
             const colors = TIER_COLORS[currentTier] || TIER_COLORS['']
             const isSelected = selected.has(key)
-            const isLocked = bulkMode && !!currentTier
 
             return (
               <div key={key}
@@ -306,26 +385,25 @@ export default function AdminPanel({ onClose }) {
                   borderRadius: '10px', padding: '10px 12px',
                   transition: 'all 0.15s',
                   cursor: 'default',
-                  opacity: isLocked ? 0.45 : 1,
                 }}
               >
-                {/* Checkbox in bulk mode — ONLY interaction point for selection */}
+                {/* Checkbox — only interaction point in bulk mode */}
                 {bulkMode && (
                   <div
-                    onPointerDown={(e) => {
-                      e.preventDefault()
-                      if (!currentTier) { toggleSelect(key); setSearch('') }
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleSelect(key)
+                      setSearch('')
                     }}
                     style={{
                       width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                      border: `2px solid ${currentTier ? '#2a2a3a' : isSelected ? '#6c63ff' : '#555'}`,
-                      background: currentTier ? '#1a1a1a' : isSelected ? '#6c63ff' : 'transparent',
+                      border: `2px solid ${isSelected ? '#6c63ff' : '#555'}`,
+                      background: isSelected ? '#6c63ff' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: currentTier ? 'not-allowed' : 'pointer',
+                      cursor: 'pointer',
                     }}
                   >
                     {isSelected && <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>✓</span>}
-                    {currentTier && <span style={{ color: '#444', fontSize: '14px' }}>🔒</span>}
                   </div>
                 )}
 
