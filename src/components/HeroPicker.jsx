@@ -553,8 +553,8 @@ export default function HeroPicker() {
 
   return (
     <>
-      <button className="btn-ghost text-sm px-3" onClick={() => setIsOpen(true)}>
-        + Add Skins
+      <button className="btn-primary text-sm px-3" onClick={() => setIsOpen(true)}>
+        + Create
       </button>
 
       {isOpen && (
