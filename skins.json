@@ -1,167 +1,1706 @@
 [
   {
-    "id": "gusion",
-    "name": "Gusion",
-    "role": "Assassin",
+    "id": "aamon",
+    "name": "Aamon",
     "skins": [
-      { "name": "Desert Spider", "category": "Starlight" },
-      { "name": "Dimension Walker", "category": "Double 11" },
-      { "name": "Moonlight Sonata", "category": "Basic" },
-      { "name": "Hair Stylist", "category": "Elite" },
-      { "name": "Cyber Ops", "category": "Starlight" },
-      { "name": "Dangerous Liaison", "category": "Special" },
-      { "name": "V.E.N.O.M. Emperor Scorpion", "category": "Epic" },
-      { "name": "K'", "category": "Collab" },
-      { "name": "Cosmic Gleam", "category": "Legend" },
-      { "name": "Night Owl", "category": "Collector" },
-      { "name": "Soul Revelation", "category": "Epic" },
-      { "name": "Minato Namikaze", "category": "Collab" }
+      { "name": "Night's Edge" },
+      { "name": "Noble Crest" },
+      { "name": "Cyber Assassin" },
+      { "name": "Soul Reaver" },
+      { "name": "Vessel of Deceit" }
     ]
   },
   {
-    "id": "franco",
-    "name": "Franco",
-    "role": "Tank",
+    "id": "akai",
+    "name": "Akai",
     "skins": [
-      { "name": "Captain Of The Lost", "category": "Special" },
-      { "name": "Masterchef", "category": "Special" },
-      { "name": "Apocalypse", "category": "Starlight" },
-      { "name": "Locomotive", "category": "Season" },
-      { "name": "Wheatfield Nightmare", "category": "Special" },
-      { "name": "Blazing Axe", "category": "Epic" },
-      { "name": "Valhalla Ruler", "category": "Epic" },
-      { "name": "Bone Crusher", "category": "Special" },
-      { "name": "King of Hell", "category": "Legend" },
-      { "name": "Quantum Vanguard", "category": "Mythic" }
+      { "name": "Monk" },
+      { "name": "Stream Recluse" },
+      { "name": "Street Enforcer" },
+      { "name": "Akazonae Samurai" },
+      { "name": "Pumpkin Brawler" },
+      { "name": "Summer Party" },
+      { "name": "Imperial Assassin" },
+      { "name": "Kung Fu Panda" }
     ]
   },
   {
-    "id": "johnson",
-    "name": "Johnson",
-    "role": "Tank",
+    "id": "aldous",
+    "name": "Aldous",
     "skins": [
-      { "name": "Wild Engine", "category": "Basic" },
-      { "name": "Fire Chief", "category": "Basic" },
-      { "name": "S.A.B.E.R. Automata", "category": "Epic" },
-      { "name": "Jeepney Racer", "category": "Elite" },
-      { "name": "Wreck King", "category": "Epic" },
-      { "name": "Death Ride", "category": "Special" },
-      { "name": "Optimus Prime", "category": "Collab" },
-      { "name": "Starblazer", "category": "Special" },
-      { "name": "Sovereign of Realms", "category": "Legend" }
+      { "name": "Red Mantle" },
+      { "name": "The Insentient" },
+      { "name": "Fathom Terror" },
+      { "name": "King of Supremacy" },
+      { "name": "Blazing Force" },
+      { "name": "Realm Watcher" },
+      { "name": "Starscream" },
+      { "name": "Mistbender Aldous" }
     ]
   },
   {
-    "id": "odette",
-    "name": "Odette",
-    "role": "Mage",
+    "id": "alice",
+    "name": "Alice",
     "skins": [
-      { "name": "Swan Princess", "category": "Basic" },
-      { "name": "Black Swan", "category": "Elite" },
-      { "name": "Butterfly Goddess", "category": "Special" },
-      { "name": "Christmas Carnival", "category": "Special" },
-      { "name": "Mermaid Princess", "category": "Epic" },
-      { "name": "Virgo", "category": "Special" },
-      { "name": "Auspicious Charm", "category": "Special" },
-      { "name": "Sage of the Currents", "category": "Epic" },
-      { "name": "Song of Devotion", "category": "Special" }
+      { "name": "Spirit Woman" },
+      { "name": "Jade Empress" },
+      { "name": "Divine Owl" },
+      { "name": "Steam Glider" },
+      { "name": "Darknet Temptress" },
+      { "name": "Dreaming Monarch" },
+      { "name": "Wizardry Teacher" }
     ]
   },
   {
-    "id": "lancelot",
-    "name": "Lancelot",
-    "role": "Assassin",
+    "id": "alpha",
+    "name": "Alpha",
     "skins": [
-      { "name": "Blade of Rose", "category": "Basic" },
-      { "name": "Masked Knight", "category": "Basic" },
-      { "name": "Christmas Carnival", "category": "Special" },
-      { "name": "Royal Matador", "category": "Epic" },
-      { "name": "Dark Earl", "category": "Starlight" },
-      { "name": "Pisces", "category": "Special" },
-      { "name": "Floral Knight", "category": "Epic" },
-      { "name": "Swordmaster", "category": "Special" },
-      { "name": "Bren Esports", "category": "Special" },
-      { "name": "Empyrean Blade", "category": "Epic" },
-      { "name": "Alvaro", "category": "Collector" },
-      { "name": "Blade of Devotion", "category": "Special" }
+      { "name": "Fierce Dragon" },
+      { "name": "Sea Gladiator" },
+      { "name": "Star Enforcer" },
+      { "name": "Crimson Warrior" },
+      { "name": "Onimusha Commander" },
+      { "name": "Mecha-King Perseus" },
+      { "name": "General Void" },
+      { "name": "Revenant of Roses" }
     ]
   },
   {
     "id": "alucard",
     "name": "Alucard",
-    "role": "Fighter",
     "skins": [
-      { "name": "Demon Hunter", "category": "Basic" },
-      { "name": "Lone Hero", "category": "Basic" },
-      { "name": "Fiery Inferno", "category": "Season" },
-      { "name": "Child of the Fall", "category": "Epic" },
-      { "name": "Viscount", "category": "Starlight" },
-      { "name": "Romantic Fantasy", "category": "Special" },
-      { "name": "Obsidian Blade", "category": "Legend" },
-      { "name": "Lightborn - Striker", "category": "Special" },
-      { "name": "Obito Uchiha", "category": "Collab" },
-      { "name": "Subway Surf", "category": "Collab" }
+      { "name": "Lone Hero" },
+      { "name": "Fiery Inferno" },
+      { "name": "Empire Agent" },
+      { "name": "Romantic Fantasy" },
+      { "name": "Demon's Bane" },
+      { "name": "Viscount" },
+      { "name": "Child of the Fall" },
+      { "name": "Obsidian Blade" },
+      { "name": "Obi-Wan Kenobi" }
     ]
   },
   {
-    "id": "vexana",
-    "name": "Vexana",
-    "role": "Mage",
+    "id": "angela",
+    "name": "Angela",
     "skins": [
-      { "name": "Shimmering Hope", "category": "Basic" },
-      { "name": "Toxic Kiss", "category": "Basic" },
-      { "name": "Sanguine Rose", "category": "Epic" },
-      { "name": "Lucent Beacon", "category": "Collector" },
-      { "name": "The Sunken World", "category": "Special" },
-      { "name": "Twisted Fairytale", "category": "Collector" }
+      { "name": "Dove&Love" },
+      { "name": "Shanghai Maiden" },
+      { "name": "Scream Doll" },
+      { "name": "Summer Vibes" },
+      { "name": "Floral Elf" },
+      { "name": "Avatar of Time" },
+      { "name": "Heartstring" },
+      { "name": "Cyber Cherubin" },
+      { "name": "Strings of Fate" }
+    ]
+  },
+  {
+    "id": "argus",
+    "name": "Argus",
+    "skins": [
+      { "name": "Light of Dawn" },
+      { "name": "Winged Nightmare" },
+      { "name": "Catastrophe" },
+      { "name": "Dark Draconic" },
+      { "name": "Darth Vader" }
+    ]
+  },
+  {
+    "id": "arlott",
+    "name": "Arlott",
+    "skins": [
+      { "name": "Wandering Spear" },
+      { "name": "Fury of the Deep" },
+      { "name": "Aeon of Twilight" }
+    ]
+  },
+  {
+    "id": "atlas",
+    "name": "Atlas",
+    "skins": [
+      { "name": "Reactor Core" },
+      { "name": "Fuel Turbine" },
+      { "name": "Maelstrom Lurker" },
+      { "name": "Space Mech" },
+      { "name": "Sunken Curse" },
+      { "name": "Rune Sentinel" },
+      { "name": "Mecha Infernus" }
+    ]
+  },
+  {
+    "id": "aulus",
+    "name": "Aulus",
+    "skins": [
+      { "name": "Berserker" },
+      { "name": "Barren Pioneer" },
+      { "name": "Ironmane Reaver" },
+      { "name": "War Lion" }
+    ]
+  },
+  {
+    "id": "aurora",
+    "name": "Aurora",
+    "skins": [
+      { "name": "Nature's Throne" },
+      { "name": "Heartbreak Empress" },
+      { "name": "Foxy Lady" },
+      { "name": "Aquarius" },
+      { "name": "Candle's Vigil" },
+      { "name": "Veil of the Celestials" },
+      { "name": "Kula Diamond" }
+    ]
+  },
+  {
+    "id": "badang",
+    "name": "Badang",
+    "skins": [
+      { "name": "Ironfists" },
+      { "name": "Steel Arms" },
+      { "name": "Susanoo" },
+      { "name": "Pegasus Seiya" },
+      { "name": "Leo" },
+      { "name": "Fist of Zen" },
+      { "name": "Sagittarius Seiya" }
+    ]
+  },
+  {
+    "id": "balmond",
+    "name": "Balmond",
+    "skins": [
+      { "name": "Savage Hunter" },
+      { "name": "Power Source" },
+      { "name": "Ghoul's Fury" },
+      { "name": "Ironhide Berserker" },
+      { "name": "Savage Pointguard" },
+      { "name": "Bioroid" },
+      { "name": "Razor Edge" },
+      { "name": "God of Mountains" }
+    ]
+  },
+  {
+    "id": "bane",
+    "name": "Bane",
+    "skins": [
+      { "name": "Warlord" },
+      { "name": "Underworld Outlaw" },
+      { "name": "Deep Sea Monster" },
+      { "name": "Lord of Scalding Seas" }
+    ]
+  },
+  {
+    "id": "barats",
+    "name": "Barats",
+    "skins": [
+      { "name": "War Chief" },
+      { "name": "Armored Lizard" },
+      { "name": "Toy Rex" },
+      { "name": "Baratstein" },
+      { "name": "Sunken Predator" }
+    ]
+  },
+  {
+    "id": "baxia",
+    "name": "Baxia",
+    "skins": [
+      { "name": "Black Tortoise" },
+      { "name": "Wild Totem" },
+      { "name": "Badass Roller" },
+      { "name": "Ba-rista" },
+      { "name": "Dauntless Shield" }
+    ]
+  },
+  {
+    "id": "beatrix",
+    "name": "Beatrix",
+    "skins": [
+      { "name": "Blitz Attack" },
+      { "name": "X Factor" },
+      { "name": "Space Agent" },
+      { "name": "Vibrant Fiesta" },
+      { "name": "Light Chaser" },
+      { "name": "Sky Force Maverick" },
+      { "name": "Stellar Brilliance" }
+    ]
+  },
+  {
+    "id": "belerick",
+    "name": "Belerick",
+    "skins": [
+      { "name": "Torch Guardian" },
+      { "name": "Tiger's Claw" },
+      { "name": "Emerald Guardian" },
+      { "name": "The Deep One" },
+      { "name": "Arbiter of Stars" }
+    ]
+  },
+  {
+    "id": "benedetta",
+    "name": "Benedetta",
+    "skins": [
+      { "name": "Honor Blade" },
+      { "name": "Street Thrasher" },
+      { "name": "Moonblade" },
+      { "name": "Quantum Edge" },
+      { "name": "Phantom Mirage" },
+      { "name": "Death Oath" },
+      { "name": "Panigale V4S Rider" },
+      { "name": "Vessel of Pride" }
+    ]
+  },
+  {
+    "id": "brody",
+    "name": "Brody",
+    "skins": [
+      { "name": "Nameless Stray" },
+      { "name": "Quantum Grip" },
+      { "name": "Lethal Fang" },
+      { "name": "S.T.U.N. Brody" },
+      { "name": "APBren" },
+      { "name": "Ore-chemist" },
+      { "name": "Neobeast Brody" }
+    ]
+  },
+  {
+    "id": "bruno",
+    "name": "Bruno",
+    "skins": [
+      { "name": "Street Football" },
+      { "name": "Vanguard Elite" },
+      { "name": "The Falcon" },
+      { "name": "Street Hype" },
+      { "name": "Neymar Jr" },
+      { "name": "Best DJ" },
+      { "name": "Halo Striker" },
+      { "name": "Firebolt" }
+    ]
+  },
+  {
+    "id": "carmilla",
+    "name": "Carmilla",
+    "skins": [
+      { "name": "Magician Girl" },
+      { "name": "Wisteria Countess" },
+      { "name": "Phantom Countess" },
+      { "name": "Astral Arcana" }
+    ]
+  },
+  {
+    "id": "cecilion",
+    "name": "Cecilion",
+    "skins": [
+      { "name": "Wisteria Count" },
+      { "name": "The Illusionist" },
+      { "name": "Phantom Count" },
+      { "name": "Stargazer" },
+      { "name": "Crimson Wings" },
+      { "name": "Hisoka" },
+      { "name": "Vessel of Gluttony" }
+    ]
+  },
+  {
+    "id": "change",
+    "name": "Chang'e",
+    "skins": [
+      { "name": "Moonstruck" },
+      { "name": "Crimson Moon" },
+      { "name": "Floral Elfo" },
+      { "name": "Strawberry Parfait" },
+      { "name": "Moonglow Troupe" },
+      { "name": "Vine Cradle" },
+      { "name": "New Moon" },
+      { "name": "Lunar Magic" },
+      { "name": "Moon Artist" },
+      { "name": "Tech Tensai" }
+    ]
+  },
+  {
+    "id": "chip",
+    "name": "Chip",
+    "skins": [
+      { "name": "Badlands Hiatus" },
+      { "name": "Nexus Engineer" },
+      { "name": "Player One" }
+    ]
+  },
+  {
+    "id": "chou",
+    "name": "Chou",
+    "skins": [
+      { "name": "Hip-hop Boy" },
+      { "name": "King of Muay Thai" },
+      { "name": "Go Ballistic" },
+      { "name": "Furious Tiger" },
+      { "name": "Dragon Shiryu" },
+      { "name": "ECHO" },
+      { "name": "S.T.U.N. Chou" },
+      { "name": "Dragon Boy" },
+      { "name": "Libra Shiryu" },
+      { "name": "Iori Yagami" },
+      { "name": "Thunderfist" }
+    ]
+  },
+  {
+    "id": "cici",
+    "name": "Cici",
+    "skins": [
+      { "name": "Whimsical Carnival" },
+      { "name": "Circus Reverie" },
+      { "name": "P.ACE Cici" }
+    ]
+  },
+  {
+    "id": "claude",
+    "name": "Claude",
+    "skins": [
+      { "name": "Golden Bullet" },
+      { "name": "Plunderous Pirate" },
+      { "name": "Summer Chill" },
+      { "name": "Christmas Carnival" },
+      { "name": "Earth's Mightiest" },
+      { "name": "Heart Aflame" },
+      { "name": "Challenger's Spark" },
+      { "name": "Blazing Trace" },
+      { "name": "Mecha Dragon" },
+      { "name": "Bad Bro" },
+      { "name": "Cosmic Blaze" }
+    ]
+  },
+  {
+    "id": "clint",
+    "name": "Clint",
+    "skins": [
+      { "name": "Witch Hunter" },
+      { "name": "Guns and Roses" },
+      { "name": "Rock and Roll" },
+      { "name": "Operator CL" },
+      { "name": "Badminton Champion" },
+      { "name": "Summer Blast" },
+      { "name": "Shadow Omen" },
+      { "name": "Captain of the Reefs" },
+      { "name": "Dragon's Maw" },
+      { "name": "Crimson Blast" },
+      { "name": "Vessel of Ruin" }
+    ]
+  },
+  {
+    "id": "cyclops",
+    "name": "Cyclops",
+    "skins": [
+      { "name": "Zombie Bambino" },
+      { "name": "Exorcist" },
+      { "name": "Super Adventurer" },
+      { "name": "Deep Sea Rescuer" },
+      { "name": "Straw Doll" },
+      { "name": "SpongeBob" },
+      { "name": "S.A.B.E.R. Enforcer" },
+      { "name": "Yokai Warlock" },
+      { "name": "Master Yoda" }
+    ]
+  },
+  {
+    "id": "diggie",
+    "name": "Diggie",
+    "skins": [
+      { "name": "Circus Clown" },
+      { "name": "Underwood Steward" },
+      { "name": "Pigeoneer" },
+      { "name": "Constellation" },
+      { "name": "Fairytaler" }
+    ]
+  },
+  {
+    "id": "dyrroth",
+    "name": "Dyrroth",
+    "skins": [
+      { "name": "Scalebore" },
+      { "name": "Ruins Scavenger" },
+      { "name": "V.E.N.O.M. Cobra" },
+      { "name": "Naraka Flame" },
+      { "name": "Orochi Chris" },
+      { "name": "Gon" }
+    ]
+  },
+  {
+    "id": "edith",
+    "name": "Edith",
+    "skins": [
+      { "name": "Celestial Safeguard" },
+      { "name": "Verdant Knight" },
+      { "name": "Ancient Warden" },
+      { "name": "Prismatic Sentinel" },
+      { "name": "Red Bastion" },
+      { "name": "Beyond the Clouds Edith" }
+    ]
+  },
+  {
+    "id": "esmeralda",
+    "name": "Esmeralda",
+    "skins": [
+      { "name": "Ruddy Dusk" },
+      { "name": "Poison Vine" },
+      { "name": "Lady Thief" },
+      { "name": "Cleopatra" },
+      { "name": "Astral Muse" },
+      { "name": "Petal's Razor" },
+      { "name": "Blazing Shadow" },
+      { "name": "Light Envoy" },
+      { "name": "The Foreseer" }
+    ]
+  },
+  {
+    "id": "estes",
+    "name": "Estes",
+    "skins": [
+      { "name": "Holy Priest" },
+      { "name": "White Crane" },
+      { "name": "Crow Bishop" },
+      { "name": "Arcane Magistrate" },
+      { "name": "Rattan Dragon" },
+      { "name": "Blacklist International" },
+      { "name": "SPARKLE Estes" },
+      { "name": "Galaxy Dominator" }
+    ]
+  },
+  {
+    "id": "eudora",
+    "name": "Eudora",
+    "skins": [
+      { "name": "Countess Scarlet" },
+      { "name": "Lightning Magister" },
+      { "name": "Christmas Carnival" },
+      { "name": "Vivo Selfie Goddess" },
+      { "name": "Cosmic Voyage" },
+      { "name": "Emerald Enchantress" }
+    ]
+  },
+  {
+    "id": "fanny",
+    "name": "Fanny",
+    "skins": [
+      { "name": "Punk Princess" },
+      { "name": "Imperial Warrior" },
+      { "name": "Campus Youth" },
+      { "name": "Royal Cavalry" },
+      { "name": "Summer Rescue" },
+      { "name": "Christmas Carnival" },
+      { "name": "Heart Afloat" },
+      { "name": "Lightborn - Ranger" },
+      { "name": "P.ACE Fanny" },
+      { "name": "Skylark" },
+      { "name": "Galactic Starhawk" },
+      { "name": "Mikasa" },
+      { "name": "Blade of Kibou" }
+    ]
+  },
+  {
+    "id": "faramis",
+    "name": "Faramis",
+    "skins": [
+      { "name": "Dark Necro" },
+      { "name": "Royal Magus" },
+      { "name": "Enigmatic Wayfarer" },
+      { "name": "Summer Sparks" },
+      { "name": "Infernal Magister" }
+    ]
+  },
+  {
+    "id": "floryn",
+    "name": "Floryn",
+    "skins": [
+      { "name": "Springtide" },
+      { "name": "Paw Power" },
+      { "name": "Yatai Waitress" },
+      { "name": "Melody of Light" },
+      { "name": "Herald of Autumn" },
+      { "name": "Fluffy Dream" }
+    ]
+  },
+  {
+    "id": "franco",
+    "name": "Franco",
+    "skins": [
+      { "name": "Bone Crusher" },
+      { "name": "Locomotive" },
+      { "name": "Masterchef" },
+      { "name": "Apocalypse" },
+      { "name": "Wheatfield Nightmare" },
+      { "name": "Captain of the Lost" },
+      { "name": "Quantum Vanguard" },
+      { "name": "Blazing Axe" },
+      { "name": "Valhalla Ruler" },
+      { "name": "King of Hell" }
+    ]
+  },
+  {
+    "id": "fredrinn",
+    "name": "Fredrinn",
+    "skins": [
+      { "name": "Regal Renegade" },
+      { "name": "Jewel Connoisseur" },
+      { "name": "Royal Marshal" },
+      { "name": "SPARKLE Fredrinn" },
+      { "name": "Neobeast Fredrinn" }
+    ]
+  },
+  {
+    "id": "freya",
+    "name": "Freya",
+    "skins": [
+      { "name": "Gladiator" },
+      { "name": "Dark Rose" },
+      { "name": "Dragon Hunter" },
+      { "name": "Beach Sweetheart" },
+      { "name": "Christmas Carnival" },
+      { "name": "Starborn Resolve" },
+      { "name": "Raven Shogun" },
+      { "name": "S.A.B.E.R. Manhunter" },
+      { "name": "War Angel" },
+      { "name": "Galactic Vanquisher" }
+    ]
+  },
+  {
+    "id": "gatotkaca",
+    "name": "Gatotkaca",
+    "skins": [
+      { "name": "Spark" },
+      { "name": "Mighty Guardian" },
+      { "name": "Arhat King" },
+      { "name": "Solar Spark" },
+      { "name": "Nutcracker Monarch" },
+      { "name": "Tide Preserver" },
+      { "name": "Sentinel" }
+    ]
+  },
+  {
+    "id": "gloo",
+    "name": "Gloo",
+    "skins": [
+      { "name": "Verdant Enchanter" },
+      { "name": "Jellyman" },
+      { "name": "Patrick" }
+    ]
+  },
+  {
+    "id": "gord",
+    "name": "Gord",
+    "skins": [
+      { "name": "New Baron" },
+      { "name": "Professor of Hell" },
+      { "name": "Imperator Vitalis" },
+      { "name": "Christmas Carnival" },
+      { "name": "Techno Hazard" },
+      { "name": "Cyber Hacker" },
+      { "name": "No.1 Controller" },
+      { "name": "Conqueror" }
+    ]
+  },
+  {
+    "id": "granger",
+    "name": "Granger",
+    "skins": [
+      { "name": "Bardic Whisper" },
+      { "name": "Doomsday Terminator" },
+      { "name": "Biosoldier" },
+      { "name": "Hellbringer" },
+      { "name": "Thunder Ascendant" },
+      { "name": "Lightborn - Overrider" },
+      { "name": "Alluring Enigma" },
+      { "name": "Agent Z" },
+      { "name": "Megatron" },
+      { "name": "Exorcist Granger" },
+      { "name": "Cosmic Finality" },
+      { "name": "Starfall Knight" }
+    ]
+  },
+  {
+    "id": "grock",
+    "name": "Grock",
+    "skins": [
+      { "name": "Grave Guardian" },
+      { "name": "Ancient Totem" },
+      { "name": "Castle Guard" },
+      { "name": "Iceland Golem" },
+      { "name": "Wasteland Psycho" },
+      { "name": "V.E.N.O.M. Monitor Lizard" },
+      { "name": "Codename: Rhino" },
+      { "name": "Tremor of the Deep" }
+    ]
+  },
+  {
+    "id": "guinevere",
+    "name": "Guinevere",
+    "skins": [
+      { "name": "Elegant Butterfly" },
+      { "name": "Fleur de Bleau" },
+      { "name": "Amethyst Dance" },
+      { "name": "Sakura Wishes" },
+      { "name": "Summer Breeze" },
+      { "name": "Lotus" },
+      { "name": "Lady Crane" },
+      { "name": "Daybreak Halo" },
+      { "name": "Athena Asamiya" },
+      { "name": "Psion of Tomorrow" }
+    ]
+  },
+  {
+    "id": "gusion",
+    "name": "Gusion",
+    "skins": [
+      { "name": "Moonlight Sonata" },
+      { "name": "Hairstylist" },
+      { "name": "Cyber Ops" },
+      { "name": "Desert Spider" },
+      { "name": "Dangerous Liaison" },
+      { "name": "V.E.N.O.M. Emperor Scorpion" },
+      { "name": "Soul Revelation" },
+      { "name": "Night Owl" },
+      { "name": "K'" },
+      { "name": "Dimension Walker" },
+      { "name": "Minato Namikaze" },
+      { "name": "Cosmic Gleam" }
+    ]
+  },
+  {
+    "id": "hanabi",
+    "name": "Hanabi",
+    "skins": [
+      { "name": "Viper" },
+      { "name": "Resplendent Iris" },
+      { "name": "Twin Crescent" },
+      { "name": "Fiery Moth" },
+      { "name": "Field Op" },
+      { "name": "Chic Glamour" },
+      { "name": "Neonscape Icon" },
+      { "name": "V.E.N.O.M. Nephila" },
+      { "name": "Riverland Phoenix" },
+      { "name": "Vessel of Rage" },
+      { "name": "Moonlit Ninja" }
+    ]
+  },
+  {
+    "id": "hanzo",
+    "name": "Hanzo",
+    "skins": [
+      { "name": "The Pale Phantom" },
+      { "name": "Undead King" },
+      { "name": "Insidious Tutor" },
+      { "name": "Soulfire Netherlord" }
+    ]
+  },
+  {
+    "id": "harith",
+    "name": "Harith",
+    "skins": [
+      { "name": "Savannah Cat" },
+      { "name": "Stardust" },
+      { "name": "Fashion Expert" },
+      { "name": "Christmas Carnival" },
+      { "name": "Lightborn - Inspirer" },
+      { "name": "EVOS Legends" },
+      { "name": "Psychic" },
+      { "name": "Killua" }
+    ]
+  },
+  {
+    "id": "harley",
+    "name": "Harley",
+    "skins": [
+      { "name": "Dream Caster" }
+    ]
+  },
+  {
+    "id": "hayabusa",
+    "name": "Hayabusa",
+    "skins": [
+      { "name": "Future Enforcer" },
+      { "name": "Techie Ninja" },
+      { "name": "Spacetime Shadow" },
+      { "name": "Sushi Master" },
+      { "name": "Biological Weapon" },
+      { "name": "Experiment 21" },
+      { "name": "Shadow of Obscurity" },
+      { "name": "Shura" },
+      { "name": "Exorcist Hayabusa" },
+      { "name": "Kakashi Hatake" }
+    ]
+  },
+  {
+    "id": "helcurt",
+    "name": "Helcurt",
+    "skins": [
+      { "name": "Exoracial Executer" },
+      { "name": "Ice Scythe" },
+      { "name": "Evolved Predator" },
+      { "name": "Dream Prowler" },
+      { "name": "Scorpio" }
+    ]
+  },
+  {
+    "id": "hilda",
+    "name": "Hilda",
+    "skins": [
+      { "name": "Power of Wildness" },
+      { "name": "Flower of the Wastes" },
+      { "name": "Sacred Guard" },
+      { "name": "Bass Craze" },
+      { "name": "Guardian Battalion" },
+      { "name": "Aries" }
+    ]
+  },
+  {
+    "id": "hylos",
+    "name": "Hylos",
+    "skins": [
+      { "name": "Abyssal Shaman" },
+      { "name": "Jungle Watcher" },
+      { "name": "Bloodhoof Marauder" },
+      { "name": "Phantom Seer" },
+      { "name": "Iron Steed" },
+      { "name": "Lord of the Tundra" }
+    ]
+  },
+  {
+    "id": "irithel",
+    "name": "Irithel",
+    "skins": [
+      { "name": "Silver Cyclone" },
+      { "name": "Checkered Knight" },
+      { "name": "Nightarrow" },
+      { "name": "Hellfire" },
+      { "name": "Sagittarius" },
+      { "name": "Astral Wanderer" },
+      { "name": "Monster SP Rider" }
+    ]
+  },
+  {
+    "id": "ixia",
+    "name": "Ixia",
+    "skins": [
+      { "name": "Shifting Sand" },
+      { "name": "Dynamic Streak" },
+      { "name": "Invoker's Command" }
+    ]
+  },
+  {
+    "id": "jawhead",
+    "name": "Jawhead",
+    "skins": [
+      { "name": "Foo Quarterback" },
+      { "name": "Victory Loader" },
+      { "name": "Girl Scout" },
+      { "name": "Space Explorer" },
+      { "name": "Candy Bear" },
+      { "name": "Cyber Ranger" },
+      { "name": "The Nutcracker" },
+      { "name": "Samurai Mech" }
+    ]
+  },
+  {
+    "id": "johnson",
+    "name": "Johnson",
+    "skins": [
+      { "name": "Jeepney Racer" },
+      { "name": "Fire Chief" },
+      { "name": "Death Ride" },
+      { "name": "Starblazer" },
+      { "name": "S.A.B.E.R. Automata" },
+      { "name": "Wreck King" },
+      { "name": "Optimus Prime" },
+      { "name": "Sovereign of Realms" }
+    ]
+  },
+  {
+    "id": "joy",
+    "name": "Joy",
+    "skins": [
+      { "name": "Feline Ranger" },
+      { "name": "Royal Protector" },
+      { "name": "Exostar Scout" },
+      { "name": "ONIC PH" }
+    ]
+  },
+  {
+    "id": "julian",
+    "name": "Julian",
+    "skins": [
+      { "name": "Silent Edge" },
+      { "name": "Meowkin Tracker" },
+      { "name": "Megumi Fushiguro" },
+      { "name": "Kurapika" },
+      { "name": "Itachi Uchiha" }
+    ]
+  },
+  {
+    "id": "kadita",
+    "name": "Kadita",
+    "skins": [
+      { "name": "Atlantean Princess" },
+      { "name": "Hydromancer" },
+      { "name": "Maiden of the Tide" },
+      { "name": "White Robin" }
+    ]
+  },
+  {
+    "id": "kagura",
+    "name": "Kagura",
+    "skins": [
+      { "name": "Flower Season" },
+      { "name": "Rainy Walk" },
+      { "name": "Cherry Witch" },
+      { "name": "Summer Festival" },
+      { "name": "Lady Parasol" },
+      { "name": "Jade Blossom" },
+      { "name": "Dragon Maiden" },
+      { "name": "Water Lily" },
+      { "name": "Beyond the Clouds Kagura" },
+      { "name": "Exorcist Kagura" }
+    ]
+  },
+  {
+    "id": "kaja",
+    "name": "Kaja",
+    "skins": [
+      { "name": "Commandment" },
+      { "name": "Horror Whiplash" },
+      { "name": "Crow Magician" },
+      { "name": "Kaminari" },
+      { "name": "Inferno Taskmaster" },
+      { "name": "Skyblocker" }
+    ]
+  },
+  {
+    "id": "kalea",
+    "name": "Kalea",
+    "skins": [
+      { "name": "Shimmering Waves" },
+      { "name": "Sakura Haruno" }
+    ]
+  },
+  {
+    "id": "karrie",
+    "name": "Karrie",
+    "skins": [
+      { "name": "Rising Star" },
+      { "name": "Wheel of Justice" },
+      { "name": "Bladed Mantis" },
+      { "name": "Dragon Queen" },
+      { "name": "Jester" },
+      { "name": "Quantum Razor" },
+      { "name": "Gill-girl" },
+      { "name": "Ice Talon" },
+      { "name": "Hawkwatch" },
+      { "name": "Neon Lightwheel" },
+      { "name": "Breath of Naraka" }
+    ]
+  },
+  {
+    "id": "karina",
+    "name": "Karina",
+    "skins": [
+      { "name": "Phantom Blade" },
+      { "name": "Blood Moon" },
+      { "name": "Spider Lily" },
+      { "name": "Christmas Carnival" },
+      { "name": "Black Pearl" },
+      { "name": "Keyforged Champion" },
+      { "name": "Doom Duelist" },
+      { "name": "Leona" }
+    ]
+  },
+  {
+    "id": "khaleed",
+    "name": "Khaleed",
+    "skins": [
+      { "name": "Prince of Sand" },
+      { "name": "Desert Salamander" },
+      { "name": "Crescent Scimitar" },
+      { "name": "Wave Strider" }
+    ]
+  },
+  {
+    "id": "khufra",
+    "name": "Khufra",
+    "skins": [
+      { "name": "Iron Hook" },
+      { "name": "Desert Owl" },
+      { "name": "Apophis" },
+      { "name": "Gentleman Thief" },
+      { "name": "Dreadful Clown" },
+      { "name": "Cursed Scroll" },
+      { "name": "Volcanic Overlord" }
+    ]
+  },
+  {
+    "id": "kimmy",
+    "name": "Kimmy",
+    "skins": [
+      { "name": "Steam Researcher" },
+      { "name": "High Seas Cadet" },
+      { "name": "Bio Frontier" },
+      { "name": "Charge Leader" },
+      { "name": "Rising Nova" },
+      { "name": "Frost Wing" },
+      { "name": "Astrocat" },
+      { "name": "First Order Jet Trooper" }
+    ]
+  },
+  {
+    "id": "lancelot",
+    "name": "Lancelot",
+    "skins": [
+      { "name": "Masked Knight" },
+      { "name": "Christmas Carnival" },
+      { "name": "Dark Earl" },
+      { "name": "Marquess of Blades" },
+      { "name": "Floral Knight" },
+      { "name": "Bren Esports" },
+      { "name": "Empyrean Flame" },
+      { "name": "Pisces" },
+      { "name": "Royal Matador" },
+      { "name": "Blade of Devotion" },
+      { "name": "Swordmaster" },
+      { "name": "Guardian of the Shrine" }
+    ]
+  },
+  {
+    "id": "lapu-lapu",
+    "name": "Lapu-Lapu",
+    "skins": [
+      { "name": "Son of the Wild" },
+      { "name": "Ancestral Blade" },
+      { "name": "Imperial Champion" },
+      { "name": "Special Force" },
+      { "name": "Vulcan" },
+      { "name": "Adlaw's Chosen" }
     ]
   },
   {
     "id": "layla",
     "name": "Layla",
-    "role": "Marksman",
     "skins": [
-      { "name": "Energy Gunner", "category": "Basic" },
-      { "name": "Green Flash", "category": "Basic" },
-      { "name": "Bunny Babe", "category": "Starlight" },
-      { "name": "Classic Malefic Gunner", "category": "Special" },
-      { "name": "Blue Specter", "category": "Special" },
-      { "name": "Blazing Gun", "category": "Epic" },
-      { "name": "Miss Hikari", "category": "Collab" },
-      { "name": "Twilight Waltz", "category": "Starlight" }
+      { "name": "Blue Specter" },
+      { "name": "Classic Malefic Gunner" },
+      { "name": "Green Flash" },
+      { "name": "Bunny Babe" },
+      { "name": "Cannon and Roses" },
+      { "name": "Twilight Waltz" },
+      { "name": "S.A.B.E.R. Breacher" },
+      { "name": "Blazing Gun" },
+      { "name": "Paranormal Operative" },
+      { "name": "The Beacon" },
+      { "name": "Miss Hikari" }
     ]
   },
   {
-    "id": "miya",
-    "name": "Miya",
-    "role": "Marksman",
+    "id": "leomord",
+    "name": "Leomord",
     "skins": [
-      { "name": "Moonlight Archer", "category": "Basic" },
-      { "name": "Burning Bow", "category": "Basic" },
-      { "name": "Captain Thorns", "category": "Starlight" },
-      { "name": "Honor", "category": "Special" },
-      { "name": "Modeo Butterfly", "category": "Epic" },
-      { "name": "Sweet Fantasy", "category": "Special" },
-      { "name": "Suzuhime", "category": "Special" },
-      { "name": "Moon Priestess", "category": "Special" },
-      { "name": "Doom Catalyst", "category": "Collector" },
-      { "name": "Atomic Pop Miya", "category": "Special" }
+      { "name": "Hell Knight" },
+      { "name": "Triumph - Eagle" },
+      { "name": "Jack-o'-lantern" },
+      { "name": "Frostborn Paladin" },
+      { "name": "Nightmare Count" },
+      { "name": "Auspicious Blaze" },
+      { "name": "Inferno Soul" },
+      { "name": "Shadow Knight" },
+      { "name": "Diavel V4 Rider" }
+    ]
+  },
+  {
+    "id": "lesley",
+    "name": "Lesley",
+    "skins": [
+      { "name": "General Rosa" },
+      { "name": "Royal Musketeer" },
+      { "name": "Dangerous Love" },
+      { "name": "Lethal Lady" },
+      { "name": "Cheergunner" },
+      { "name": "Stellaris Ghost" },
+      { "name": "Falcon Mistress" },
+      { "name": "Hawk-eyed Sniper" },
+      { "name": "Angelic Agent" },
+      { "name": "Deadeye Spectre" }
     ]
   },
   {
     "id": "ling",
     "name": "Ling",
-    "role": "Assassin",
     "skins": [
-      { "name": "Phantom Current", "category": "Tides" },
-      { "name": "Street Punk", "category": "Starlight" },
-      { "name": "Night Shade", "category": "Epic" },
-      { "name": "Cosmo Guard", "category": "Special" },
-      { "name": "Serene Plume", "category": "Collector" },
-      { "name": "Lord Shen", "category": "Collab" },
-      { "name": "Fiery Dance", "category": "Basic" },
-      { "name": "Neo Beast", "category": "Special" },
-      { "name": "M World", "category": "Special" }
+      { "name": "Fiery Dance" },
+      { "name": "Street Punk" },
+      { "name": "Cosmo Guard" },
+      { "name": "Phantom Current" },
+      { "name": "Night Shade" },
+      { "name": "M-World Ling" },
+      { "name": "Serene Plume" },
+      { "name": "Lord Shen" },
+      { "name": "Neobeast Ling" }
+    ]
+  },
+  {
+    "id": "lolita",
+    "name": "Lolita",
+    "skins": [
+      { "name": "Special Op" },
+      { "name": "Soldier in Training" },
+      { "name": "Impish Trickster" },
+      { "name": "Lion Dance" },
+      { "name": "Genki Slam" },
+      { "name": "Astro Mallet" },
+      { "name": "Angelic Fan" },
+      { "name": "Starwatcher" }
+    ]
+  },
+  {
+    "id": "lukas",
+    "name": "Lukas",
+    "skins": [
+      { "name": "Ardent Roar" },
+      { "name": "Naruto Uzumaki" }
+    ]
+  },
+  {
+    "id": "lunox",
+    "name": "Lunox",
+    "skins": [
+      { "name": "Cosmic Harmony" },
+      { "name": "Nature's Harmony" },
+      { "name": "Ash Blossom" },
+      { "name": "Quantum Polarity" },
+      { "name": "Bloody Mary" },
+      { "name": "Libra" },
+      { "name": "Dawn Revelation" },
+      { "name": "Eyes of Eternity" },
+      { "name": "Butterfly Seraphim" },
+      { "name": "Divine Goddess" }
+    ]
+  },
+  {
+    "id": "luo-yi",
+    "name": "Luo Yi",
+    "skins": [
+      { "name": "Yin-yang Mage" },
+      { "name": "Tenko" },
+      { "name": "Dawning Fortune" },
+      { "name": "Siren Priestess" },
+      { "name": "Oracle of Sol" },
+      { "name": "Starborne Matron" },
+      { "name": "Lady Dragon" },
+      { "name": "Elysium Guardian" }
+    ]
+  },
+  {
+    "id": "lylia",
+    "name": "Lylia",
+    "skins": [
+      { "name": "Star Student" },
+      { "name": "Future Star" },
+      { "name": "Haunted Doll" },
+      { "name": "Magitech Arsenal" },
+      { "name": "Phantasmal Revelry" },
+      { "name": "Neobeast Lylia" }
+    ]
+  },
+  {
+    "id": "marcel",
+    "name": "Marcel",
+    "skins": [
+      { "name": "Split Shadows" }
+    ]
+  },
+  {
+    "id": "martis",
+    "name": "Martis",
+    "skins": [
+      { "name": "Warlord King" },
+      { "name": "Tyrant" },
+      { "name": "Searing Maw" },
+      { "name": "Deathrock" },
+      { "name": "Darkwater Terror" },
+      { "name": "Capricorn" },
+      { "name": "Wild Renegade" },
+      { "name": "God of War" },
+      { "name": "Levi" }
+    ]
+  },
+  {
+    "id": "masha",
+    "name": "Masha",
+    "skins": [
+      { "name": "Winter Guard" },
+      { "name": "Spirited Gauntlet" },
+      { "name": "Combat Maiden" },
+      { "name": "Rogue Talon" },
+      { "name": "Dragon Armor" },
+      { "name": "Mai Shiranui" }
+    ]
+  },
+  {
+    "id": "mathilda",
+    "name": "Mathilda",
+    "skins": [
+      { "name": "Unrestrained Delight" },
+      { "name": "Floral Crown" },
+      { "name": "Dream Groove" },
+      { "name": "Dreambound Pixie" }
+    ]
+  },
+  {
+    "id": "melissa",
+    "name": "Melissa",
+    "skins": [
+      { "name": "Twinge Weaver" },
+      { "name": "Nightwalker" },
+      { "name": "SPARKLE Melissa" },
+      { "name": "Umbra Bloom" },
+      { "name": "Nobara Kugisaki" }
+    ]
+  },
+  {
+    "id": "minsitthar",
+    "name": "Minsitthar",
+    "skins": [
+      { "name": "Symbol of Valor" },
+      { "name": "Golden Marshal" },
+      { "name": "Gilded King" },
+      { "name": "Crimson Lion" },
+      { "name": "King of War" },
+      { "name": "Sol Invictus" }
+    ]
+  },
+  {
+    "id": "minotaur",
+    "name": "Minotaur",
+    "skins": [
+      { "name": "Orbiter" },
+      { "name": "Sacred Hammer" },
+      { "name": "Bursting Yama" },
+      { "name": "Dreadnought" },
+      { "name": "Taurus" },
+      { "name": "Nether Overseer" }
+    ]
+  },
+  {
+    "id": "miya",
+    "name": "Miya",
+    "skins": [
+      { "name": "Honor" },
+      { "name": "Jungle Ranger" },
+      { "name": "Burning Bow" },
+      { "name": "Moon Priestess" },
+      { "name": "Nightowl Huntress" },
+      { "name": "Captain Thorns" },
+      { "name": "Sweet Fantasy" },
+      { "name": "Suzuhime" },
+      { "name": "Atomic Pop Miya" },
+      { "name": "Christmas Carnival" },
+      { "name": "Doom Catalyst" },
+      { "name": "Modena Butterfly" },
+      { "name": "Arrow of Spring" }
+    ]
+  },
+  {
+    "id": "moskov",
+    "name": "Moskov",
+    "skins": [
+      { "name": "Yasha" },
+      { "name": "Spear of Bone Dragon" },
+      { "name": "Decapitator" },
+      { "name": "Snake Eye Commander" },
+      { "name": "Javelin Champion" },
+      { "name": "Violet Spear" },
+      { "name": "Blood Spear" },
+      { "name": "Twilight Dragon" },
+      { "name": "Doom Incarnate" },
+      { "name": "Infernal Wyrmlord" }
+    ]
+  },
+  {
+    "id": "nana",
+    "name": "Nana",
+    "skins": [
+      { "name": "Clockwork Maid" },
+      { "name": "Graveyard Party" },
+      { "name": "Slumber Party" },
+      { "name": "Cyclone Clash" },
+      { "name": "Wind Fairy" },
+      { "name": "Summer Fun" },
+      { "name": "Mecha Baby" },
+      { "name": "Aqua Pura" },
+      { "name": "Mistbender Nana" }
+    ]
+  },
+  {
+    "id": "natalia",
+    "name": "Natalia",
+    "skins": [
+      { "name": "Deadly Mamba" },
+      { "name": "Phantom Dancer" },
+      { "name": "Grim Strangler" },
+      { "name": "Cyber Spectre" },
+      { "name": "Midnight Raven" },
+      { "name": "Soul Huntress" },
+      { "name": "Warrioress Paragon" }
+    ]
+  },
+  {
+    "id": "natan",
+    "name": "Natan",
+    "skins": [
+      { "name": "Chaos Hunter" },
+      { "name": "Time Wielder" },
+      { "name": "Captain Chrono" },
+      { "name": "Temporal Vortex" },
+      { "name": "Archon of Knowledge" },
+      { "name": "Sanguine Steward" },
+      { "name": "Tidal Lord" }
+    ]
+  },
+  {
+    "id": "nolan",
+    "name": "Nolan",
+    "skins": [
+      { "name": "Voidwalker" },
+      { "name": "Fashion Mogul" },
+      { "name": "Spectral Strider" },
+      { "name": "The Navigator" }
+    ]
+  },
+  {
+    "id": "novaria",
+    "name": "Novaria",
+    "skins": [
+      { "name": "Void Star" },
+      { "name": "Sugar Glaze" },
+      { "name": "Lunar Scion" },
+      { "name": "Dragonsworn" }
+    ]
+  },
+  {
+    "id": "obsidia",
+    "name": "Obsidia",
+    "skins": [
+      { "name": "Undying Remnants" },
+      { "name": "Magitech Wraith" }
+    ]
+  },
+  {
+    "id": "odette",
+    "name": "Odette",
+    "skins": [
+      { "name": "Christmas Carnival" },
+      { "name": "Butterfly Goddess" },
+      { "name": "Auspicious Charm" },
+      { "name": "Wisdom of the Stars" },
+      { "name": "Black Swan" },
+      { "name": "Virgo" },
+      { "name": "Sage of the Currents" },
+      { "name": "Mermaid Princess" },
+      { "name": "Song of Devotion" }
+    ]
+  },
+  {
+    "id": "paquito",
+    "name": "Paquito",
+    "skins": [
+      { "name": "Death Blow" },
+      { "name": "Fists of Light" },
+      { "name": "Fulgent Punch" },
+      { "name": "Underground Boxer" },
+      { "name": "Manny Pacquiao" },
+      { "name": "Fist of Glory" },
+      { "name": "Terry Bogard" }
+    ]
+  },
+  {
+    "id": "pharsa",
+    "name": "Pharsa",
+    "skins": [
+      { "name": "Enchanting Witch" },
+      { "name": "Wings of Heaven" },
+      { "name": "Indigo Aviatrix" },
+      { "name": "Peafowl's Dance" },
+      { "name": "Samba Muse" },
+      { "name": "Peony Bloom" },
+      { "name": "Seasworn Oracle" },
+      { "name": "Hierophant" },
+      { "name": "Neon Shingetsu" },
+      { "name": "Empress Phoenix" },
+      { "name": "Neobeast Pharsa" }
+    ]
+  },
+  {
+    "id": "phoveus",
+    "name": "Phoveus",
+    "skins": [
+      { "name": "Monolith Watcher" },
+      { "name": "Matrix Maverick" }
+    ]
+  },
+  {
+    "id": "popol-and-kupa",
+    "name": "Popol and Kupa",
+    "skins": [
+      { "name": "Hunting Pals" },
+      { "name": "Tribal Howl" },
+      { "name": "Trouble Makers" },
+      { "name": "Proto Hunter" },
+      { "name": "Spirit of the Brush" },
+      { "name": "Soundwave & Ravage" }
+    ]
+  },
+  {
+    "id": "rafaela",
+    "name": "Rafaela",
+    "skins": [
+      { "name": "Fertility Goddess" },
+      { "name": "Star Chaser" },
+      { "name": "Biomedic" },
+      { "name": "Angelic Sonata" },
+      { "name": "Seraphic Selfie" },
+      { "name": "S.A.B.E.R. Savior" },
+      { "name": "Bloom of Abundance" },
+      { "name": "Flower Fairy" }
+    ]
+  },
+  {
+    "id": "roger",
+    "name": "Roger",
+    "skins": [
+      { "name": "Dark Gent" },
+      { "name": "Anubis" },
+      { "name": "Phantom Hunter" },
+      { "name": "Cyborg Werewolf" },
+      { "name": "Phantom Ranger" },
+      { "name": "Dr Beast" },
+      { "name": "Fiend Haunter" },
+      { "name": "Grimlock" },
+      { "name": "Invoker's Restraint" }
+    ]
+  },
+  {
+    "id": "ruby",
+    "name": "Ruby",
+    "skins": [
+      { "name": "Edelweiss" },
+      { "name": "Pirate Parrot" },
+      { "name": "Soul Reaper" },
+      { "name": "Crescent Dervish" },
+      { "name": "Neon Edge" },
+      { "name": "Cat Girl" },
+      { "name": "Hidden Orchid Butterfly" },
+      { "name": "Prismatic Plume" },
+      { "name": "Lady Zombie" },
+      { "name": "Mecha Maiden" }
+    ]
+  },
+  {
+    "id": "saber",
+    "name": "Saber",
+    "skins": [
+      { "name": "Silver Edge" },
+      { "name": "Golden Flash" },
+      { "name": "Fullmetal Ronin" },
+      { "name": "Force Warrior" },
+      { "name": "Iron Hound" },
+      { "name": "S.A.B.E.R. Regulator" },
+      { "name": "Onimaru" },
+      { "name": "Codename - Storm" }
+    ]
+  },
+  {
+    "id": "selena",
+    "name": "Selena",
+    "skins": [
+      { "name": "Gothic Curse" },
+      { "name": "Double Identity" },
+      { "name": "Virus" },
+      { "name": "Gemini - Shadow" },
+      { "name": "S.T.U.N. Selena" },
+      { "name": "Thunder Flash" },
+      { "name": "Lady Vengeance" },
+      { "name": "Curse of Cinder" }
+    ]
+  },
+  {
+    "id": "silvanna",
+    "name": "Silvanna",
+    "skins": [
+      { "name": "Midnight Justice" },
+      { "name": "Verdant Lancer" },
+      { "name": "Hallowed Lance" },
+      { "name": "Future Cop" },
+      { "name": "Pure Heroine" },
+      { "name": "Classroom Charm" },
+      { "name": "Alluring Mystique" },
+      { "name": "Meowkin Warden" },
+      { "name": "Queen Frost" }
+    ]
+  },
+  {
+    "id": "sora",
+    "name": "Sora",
+    "skins": [
+      { "name": "Azure Cloud" }
+    ]
+  },
+  {
+    "id": "sun",
+    "name": "Sun",
+    "skins": [
+      { "name": "Battle Buddha" },
+      { "name": "Celestial Outlaw" },
+      { "name": "Rock Star" },
+      { "name": "Street Legend" },
+      { "name": "Simian Curse" },
+      { "name": "Spring Blessings" },
+      { "name": "Wicked Flames" },
+      { "name": "Queller of Chaos" }
+    ]
+  },
+  {
+    "id": "suyou",
+    "name": "Suyou",
+    "skins": [
+      { "name": "Venerated Vigilance" },
+      { "name": "Sasuke Uchiha" }
+    ]
+  },
+  {
+    "id": "terizla",
+    "name": "Terizla",
+    "skins": [
+      { "name": "Rustwreck" },
+      { "name": "Abyss Guard" },
+      { "name": "Flare" },
+      { "name": "Hammer Giant" },
+      { "name": "Flames of Judgment" },
+      { "name": "Soulblight Tyrant" }
+    ]
+  },
+  {
+    "id": "thamuz",
+    "name": "Thamuz",
+    "skins": [
+      { "name": "Lord of Wraith" },
+      { "name": "Liquid Fire" },
+      { "name": "Abyssal Reaper" },
+      { "name": "Sanctified Flame" },
+      { "name": "General Kai" },
+      { "name": "The Annihilator" }
+    ]
+  },
+  {
+    "id": "tigreal",
+    "name": "Tigreal",
+    "skins": [
+      { "name": "Steel Guardian" },
+      { "name": "Dark Guardian" },
+      { "name": "Fallen Guard" },
+      { "name": "Wyrmslayer" },
+      { "name": "Gold Baron" },
+      { "name": "Galactic Marshal" },
+      { "name": "Pasha of Justice" },
+      { "name": "Lightborn - Defender" },
+      { "name": "Celestial General" }
+    ]
+  },
+  {
+    "id": "uranus",
+    "name": "Uranus",
+    "skins": [
+      { "name": "Ancient Soul" },
+      { "name": "Earthen Relic" },
+      { "name": "Mech Protector" },
+      { "name": "Pinball Machine" },
+      { "name": "Celestial Bastion" },
+      { "name": "Video-Game Dominator" }
+    ]
+  },
+  {
+    "id": "vale",
+    "name": "Vale",
+    "skins": [
+      { "name": "Kannagi" },
+      { "name": "Cerulean Winds" },
+      { "name": "Soaring Devata" },
+      { "name": "Keeper of the Winds" },
+      { "name": "Gaara" },
+      { "name": "Supernal Tempest" },
+      { "name": "Concerto of Light" },
+      { "name": "Blizzard Storm" }
+    ]
+  },
+  {
+    "id": "valentina",
+    "name": "Valentina",
+    "skins": [
+      { "name": "Twilight Charmer" },
+      { "name": "Archmagister" },
+      { "name": "Grand Gala" },
+      { "name": "Cyber Agent" },
+      { "name": "Dark Nexus" },
+      { "name": "Celestial Judicator" }
+    ]
+  },
+  {
+    "id": "valir",
+    "name": "Valir",
+    "skins": [
+      { "name": "Arcane Seeker" },
+      { "name": "Pale Flame" },
+      { "name": "Shikigami Summoner" },
+      { "name": "Dictator" },
+      { "name": "Draconic Flame" },
+      { "name": "Phoenix Ikki" },
+      { "name": "Ember Gaze" },
+      { "name": "Demonlord" },
+      { "name": "Leo Ikki" },
+      { "name": "Infernal Blaze" }
+    ]
+  },
+  {
+    "id": "vexana",
+    "name": "Vexana",
+    "skins": [
+      { "name": "Cursed Shackle" },
+      { "name": "Lucent Beacon" },
+      { "name": "Circus Magician" },
+      { "name": "Sanguine Rose" },
+      { "name": "Eternal Vows" },
+      { "name": "The Sun Empress" },
+      { "name": "Twisted Fairytale" },
+      { "name": "Twilight Star" }
+    ]
+  },
+  {
+    "id": "wanwan",
+    "name": "Wanwan",
+    "skins": [
+      { "name": "Shoujo Commander" },
+      { "name": "Darting Star" },
+      { "name": "Teen Pop" },
+      { "name": "E-girl" },
+      { "name": "Summer Splash" },
+      { "name": "M-World Wanwan" },
+      { "name": "Pixel Blast" },
+      { "name": "Flying Swallow" }
+    ]
+  },
+  {
+    "id": "xborg",
+    "name": "X.Borg",
+    "skins": [
+      { "name": "Blue Storm" },
+      { "name": "Moto Drifter" },
+      { "name": "Pecados Rioter" },
+      { "name": "Graffiti Fashion" },
+      { "name": "Tesla Maniac" },
+      { "name": "Bumblebee" },
+      { "name": "Invoker's Flame" }
+    ]
+  },
+  {
+    "id": "xavier",
+    "name": "Xavier",
+    "skins": [
+      { "name": "Verdict of Light" },
+      { "name": "Hardlight Artificer" },
+      { "name": "Sunborn Monarch" },
+      { "name": "Beyond the Clouds Xavier" },
+      { "name": "Satoru Gojo" }
+    ]
+  },
+  {
+    "id": "yi-sun-shin",
+    "name": "Yi Sun-shin",
+    "skins": [
+      { "name": "Surging Torrent" },
+      { "name": "Roguish Ranger" },
+      { "name": "Major General" },
+      { "name": "Apocalypse Agent" },
+      { "name": "Azure Sentry" },
+      { "name": "Wavebreaker" },
+      { "name": "Fleet Warden" },
+      { "name": "Lone Destructor" }
+    ]
+  },
+  {
+    "id": "yin",
+    "name": "Yin",
+    "skins": [
+      { "name": "Fists of Valor" },
+      { "name": "Eternal Guardian" },
+      { "name": "M-World Yin" },
+      { "name": "Yuji Itadori" },
+      { "name": "Eren" }
+    ]
+  },
+  {
+    "id": "yu-zhong",
+    "name": "Yu Zhong",
+    "skins": [
+      { "name": "Emerald Dragon" },
+      { "name": "Biohazard" },
+      { "name": "Tidescale Sealord" },
+      { "name": "Dragon's Shade" },
+      { "name": "Blood Serpent" },
+      { "name": "Exorcist Yu Zhong" },
+      { "name": "Cosmic Dragon" }
+    ]
+  },
+  {
+    "id": "yve",
+    "name": "Yve",
+    "skins": [
+      { "name": "Ruin Protectress" },
+      { "name": "Forest Hymn" },
+      { "name": "Flame Lotus" }
+    ]
+  },
+  {
+    "id": "zetian",
+    "name": "Zetian",
+    "skins": [
+      { "name": "Heavenly Splendor" },
+      { "name": "Sunset Luminance" }
+    ]
+  },
+  {
+    "id": "zhask",
+    "name": "Zhask",
+    "skins": [
+      { "name": "Crystallized Predator" },
+      { "name": "Death's Shadow" },
+      { "name": "Extraterrestrial" },
+      { "name": "Cancer" },
+      { "name": "Bone Flamen" }
+    ]
+  },
+  {
+    "id": "zhuxin",
+    "name": "Zhuxin",
+    "skins": [
+      { "name": "Ethereal Serenity" },
+      { "name": "Emberwisp Mystic" },
+      { "name": "P.ACE Zhuxin" }
+    ]
+  },
+  {
+    "id": "zilong",
+    "name": "Zilong",
+    "skins": [
+      { "name": "Loyal Spear" },
+      { "name": "Elite Warrior" },
+      { "name": "Blazing Lancer" },
+      { "name": "Christmas Carnival" },
+      { "name": "Summer Waves" },
+      { "name": "Storm Rider" },
+      { "name": "Eastern Warrior" },
+      { "name": "Glorious General" },
+      { "name": "Dragon of Prosperity" },
+      { "name": "Changbanpo Commander" },
+      { "name": "Empyrean Paladin" }
     ]
   }
-]
