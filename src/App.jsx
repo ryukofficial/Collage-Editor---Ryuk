@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
+import { Stage, Layer, Image as KonvaImage, Rect, Circle } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
 import { useDrop } from './useDrop'
@@ -28,6 +28,44 @@ function CanvasImage({ img, isSelected, onSelect }) {
       hitStrokeWidth={0}
       perfectDrawEnabled={false}
     />
+  )
+}
+
+// Profile image drawn centered on the canvas with circular clip
+function ProfileOverlay({ src, canvasWidth, canvasHeight }) {
+  const [image] = useImage(src, 'anonymous')
+  if (!image) return null
+
+  const size = Math.max(200, Math.round(Math.min(canvasWidth, canvasHeight) / 4))
+  const x = Math.round((canvasWidth - size) / 2)
+  const y = Math.round((canvasHeight - size) / 2)
+  const cx = x + size / 2
+  const cy = y + size / 2
+  const r  = size / 2
+
+  return (
+    <>
+      <KonvaImage
+        image={image}
+        x={x}
+        y={y}
+        width={size}
+        height={size}
+        clipFunc={(ctx) => {
+          ctx.arc(r, r, r, 0, Math.PI * 2)
+        }}
+      />
+      {/* White border circle */}
+      <Circle
+        x={cx}
+        y={cy}
+        radius={r}
+        stroke="#ffffff"
+        strokeWidth={Math.max(4, Math.round(size / 40))}
+        fill={null}
+        listening={false}
+      />
+    </>
   )
 }
 
@@ -222,6 +260,7 @@ export default function App() {
           onWheel={handleWheel}
           onClick={e => { if (e.target === e.target.getStage()) clearSelection() }}
         >
+          {/* Layer 1: background + collage images */}
           <Layer>
             <Rect
               width={canvasSize.width}
@@ -237,6 +276,17 @@ export default function App() {
               />
             ))}
           </Layer>
+
+          {/* Layer 2: profile overlay on top — only when profile is set */}
+          {profileImage && (
+            <Layer listening={false}>
+              <ProfileOverlay
+                src={profileImage}
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+              />
+            </Layer>
+          )}
         </Stage>
 
         {/* 💎 Floating Recharge Diamonds button */}
