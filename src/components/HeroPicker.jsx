@@ -500,4 +500,118 @@ export default function HeroPicker() {
                   <input
                     type="text" placeholder="Search hero..."
                     value={search} onChange={e => setSearch(e.target.value)}
-                 
+                    style={{ width: '100%', background: '#1a1a2e', border: '1px solid #252535', borderRadius: '8px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    {filtered.map(hero => (
+                      <button key={hero.id} onClick={() => setSelectedHero(hero)} style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        background: '#1a1a2e', border: '1px solid #252535', borderRadius: '12px',
+                        padding: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s',
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = '#6c63ff'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = '#252535'}
+                      >
+                        <img src={getHeroImage(hero)} alt={hero.name}
+                          style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover', background: '#252535', flexShrink: 0 }}
+                          onError={e => { e.target.src = HERO_PLACEHOLDER }} />
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600, margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hero.name}</p>
+                          <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>{hero.skins.length} skins</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Hero skin grid */}
+            {mode === 'hero' && selectedHero && (
+              <>
+                <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#888', fontSize: '12px' }}>
+                    {repoFiles.length === 0 && !fetchError ? '⏳ Loading...' : selectedSkins.length > 0 ? `${selectedSkins.length} selected` : 'Tap to select'}
+                  </span>
+                  {selectedSkins.length > 0 && (
+                    <button onClick={() => setSelectedSkins([])} style={{ background: 'none', border: 'none', color: '#6c63ff', fontSize: '12px', cursor: 'pointer' }}>Clear all</button>
+                  )}
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {selectedHero.skins.map((skin, i) => {
+                      const resolvedUrl = getSkinImage(selectedHero, skin)
+                      const hasImage = !!resolvedUrl
+                      const isSelected = selectedSkins.find(s => s.name === skin.name)
+                      return (
+                        <button key={i} onClick={() => toggleSkin(skin, resolvedUrl)} style={{
+                          position: 'relative', borderRadius: '10px', overflow: 'hidden',
+                          border: `2px solid ${isSelected ? '#6c63ff' : hasImage ? '#252535' : '#1a1a2e'}`,
+                          opacity: hasImage ? 1 : 0.4, cursor: hasImage ? 'pointer' : 'not-allowed',
+                          transform: isSelected ? 'scale(0.97)' : 'scale(1)', transition: 'all 0.15s',
+                          background: 'none', padding: 0, textAlign: 'left',
+                        }}>
+                          <img src={hasImage ? resolvedUrl : PLACEHOLDER} alt={skin.name}
+                            style={{ width: '100%', height: '112px', objectFit: 'cover', display: 'block', background: '#1a1a2e' }}
+                            onError={e => { e.target.src = PLACEHOLDER }} />
+                          {isSelected && (
+                            <div style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px',
+                              background: '#6c63ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>
+                            </div>
+                          )}
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', padding: '16px 6px 5px' }}>
+                            <p style={{ color: '#fff', fontSize: '9px', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skin.name}</p>
+                            <span style={{ fontSize: '9px', color: '#aaa' }}>{skin.category || ''}</span>
+                          </div>
+                          {!hasImage && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ color: '#555', fontSize: '10px' }}>No Image</span>
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Collection mode */}
+            {mode === 'collection' && (
+              <CollectionMode
+                repoFiles={repoFiles}
+                imageCache={imageCache}
+                setImageCache={setImageCache}
+                fetchError={fetchError}
+                selectedSkins={selectedSkins}
+                setSelectedSkins={setSelectedSkins}
+              />
+            )}
+
+            {/* Add to canvas button */}
+            {mode && selectedSkins.length > 0 && (
+              <div style={{ padding: '12px 16px', borderTop: '1px solid #1a1a2e', flexShrink: 0 }}>
+                <button
+                  onClick={handleAddToCanvas}
+                  disabled={isAdding}
+                  style={{
+                    width: '100%', padding: '13px', borderRadius: '12px',
+                    background: isAdding ? '#1a1a2e' : 'linear-gradient(135deg, #6c63ff, #a855f7)',
+                    border: 'none', color: isAdding ? '#555' : '#fff',
+                    fontWeight: 700, fontSize: '14px', cursor: isAdding ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isAdding ? 'Loading...' : `Add ${selectedSkins.length} Skin${selectedSkins.length > 1 ? 's' : ''} to Canvas`}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
