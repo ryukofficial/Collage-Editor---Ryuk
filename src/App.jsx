@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Stage, Layer, Image as KonvaImage, Rect, Circle } from 'react-konva'
+import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
 import { useDrop } from './useDrop'
@@ -31,48 +31,28 @@ function CanvasImage({ img, isSelected, onSelect }) {
   )
 }
 
-// Profile banner drawn ABOVE the collage on canvas
-// bannerH = one cell height, profile circle centered in it
-function ProfileBanner({ src, canvasWidth, canvasHeight, images }) {
+function ProfileBanner({ src, collageW, onHeightKnown }) {
   const [image] = useImage(src, 'anonymous')
-  if (!image || !images.length) return null
+  const reportedRef = useRef(false)
 
-  const avgW = Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length)
-  const avgH = Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
-  const cellSize = Math.min(avgW, avgH)
-  const cols     = Math.ceil(Math.sqrt(images.length))
-  const collageW = cols * cellSize
+  if (!image) return null
 
-  const profSize = cellSize
-  const profX    = Math.round((collageW - profSize) / 2)
-  const profY    = 0  // top of canvas = top of banner
-  const cx       = profX + profSize / 2
-  const cy       = profY + profSize / 2
-  const r        = profSize / 2
+  const bannerH = Math.round(image.naturalHeight * (collageW / image.naturalWidth))
+
+  if (!reportedRef.current) {
+    reportedRef.current = true
+    setTimeout(() => onHeightKnown(bannerH), 0)
+  }
 
   return (
-    <>
-      <KonvaImage
-        image={image}
-        x={profX}
-        y={profY}
-        width={profSize}
-        height={profSize}
-        clipFunc={(ctx) => {
-          ctx.arc(r, r, r, 0, Math.PI * 2)
-        }}
-        listening={false}
-      />
-      <Circle
-        x={cx}
-        y={cy}
-        radius={r}
-        stroke="#ffffff"
-        strokeWidth={Math.max(4, Math.round(profSize / 40))}
-        fill={null}
-        listening={false}
-      />
-    </>
+    <KonvaImage
+      image={image}
+      x={0}
+      y={0}
+      width={collageW}
+      height={bannerH}
+      listening={false}
+    />
   )
 }
 
@@ -83,6 +63,7 @@ export default function App() {
 
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
+  const [bannerH,      setBannerH]      = useState(0)
 
   const images          = useStore(s => s.images)
   const selectedIds     = useStore(s => s.selectedIds)
@@ -102,14 +83,14 @@ export default function App() {
 
   useKeyboard()
 
-  // Compute banner height for canvas offset (same logic as export)
-  const cellSize = images.length
-    ? Math.min(
-        Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length),
-        Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
-      )
-    : 0
-  const bannerH = profileImage && cellSize ? cellSize : 0
+  const collageW = (() => {
+    if (!images.length) return canvasSize.width
+    const avgW = Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length)
+    const avgH = Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
+    const cellSize = Math.min(avgW, avgH)
+    const cols = Math.ceil(Math.sqrt(images.length))
+    return cols * cellSize
+  })()
 
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -117,6 +98,7 @@ export default function App() {
     const url = URL.createObjectURL(file)
     setProfileImage(url)
     setProfileName(file.name)
+    setBannerH(0)
     e.target.value = ''
   }
 
@@ -124,6 +106,7 @@ export default function App() {
     if (profileImage) URL.revokeObjectURL(profileImage)
     setProfileImage(null)
     setProfileName('')
+    setBannerH(0)
   }
 
   const handleWheel = (e) => {
@@ -161,6 +144,47 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
+
+      {/* Scrolling ticker bar — hidden when canvas has content on top */}
+      {images.length === 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
+          overflow: 'hidden',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+          <style>{`
+            @keyframes ticker {
+              0%   { transform: translateX(100vw); }
+              100% { transform: translateX(-100%); }
+            }
+            .ticker-text {
+              display: inline-block;
+              white-space: nowrap;
+              animation: ticker 10s linear infinite;
+              font-weight: 700;
+              font-size: 15px;
+              color: #fff;
+              letter-spacing: 0.05em;
+            }
+          `}</style>
+          <a
+            href="https://ryukofficial.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ticker-text"
+            style={{ textDecoration: 'none' }}
+          >
+            💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now
+          </a>
+        </div>
+      )}
 
       <input
         ref={profileInputRef}
@@ -276,28 +300,24 @@ export default function App() {
           onWheel={handleWheel}
           onClick={e => { if (e.target === e.target.getStage()) clearSelection() }}
         >
-          {/* Layer 1: background */}
           <Layer>
             <Rect
-              width={canvasSize.width}
+              width={collageW}
               height={canvasSize.height + bannerH}
               fill={backgroundColor}
             />
           </Layer>
 
-          {/* Layer 2: profile banner on top */}
-          {profileImage && images.length > 0 && (
+          {profileImage && (
             <Layer listening={false}>
               <ProfileBanner
                 src={profileImage}
-                canvasWidth={canvasSize.width}
-                canvasHeight={canvasSize.height}
-                images={images}
+                collageW={collageW}
+                onHeightKnown={(h) => setBannerH(h)}
               />
             </Layer>
           )}
 
-          {/* Layer 3: collage images, offset down by bannerH */}
           <Layer>
             {images.map(img => (
               <CanvasImage
@@ -309,33 +329,6 @@ export default function App() {
             ))}
           </Layer>
         </Stage>
-
-        {/* 💎 Floating Recharge Diamonds button */}
-        <a
-          href="https://ryukofficial.in"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            position: 'absolute',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 100,
-            background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
-            color: '#fff',
-            fontWeight: '700',
-            fontSize: '14px',
-            padding: '10px 24px',
-            borderRadius: '999px',
-            boxShadow: '0 4px 24px rgba(108,99,255,0.5)',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            letterSpacing: '0.03em',
-            border: '1px solid rgba(255,255,255,0.15)',
-          }}
-        >
-          💎 Recharge Diamonds
-        </a>
       </div>
     </div>
   )
