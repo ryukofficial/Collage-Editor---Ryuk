@@ -1228,4 +1228,1963 @@
         "tier": ""
       },
       {
-     
+        "name": "Emerald Enchantress",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "fanny",
+    "name": "Fanny",
+    "skins": [
+      {
+        "name": "Punk Princess",
+        "tier": ""
+      },
+      {
+        "name": "Imperial Warrior",
+        "tier": ""
+      },
+      {
+        "name": "Campus Youth",
+        "tier": ""
+      },
+      {
+        "name": "Royal Cavalry",
+        "tier": ""
+      },
+      {
+        "name": "Summer Rescue",
+        "tier": ""
+      },
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Heart Afloat",
+        "tier": ""
+      },
+      {
+        "name": "Lightborn - Ranger",
+        "tier": ""
+      },
+      {
+        "name": "P.ACE Fanny",
+        "tier": ""
+      },
+      {
+        "name": "Skylark",
+        "tier": ""
+      },
+      {
+        "name": "Galactic Starhawk",
+        "tier": ""
+      },
+      {
+        "name": "Mikasa",
+        "tier": ""
+      },
+      {
+        "name": "Blade of Kibou",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "faramis",
+    "name": "Faramis",
+    "skins": [
+      {
+        "name": "Dark Necro",
+        "tier": ""
+      },
+      {
+        "name": "Royal Magus",
+        "tier": ""
+      },
+      {
+        "name": "Enigmatic Wayfarer",
+        "tier": ""
+      },
+      {
+        "name": "Summer Sparks",
+        "tier": ""
+      },
+      {
+        "name": "Infernal Magister",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "floryn",
+    "name": "Floryn",
+    "skins": [
+      {
+        "name": "Springtide",
+        "tier": ""
+      },
+      {
+        "name": "Paw Power",
+        "tier": ""
+      },
+      {
+        "name": "Yatai Waitress",
+        "tier": ""
+      },
+      {
+        "name": "Melody of Light",
+        "tier": ""
+      },
+      {
+        "name": "Herald of Autumn",
+        "tier": ""
+      },
+      {
+        "name": "Fluffy Dream",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "franco",
+    "name": "Franco",
+    "skins": [
+      {
+        "name": "Bone Crusher",
+        "tier": ""
+      },
+      {
+        "name": "Locomotive",
+        "tier": ""
+      },
+      {
+        "name": "Masterchef",
+        "tier": ""
+      },
+      {
+        "name": "Apocalypse",
+        "tier": ""
+      },
+      {
+        "name": "Wheatfield Nightmare",
+        "tier": ""
+      },
+      {
+        "name": "Captain of the Lost",
+        "tier": ""
+      },
+      {
+        "name": "Quantum Vanguard",
+        "tier": ""
+      },
+      {
+        "name": "Blazing Axe",
+        "tier": ""
+      },
+      {
+        "name": "Valhalla Ruler",
+        "tier": ""
+      },
+      {
+        "name": "King of Hell",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "fredrinn",
+    "name": "Fredrinn",
+    "skins": [
+      {
+        "name": "Regal Renegade",
+        "tier": ""
+      },
+      {
+        "name": "Jewel Connoisseur",
+        "tier": ""
+      },
+      {
+        "name": "Royal Marshal",
+        "tier": ""
+      },
+      {
+        "name": "SPARKLE Fredrinn",
+        "tier": ""
+      },
+      {
+        "name": "Neobeast Fredrinn",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "freya",
+    "name": "Freya",
+    "skins": [
+      {
+        "name": "Gladiator",
+        "tier": ""
+      },
+      {
+        "name": "Dark Rose",
+        "tier": ""
+      },
+      {
+        "name": "Dragon Hunter",
+        "tier": ""
+      },
+      {
+        "name": "Beach Sweetheart",
+        "tier": ""
+      },
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Starborn Resolve",
+        "tier": ""
+      },
+      {
+        "name": "Raven Shogun",
+        "tier": ""
+      },
+      {
+        "name": "S.A.B.E.R. Manhunter",
+        "tier": ""
+      },
+      {
+        "name": "War Angel",
+        "tier": ""
+      },
+      {
+        "name": "Galactic Vanquisher",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "gatotkaca",
+    "name": "Gatotkaca",
+    "skins": [
+      {
+        "name": "Spark",
+        "tier": ""
+      },
+      {
+        "name": "Mighty Guardian",
+        "tier": ""
+      },
+      {
+        "name": "Arhat King",
+        "tier": ""
+      },
+      {
+        "name": "Solar Spark",
+        "tier": ""
+      },
+      {
+        "name": "Nutcracker Monarch",
+        "tier": ""
+      },
+      {
+        "name": "Tide Preserver",
+        "tier": ""
+      },
+      {
+        "name": "Sentinel",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "gloo",
+    "name": "Gloo",
+    "skins": [
+      {
+        "name": "Verdant Enchanter",
+        "tier": ""
+      },
+      {
+        "name": "Jellyman",
+        "tier": ""
+      },
+      {
+        "name": "Patrick",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "gord",
+    "name": "Gord",
+    "skins": [
+      {
+        "name": "New Baron",
+        "tier": ""
+      },
+      {
+        "name": "Professor of Hell",
+        "tier": ""
+      },
+      {
+        "name": "Imperator Vitalis",
+        "tier": ""
+      },
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Techno Hazard",
+        "tier": ""
+      },
+      {
+        "name": "Cyber Hacker",
+        "tier": ""
+      },
+      {
+        "name": "No.1 Controller",
+        "tier": ""
+      },
+      {
+        "name": "Conqueror",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "granger",
+    "name": "Granger",
+    "skins": [
+      {
+        "name": "Bardic Whisper",
+        "tier": ""
+      },
+      {
+        "name": "Doomsday Terminator",
+        "tier": ""
+      },
+      {
+        "name": "Biosoldier",
+        "tier": ""
+      },
+      {
+        "name": "Hellbringer",
+        "tier": ""
+      },
+      {
+        "name": "Thunder Ascendant",
+        "tier": ""
+      },
+      {
+        "name": "Lightborn - Overrider",
+        "tier": ""
+      },
+      {
+        "name": "Alluring Enigma",
+        "tier": ""
+      },
+      {
+        "name": "Agent Z",
+        "tier": ""
+      },
+      {
+        "name": "Megatron",
+        "tier": ""
+      },
+      {
+        "name": "Exorcist Granger",
+        "tier": ""
+      },
+      {
+        "name": "Cosmic Finality",
+        "tier": ""
+      },
+      {
+        "name": "Starfall Knight",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "grock",
+    "name": "Grock",
+    "skins": [
+      {
+        "name": "Grave Guardian",
+        "tier": ""
+      },
+      {
+        "name": "Ancient Totem",
+        "tier": ""
+      },
+      {
+        "name": "Castle Guard",
+        "tier": ""
+      },
+      {
+        "name": "Iceland Golem",
+        "tier": ""
+      },
+      {
+        "name": "Wasteland Psycho",
+        "tier": ""
+      },
+      {
+        "name": "V.E.N.O.M. Monitor Lizard",
+        "tier": ""
+      },
+      {
+        "name": "Codename: Rhino",
+        "tier": ""
+      },
+      {
+        "name": "Tremor of the Deep",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "guinevere",
+    "name": "Guinevere",
+    "skins": [
+      {
+        "name": "Elegant Butterfly",
+        "tier": ""
+      },
+      {
+        "name": "Fleur de Bleau",
+        "tier": ""
+      },
+      {
+        "name": "Amethyst Dance",
+        "tier": ""
+      },
+      {
+        "name": "Sakura Wishes",
+        "tier": ""
+      },
+      {
+        "name": "Summer Breeze",
+        "tier": ""
+      },
+      {
+        "name": "Lotus",
+        "tier": ""
+      },
+      {
+        "name": "Lady Crane",
+        "tier": ""
+      },
+      {
+        "name": "Daybreak Halo",
+        "tier": ""
+      },
+      {
+        "name": "Athena Asamiya",
+        "tier": ""
+      },
+      {
+        "name": "Psion of Tomorrow",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "gusion",
+    "name": "Gusion",
+    "skins": [
+      {
+        "name": "Moonlight Sonata",
+        "tier": ""
+      },
+      {
+        "name": "Hairstylist",
+        "tier": ""
+      },
+      {
+        "name": "Cyber Ops",
+        "tier": ""
+      },
+      {
+        "name": "Desert Spider",
+        "tier": ""
+      },
+      {
+        "name": "Dangerous Liaison",
+        "tier": ""
+      },
+      {
+        "name": "V.E.N.O.M. Emperor Scorpion",
+        "tier": ""
+      },
+      {
+        "name": "Soul Revelation",
+        "tier": ""
+      },
+      {
+        "name": "Night Owl",
+        "tier": ""
+      },
+      {
+        "name": "K'",
+        "tier": ""
+      },
+      {
+        "name": "Dimension Walker",
+        "tier": ""
+      },
+      {
+        "name": "Minato Namikaze",
+        "tier": ""
+      },
+      {
+        "name": "Cosmic Gleam",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "hanabi",
+    "name": "Hanabi",
+    "skins": [
+      {
+        "name": "Viper",
+        "tier": ""
+      },
+      {
+        "name": "Resplendent Iris",
+        "tier": ""
+      },
+      {
+        "name": "Twin Crescent",
+        "tier": ""
+      },
+      {
+        "name": "Fiery Moth",
+        "tier": ""
+      },
+      {
+        "name": "Field Op",
+        "tier": ""
+      },
+      {
+        "name": "Chic Glamour",
+        "tier": ""
+      },
+      {
+        "name": "Neonscape Icon",
+        "tier": ""
+      },
+      {
+        "name": "V.E.N.O.M. Nephila",
+        "tier": ""
+      },
+      {
+        "name": "Riverland Phoenix",
+        "tier": ""
+      },
+      {
+        "name": "Vessel of Rage",
+        "tier": ""
+      },
+      {
+        "name": "Moonlit Ninja",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "hanzo",
+    "name": "Hanzo",
+    "skins": [
+      {
+        "name": "The Pale Phantom",
+        "tier": ""
+      },
+      {
+        "name": "Undead King",
+        "tier": ""
+      },
+      {
+        "name": "Insidious Tutor",
+        "tier": ""
+      },
+      {
+        "name": "Soulfire Netherlord",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "harith",
+    "name": "Harith",
+    "skins": [
+      {
+        "name": "Savannah Cat",
+        "tier": ""
+      },
+      {
+        "name": "Stardust",
+        "tier": ""
+      },
+      {
+        "name": "Fashion Expert",
+        "tier": ""
+      },
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Lightborn - Inspirer",
+        "tier": ""
+      },
+      {
+        "name": "EVOS Legends",
+        "tier": ""
+      },
+      {
+        "name": "Psychic",
+        "tier": ""
+      },
+      {
+        "name": "Killua",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "harley",
+    "name": "Harley",
+    "skins": [
+      {
+        "name": "Dream Caster",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "hayabusa",
+    "name": "Hayabusa",
+    "skins": [
+      {
+        "name": "Future Enforcer",
+        "tier": ""
+      },
+      {
+        "name": "Techie Ninja",
+        "tier": ""
+      },
+      {
+        "name": "Spacetime Shadow",
+        "tier": ""
+      },
+      {
+        "name": "Sushi Master",
+        "tier": ""
+      },
+      {
+        "name": "Biological Weapon",
+        "tier": ""
+      },
+      {
+        "name": "Experiment 21",
+        "tier": ""
+      },
+      {
+        "name": "Shadow of Obscurity",
+        "tier": ""
+      },
+      {
+        "name": "Shura",
+        "tier": ""
+      },
+      {
+        "name": "Exorcist Hayabusa",
+        "tier": ""
+      },
+      {
+        "name": "Kakashi Hatake",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "helcurt",
+    "name": "Helcurt",
+    "skins": [
+      {
+        "name": "Exoracial Executer",
+        "tier": ""
+      },
+      {
+        "name": "Ice Scythe",
+        "tier": ""
+      },
+      {
+        "name": "Evolved Predator",
+        "tier": ""
+      },
+      {
+        "name": "Dream Prowler",
+        "tier": ""
+      },
+      {
+        "name": "Scorpio",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "hilda",
+    "name": "Hilda",
+    "skins": [
+      {
+        "name": "Power of Wildness",
+        "tier": ""
+      },
+      {
+        "name": "Flower of the Wastes",
+        "tier": ""
+      },
+      {
+        "name": "Sacred Guard",
+        "tier": ""
+      },
+      {
+        "name": "Bass Craze",
+        "tier": ""
+      },
+      {
+        "name": "Guardian Battalion",
+        "tier": ""
+      },
+      {
+        "name": "Aries",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "hylos",
+    "name": "Hylos",
+    "skins": [
+      {
+        "name": "Abyssal Shaman",
+        "tier": ""
+      },
+      {
+        "name": "Jungle Watcher",
+        "tier": ""
+      },
+      {
+        "name": "Bloodhoof Marauder",
+        "tier": ""
+      },
+      {
+        "name": "Phantom Seer",
+        "tier": ""
+      },
+      {
+        "name": "Iron Steed",
+        "tier": ""
+      },
+      {
+        "name": "Lord of the Tundra",
+        "tier": ""
+      }
+    ]
+  },
+  {
+          {
+        "name": "Exostar Scout",
+        "tier": ""
+      },
+      {
+        "name": "ONIC PH",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "julian",
+    "name": "Julian",
+    "skins": [
+      {
+        "name": "Silent Edge",
+        "tier": ""
+      },
+      {
+        "name": "Meowkin Tracker",
+        "tier": ""
+      },
+      {
+        "name": "Megumi Fushiguro",
+        "tier": ""
+      },
+      {
+        "name": "Kurapika",
+        "tier": ""
+      },
+      {
+        "name": "Itachi Uchiha",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "kadita",
+    "name": "Kadita",
+    "skins": [
+      {
+        "name": "Atlantean Princess",
+        "tier": ""
+      },
+      {
+        "name": "Hydromancer",
+        "tier": ""
+      },
+      {
+        "name": "Maiden of the Tide",
+        "tier": ""
+      },
+      {
+        "name": "White Robin",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "kagura",
+    "name": "Kagura",
+    "skins": [
+      {
+        "name": "Flower Season",
+        "tier": ""
+      },
+      {
+        "name": "Rainy Walk",
+        "tier": ""
+      },
+      {
+        "name": "Cherry Witch",
+        "tier": ""
+      },
+      {
+        "name": "Summer Festival",
+        "tier": ""
+      },
+      {
+        "name": "Lady Parasol",
+        "tier": ""
+      },
+      {
+        "name": "Jade Blossom",
+        "tier": ""
+      },
+      {
+        "name": "Dragon Maiden",
+        "tier": ""
+      },
+      {
+        "name": "Water Lily",
+        "tier": ""
+      },
+      {
+        "name": "Beyond the Clouds Kagura",
+        "tier": ""
+      },
+      {
+        "name": "Exorcist Kagura",
+        "tier": ""
+      }
+    ]
+  },
+  {
+            "name": "Crescent Scimitar",
+        "tier": ""
+      },
+      {
+        "name": "Wave Strider",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "khufra",
+    "name": "Khufra",
+    "skins": [
+      {
+        "name": "Iron Hook",
+        "tier": ""
+      },
+      {
+        "name": "Desert Owl",
+        "tier": ""
+      },
+      {
+        "name": "Apophis",
+        "tier": ""
+      },
+      {
+        "name": "Gentleman Thief",
+        "tier": ""
+      },
+      {
+        "name": "Dreadful Clown",
+        "tier": ""
+      },
+      {
+        "name": "Cursed Scroll",
+        "tier": ""
+      },
+      {
+        "name": "Volcanic Overlord",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "kimmy",
+    "name": "Kimmy",
+    "skins": [
+      {
+        "name": "Steam Researcher",
+        "tier": ""
+      },
+      {
+        "name": "High Seas Cadet",
+        "tier": ""
+      },
+      {
+        "name": "Bio Frontier",
+        "tier": ""
+      },
+      {
+        "name": "Charge Leader",
+        "tier": ""
+      },
+      {
+        "name": "Rising Nova",
+        "tier": ""
+      },
+      {
+        "name": "Frost Wing",
+        "tier": ""
+      },
+      {
+        "name": "Astrocat",
+        "tier": ""
+      },
+      {
+        "name": "First Order Jet Trooper",
+        "tier": ""
+      }
+    ]
+  },
+  {
+          {
+        "name": "Royal Musketeer",
+        "tier": ""
+      },
+      {
+        "name": "Dangerous Love",
+        "tier": ""
+      },
+      {
+        "name": "Lethal Lady",
+        "tier": ""
+      },
+      {
+        "name": "Cheergunner",
+        "tier": ""
+      },
+      {
+        "name": "Stellaris Ghost",
+        "tier": ""
+      },
+      {
+        "name": "Falcon Mistress",
+        "tier": ""
+      },
+      {
+        "name": "Hawk-eyed Sniper",
+        "tier": ""
+      },
+      {
+        "name": "Angelic Agent",
+        "tier": ""
+      },
+      {
+        "name": "Deadeye Spectre",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "ling",
+    "name": "Ling",
+    "skins": [
+      {
+        "name": "Fiery Dance",
+        "tier": ""
+      },
+      {
+        "name": "Street Punk",
+        "tier": ""
+      },
+      {
+        "name": "Cosmo Guard",
+        "tier": ""
+      },
+      {
+        "name": "Phantom Current",
+        "tier": ""
+      },
+      {
+        "name": "Night Shade",
+        "tier": ""
+      },
+      {
+        "name": "M-World Ling",
+        "tier": ""
+      },
+      {
+        "name": "Serene Plume",
+        "tier": ""
+      },
+      {
+        "name": "Lord Shen",
+        "tier": ""
+      },
+      {
+        "name": "Neobeast Ling",
+        "tier": ""
+      }
+    ]
+  },
+  {
+            "tier": ""
+      },
+      {
+        "name": "Darkwater Terror",
+        "tier": ""
+      },
+      {
+        "name": "Capricorn",
+        "tier": ""
+      },
+      {
+        "name": "Wild Renegade",
+        "tier": ""
+      },
+      {
+        "name": "God of War",
+        "tier": ""
+      },
+      {
+        "name": "Levi",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "masha",
+    "name": "Masha",
+    "skins": [
+      {
+        "name": "Winter Guard",
+        "tier": ""
+      },
+      {
+        "name": "Spirited Gauntlet",
+        "tier": ""
+      },
+      {
+        "name": "Combat Maiden",
+        "tier": ""
+      },
+      {
+        "name": "Rogue Talon",
+        "tier": ""
+      },
+      {
+        "name": "Dragon Armor",
+        "tier": ""
+      },
+      {
+        "name": "Mai Shiranui",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "mathilda",
+    "name": "Mathilda",
+    "skins": [
+      {
+        "name": "Unrestrained Delight",
+        "tier": ""
+      },
+      {
+        "name": "Floral Crown",
+        "tier": ""
+      },
+      {
+        "name": "Dream Groove",
+        "tier": ""
+      },
+      {
+        "name": "Dreambound Pixie",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "melissa",
+    "name": "Melissa",
+    "skins": [
+      {
+        "name": "Twinge Weaver",
+        "tier": ""
+      },
+      {
+        "name": "Nightwalker",
+        "tier": ""
+      },
+      {
+        "name": "SPARKLE Melissa",
+        "tier": ""
+      },
+      {
+        "name": "Umbra Bloom",
+        "tier": ""
+      },
+      {
+        "name": "Nobara Kugisaki",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "minsitthar",
+    "name": "Minsitthar",
+    "skins": [
+      {
+        "name": "Symbol of Valor",
+        "tier": ""
+      },
+      {
+        "name": "Golden Marshal",
+        "tier": ""
+      },
+      {
+        "name": "Gilded King",
+        "tier": ""
+      },
+      {
+        "name": "Crimson Lion",
+        "tier": ""
+      },
+      {
+        "name": "King of War",
+        "tier": ""
+      },
+      {
+        "name": "Sol Invictus",
+        "tier": ""
+      }
+    ]
+  },
+  {
+          }
+    ]
+  },
+  {
+    "id": "natan",
+    "name": "Natan",
+    "skins": [
+      {
+        "name": "Chaos Hunter",
+        "tier": ""
+      },
+      {
+        "name": "Time Wielder",
+        "tier": ""
+      },
+      {
+        "name": "Captain Chrono",
+        "tier": ""
+      },
+      {
+        "name": "Temporal Vortex",
+        "tier": ""
+      },
+      {
+        "name": "Archon of Knowledge",
+        "tier": ""
+      },
+      {
+        "name": "Sanguine Steward",
+        "tier": ""
+      },
+      {
+        "name": "Tidal Lord",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "nolan",
+    "name": "Nolan",
+    "skins": [
+      {
+        "name": "Voidwalker",
+        "tier": ""
+      },
+      {
+        "name": "Fashion Mogul",
+        "tier": ""
+      },
+      {
+        "name": "Spectral Strider",
+        "tier": ""
+      },
+      {
+        "name": "The Navigator",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "novaria",
+    "name": "Novaria",
+    "skins": [
+      {
+        "name": "Void Star",
+        "tier": ""
+      },
+      {
+        "name": "Sugar Glaze",
+        "tier": ""
+      },
+      {
+        "name": "Lunar Scion",
+        "tier": ""
+      },
+      {
+        "name": "Dragonsworn",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "obsidia",
+    "name": "Obsidia",
+    "skins": [
+      {
+        "name": "Undying Remnants",
+        "tier": ""
+      },
+      {
+        "name": "Magitech Wraith",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "odette",
+    "name": "Odette",
+    "skins": [
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Butterfly Goddess",
+        "tier": ""
+      },
+      {
+        "name": "Auspicious Charm",
+        "tier": ""
+      },
+      {
+        "name": "Wisdom of the Stars",
+        "tier": ""
+      },
+      {
+        "name": "Black Swan",
+        "tier": ""
+      },
+      {
+        "name": "Virgo",
+        "tier": ""
+      },
+      {
+        "name": "Sage of the Currents",
+        "tier": ""
+      },
+      {
+        "name": "Mermaid Princess",
+        "tier": ""
+      },
+      {
+        "name": "Song of Devotion",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "paquito",
+    "name": "Paquito",
+    "skins": [
+      {
+        "name": "Death Blow",
+        "tier": ""
+      },
+      {
+        "name": "Fists of Light",
+        "tier": ""
+      },
+      {
+        "name": "Fulgent Punch",
+        "tier": ""
+      },
+      {
+        "name": "Underground Boxer",
+        "tier": ""
+      },
+      {
+        "name": "Manny Pacquiao",
+        "tier": ""
+      },
+      {
+        "name": "Fist of Glory",
+        "tier": ""
+      },
+      {
+        "name": "Terry Bogard",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "pharsa",
+    "name": "Pharsa",
+    "skins": [
+      {
+        "name": "Enchanting Witch",
+        "tier": ""
+      },
+      {
+        "name": "Wings of Heaven",
+        "tier": ""
+      },
+      {
+        "name": "Indigo Aviatrix",
+        "tier": ""
+      },
+      {
+        "name": "Peafowl's Dance",
+        "tier": ""
+      },
+      {
+        "name": "Samba Muse",
+        "tier": ""
+      },
+      {
+        "name": "Peony Bloom",
+        "tier": ""
+      },
+      {
+        "name": "Seasworn Oracle",
+        "tier": ""
+      },
+      {
+        "name": "Hierophant",
+        "tier": ""
+      },
+      {
+        "name": "Neon Shingetsu",
+        "tier": ""
+      },
+      {
+        "name": "Empress Phoenix",
+        "tier": ""
+      },
+      {
+        "name": "Neobeast Pharsa",
+        "tier": ""
+      }
+    ]
+  },
+  {
+          {
+        "name": "Gemini - Shadow",
+        "tier": ""
+      },
+      {
+        "name": "S.T.U.N. Selena",
+        "tier": ""
+      },
+      {
+        "name": "Thunder Flash",
+        "tier": ""
+      },
+      {
+        "name": "Lady Vengeance",
+        "tier": ""
+      },
+      {
+        "name": "Curse of Cinder",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "silvanna",
+    "name": "Silvanna",
+    "skins": [
+      {
+        "name": "Midnight Justice",
+        "tier": ""
+      },
+      {
+        "name": "Verdant Lancer",
+        "tier": ""
+      },
+      {
+        "name": "Hallowed Lance",
+        "tier": ""
+      },
+      {
+        "name": "Future Cop",
+        "tier": ""
+      },
+      {
+        "name": "Pure Heroine",
+        "tier": ""
+      },
+      {
+        "name": "Classroom Charm",
+        "tier": ""
+      },
+      {
+        "name": "Alluring Mystique",
+        "tier": ""
+      },
+      {
+        "name": "Meowkin Warden",
+        "tier": ""
+      },
+      {
+        "name": "Queen Frost",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "sora",
+    "name": "Sora",
+    "skins": [
+      {
+        "name": "Azure Cloud",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "sun",
+    "name": "Sun",
+    "skins": [
+      {
+        "name": "Battle Buddha",
+        "tier": ""
+      },
+      {
+        "name": "Celestial Outlaw",
+        "tier": ""
+      },
+      {
+        "name": "Rock Star",
+        "tier": ""
+      },
+      {
+        "name": "Street Legend",
+        "tier": ""
+      },
+      {
+        "name": "Simian Curse",
+        "tier": ""
+      },
+      {
+        "name": "Spring Blessings",
+        "tier": ""
+      },
+      {
+        "name": "Wicked Flames",
+        "tier": ""
+      },
+      {
+        "name": "Queller of Chaos",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "suyou",
+    "name": "Suyou",
+    "skins": [
+      {
+        "name": "Venerated Vigilance",
+        "tier": ""
+      },
+      {
+        "name": "Sasuke Uchiha",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "terizla",
+    "name": "Terizla",
+    "skins": [
+      {
+        "name": "Rustwreck",
+        "tier": ""
+      },
+      {
+        "name": "Abyss Guard",
+        "tier": ""
+      },
+      {
+        "name": "Flare",
+        "tier": ""
+      },
+      {
+        "name": "Hammer Giant",
+        "tier": ""
+      },
+      {
+        "name": "Flames of Judgment",
+        "tier": ""
+      },
+      {
+        "name": "Soulblight Tyrant",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "thamuz",
+    "name": "Thamuz",
+    "skins": [
+      {
+        "name": "Lord of Wraith",
+        "tier": ""
+      },
+      {
+        "name": "Liquid Fire",
+        "tier": ""
+      },
+      {
+        "name": "Abyssal Reaper",
+        "tier": ""
+      },
+      {
+        "name": "Sanctified Flame",
+        "tier": ""
+      },
+      {
+        "name": "General Kai",
+        "tier": ""
+      },
+      {
+        "name": "The Annihilator",
+        "tier": ""
+      }
+    ]
+  },
+  {
+          {
+        "name": "Ember Gaze",
+        "tier": ""
+      },
+      {
+        "name": "Demonlord",
+        "tier": ""
+      },
+      {
+        "name": "Leo Ikki",
+        "tier": ""
+      },
+      {
+        "name": "Infernal Blaze",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "vexana",
+    "name": "Vexana",
+    "skins": [
+      {
+        "name": "Cursed Shackle",
+        "tier": ""
+      },
+      {
+        "name": "Lucent Beacon",
+        "tier": ""
+      },
+      {
+        "name": "Circus Magician",
+        "tier": ""
+      },
+      {
+        "name": "Sanguine Rose",
+        "tier": ""
+      },
+      {
+        "name": "Eternal Vows",
+        "tier": ""
+      },
+      {
+        "name": "The Sun Empress",
+        "tier": ""
+      },
+      {
+        "name": "Twisted Fairytale",
+        "tier": ""
+      },
+      {
+        "name": "Twilight Star",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "wanwan",
+    "name": "Wanwan",
+    "skins": [
+      {
+        "name": "Shoujo Commander",
+        "tier": ""
+      },
+      {
+        "name": "Darting Star",
+        "tier": ""
+      },
+      {
+        "name": "Teen Pop",
+        "tier": ""
+      },
+      {
+        "name": "E-girl",
+        "tier": ""
+      },
+      {
+        "name": "Summer Splash",
+        "tier": ""
+      },
+      {
+        "name": "M-World Wanwan",
+        "tier": ""
+      },
+      {
+        "name": "Pixel Blast",
+        "tier": ""
+      },
+      {
+        "name": "Flying Swallow",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "xborg",
+    "name": "X.Borg",
+    "skins": [
+      {
+        "name": "Blue Storm",
+        "tier": ""
+      },
+      {
+        "name": "Moto Drifter",
+        "tier": ""
+      },
+      {
+        "name": "Pecados Rioter",
+        "tier": ""
+      },
+      {
+        "name": "Graffiti Fashion",
+        "tier": ""
+      },
+      {
+        "name": "Tesla Maniac",
+        "tier": ""
+      },
+      {
+        "name": "Bumblebee",
+        "tier": ""
+      },
+      {
+        "name": "Invoker's Flame",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "xavier",
+    "name": "Xavier",
+    "skins": [
+      {
+        "name": "Verdict of Light",
+        "tier": ""
+      },
+      {
+        "name": "Hardlight Artificer",
+        "tier": ""
+      },
+      {
+        "name": "Sunborn Monarch",
+        "tier": ""
+      },
+      {
+        "name": "Beyond the Clouds Xavier",
+        "tier": ""
+      },
+      {
+        "name": "Satoru Gojo",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "yi-sun-shin",
+    "name": "Yi Sun-shin",
+    "skins": [
+      {
+        "name": "Surging Torrent",
+        "tier": ""
+      },
+      {
+        "name": "Roguish Ranger",
+        "tier": ""
+      },
+      {
+        "name": "Major General",
+        "tier": ""
+      },
+      {
+        "name": "Apocalypse Agent",
+        "tier": ""
+      },
+      {
+        "name": "Azure Sentry",
+        "tier": ""
+      },
+      {
+        "name": "Wavebreaker",
+        "tier": ""
+      },
+      {
+        "name": "Fleet Warden",
+        "tier": ""
+      },
+      {
+        "name": "Lone Destructor",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "yin",
+    "name": "Yin",
+    "skins": [
+      {
+        "name": "Fists of Valor",
+        "tier": ""
+      },
+      {
+        "name": "Eternal Guardian",
+        "tier": ""
+      },
+      {
+        "name": "M-World Yin",
+        "tier": ""
+      },
+      {
+        "name": "Yuji Itadori",
+        "tier": ""
+      },
+      {
+        "name": "Eren",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "yu-zhong",
+    "name": "Yu Zhong",
+    "skins": [
+      {
+        "name": "Emerald Dragon",
+        "tier": ""
+      },
+      {
+        "name": "Biohazard",
+        "tier": ""
+      },
+      {
+        "name": "Tidescale Sealord",
+        "tier": ""
+      },
+      {
+        "name": "Dragon's Shade",
+        "tier": ""
+      },
+      {
+        "name": "Blood Serpent",
+        "tier": ""
+      },
+      {
+        "name": "Exorcist Yu Zhong",
+        "tier": ""
+      },
+      {
+        "name": "Cosmic Dragon",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "yve",
+    "name": "Yve",
+    "skins": [
+      {
+        "name": "Ruin Protectress",
+        "tier": ""
+      },
+      {
+        "name": "Forest Hymn",
+        "tier": ""
+      },
+      {
+        "name": "Flame Lotus",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "zetian",
+    "name": "Zetian",
+    "skins": [
+      {
+        "name": "Heavenly Splendor",
+        "tier": ""
+      },
+      {
+        "name": "Sunset Luminance",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "zhask",
+    "name": "Zhask",
+    "skins": [
+      {
+        "name": "Crystallized Predator",
+        "tier": ""
+      },
+      {
+        "name": "Death's Shadow",
+        "tier": ""
+      },
+      {
+        "name": "Extraterrestrial",
+        "tier": ""
+      },
+      {
+        "name": "Cancer",
+        "tier": ""
+      },
+      {
+        "name": "Bone Flamen",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "zhuxin",
+    "name": "Zhuxin",
+    "skins": [
+      {
+        "name": "Ethereal Serenity",
+        "tier": ""
+      },
+      {
+        "name": "Emberwisp Mystic",
+        "tier": ""
+      },
+      {
+        "name": "P.ACE Zhuxin",
+        "tier": ""
+      }
+    ]
+  },
+  {
+    "id": "zilong",
+    "name": "Zilong",
+    "skins": [
+      {
+        "name": "Loyal Spear",
+        "tier": ""
+      },
+      {
+        "name": "Elite Warrior",
+        "tier": ""
+      },
+      {
+        "name": "Blazing Lancer",
+        "tier": ""
+      },
+      {
+        "name": "Christmas Carnival",
+        "tier": ""
+      },
+      {
+        "name": "Summer Waves",
+        "tier": ""
+      },
+      {
+        "name": "Storm Rider",
+        "tier": ""
+      },
+      {
+        "name": "Eastern Warrior",
+        "tier": ""
+      },
+      {
+        "name": "Glorious General",
+        "tier": ""
+      },
+      {
+        "name": "Dragon of Prosperity",
+        "tier": ""
+      },
+      {
+        "name": "Changbanpo Commander",
+        "tier": ""
+      },
+      {
+        "name": "Empyrean Paladin",
+        "tier": ""
+      }
+    ]
+  }
