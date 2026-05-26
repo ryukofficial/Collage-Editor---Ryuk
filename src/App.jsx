@@ -7,6 +7,7 @@ import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
 import HeroPicker from './components/HeroPicker'
 import AdminPanel from './components/AdminPanel'
+import WelcomeScreen, { useWelcome } from './components/WelcomeScreen'
 
 function CanvasImage({ img, isSelected, onSelect }) {
   const [image] = useImage(img.src)
@@ -40,6 +41,9 @@ export default function App() {
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
   const [diamondPopupOpen, setDiamondPopupOpen] = useState(false)
+
+  // ── Welcome screen ────────────────────────────────────────────
+  const { show: showWelcome, dismiss: dismissWelcome } = useWelcome()
 
   // ── Admin panel state ─────────────────────────────────────────
   const [adminOpen, setAdminOpen] = useState(false)
@@ -149,6 +153,9 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
+      {/* ── Welcome Screen (shows once, stored in localStorage) ── */}
+      {showWelcome && <WelcomeScreen onDismiss={dismissWelcome} />}
+
       {/* ── Admin Panel ───────────────────────────────────────── */}
       {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
 
@@ -250,7 +257,6 @@ export default function App() {
 
       <header className="bg-panel border-b border-border shrink-0">
         <div className="flex items-center justify-between px-4 py-2">
-          {/* Triple-click logo */}
           <span
             className="font-display font-bold text-lg text-gradient shrink-0 cursor-pointer select-none"
             onClick={handleLogoClick}
@@ -290,17 +296,12 @@ export default function App() {
       <div id="canvas-container" className="flex-1 relative bg-grid overflow-hidden"
         onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
 
-        {/* Drop overlay */}
         {isDragging && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-accent/10 border-2 border-dashed border-accent">
             <p className="text-accent text-xl font-semibold">Drop images here</p>
           </div>
         )}
 
-        {/* ── Empty state: removed the dead "+ Create / Upload" buttons ── */}
-        {/* Canvas is just blank until the user taps "+ Create" in the header */}
-
-        {/* Selection toolbar */}
         {hasSelection && (
           <div style={{
             position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
