@@ -13,7 +13,7 @@
       },
       {
         "name": "Cyber Assassin",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Soul Reaver",
@@ -293,7 +293,7 @@
       },
       {
         "name": "Fury of the Deep",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Aeon of Twilight",
@@ -319,7 +319,7 @@
       },
       {
         "name": "Space Mech",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Sunken Curse",
@@ -353,7 +353,7 @@
       },
       {
         "name": "War Lion",
-        "tier": ""
+        "tier": "Exceptional"
       }
     ]
   },
@@ -503,7 +503,7 @@
       },
       {
         "name": "Baratstein",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Sunken Predator",
@@ -529,11 +529,11 @@
       },
       {
         "name": "Ba-rista",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dauntless Shield",
-        "tier": ""
+        "tier": "Exceptional"
       }
     ]
   },
@@ -551,11 +551,11 @@
       },
       {
         "name": "Space Agent",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Vibrant Fiesta",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Light Chaser",
@@ -607,15 +607,15 @@
       },
       {
         "name": "Street Thrasher",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Moonblade",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Quantum Edge",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Phantom Mirage",
@@ -645,7 +645,7 @@
       },
       {
         "name": "Quantum Grip",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Lethal Fang",
@@ -721,7 +721,7 @@
       },
       {
         "name": "Phantom Countess",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Astral Arcana",
@@ -743,11 +743,11 @@
       },
       {
         "name": "Phantom Count",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Stargazer",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Crimson Wings",
@@ -887,7 +887,7 @@
       },
       {
         "name": "Circus Reverie",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "P.ACE Cici",
@@ -1073,7 +1073,7 @@
       },
       {
         "name": "Ruins Scavenger",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "V.E.N.O.M. Cobra",
@@ -1107,11 +1107,11 @@
       },
       {
         "name": "Ancient Warden",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Prismatic Sentinel",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Red Bastion",
@@ -1137,19 +1137,19 @@
       },
       {
         "name": "Lady Thief",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Cleopatra",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Astral Muse",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Petal's Razor",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Blazing Shadow",
@@ -1331,7 +1331,7 @@
       },
       {
         "name": "Yatai Waitress",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Melody of Light",
@@ -1509,7 +1509,7 @@
       },
       {
         "name": "Jellyman",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Patrick",
@@ -1569,11 +1569,11 @@
       },
       {
         "name": "Biosoldier",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Hellbringer",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Thunder Ascendant",
@@ -1661,11 +1661,11 @@
       },
       {
         "name": "Amethyst Dance",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Sakura Wishes",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Summer Breeze",
@@ -1673,7 +1673,7 @@
       },
       {
         "name": "Lotus",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Lady Crane",
@@ -2043,7 +2043,7 @@
       },
       {
         "name": "Dynamic Streak",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Invoker's Command",
@@ -2141,7 +2141,7 @@
       },
       {
         "name": "Exostar Scout",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "ONIC PH",
@@ -2415,11 +2415,11 @@
       },
       {
         "name": "Gentleman Thief",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dreadful Clown",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Cursed Scroll",
@@ -2845,11 +2845,11 @@
       },
       {
         "name": "Dawning Fortune",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Siren Priestess",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Oracle of Sol",
@@ -2879,15 +2879,15 @@
       },
       {
         "name": "Future Star",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Haunted Doll",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Magitech Arsenal",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Phantasmal Revelry",
@@ -2965,11 +2965,11 @@
       },
       {
         "name": "Combat Maiden",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Rogue Talon",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dragon Armor",
@@ -2995,7 +2995,7 @@
       },
       {
         "name": "Dream Groove",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dreambound Pixie",
@@ -3013,7 +3013,7 @@
       },
       {
         "name": "Nightwalker",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "SPARKLE Melissa",
@@ -3283,11 +3283,11 @@
       },
       {
         "name": "Captain Chrono",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Temporal Vortex",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Archon of Knowledge",
@@ -3313,7 +3313,7 @@
       },
       {
         "name": "Fashion Mogul",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Spectral Strider",
@@ -3335,11 +3335,11 @@
       },
       {
         "name": "Sugar Glaze",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Lunar Scion",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dragonsworn",
@@ -3413,11 +3413,11 @@
       },
       {
         "name": "Fists of Light",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Fulgent Punch",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Underground Boxer",
@@ -3497,7 +3497,7 @@
       },
       {
         "name": "Matrix Maverick",
-        "tier": ""
+        "tier": "Exceptional"
       }
     ]
   },
@@ -3515,11 +3515,11 @@
       },
       {
         "name": "Trouble Makers",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Proto Hunter",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Spirit of the Brush",
@@ -3755,11 +3755,11 @@
       },
       {
         "name": "Pure Heroine",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Classroom Charm",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Alluring Mystique",
@@ -3855,7 +3855,7 @@
       },
       {
         "name": "Hammer Giant",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Flames of Judgment",
@@ -4025,7 +4025,7 @@
       },
       {
         "name": "Cyber Agent",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dark Nexus",
@@ -4135,11 +4135,11 @@
       },
       {
         "name": "Teen Pop",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "E-girl",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Summer Splash",
@@ -4177,7 +4177,7 @@
       },
       {
         "name": "Graffiti Fashion",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Tesla Maniac",
@@ -4203,7 +4203,7 @@
       },
       {
         "name": "Hardlight Artificer",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Sunborn Monarch",
@@ -4267,7 +4267,7 @@
       },
       {
         "name": "Eternal Guardian",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "M-World Yin",
@@ -4293,11 +4293,11 @@
       },
       {
         "name": "Biohazard",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Tidescale Sealord",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "Dragon's Shade",
@@ -4331,7 +4331,7 @@
       },
       {
         "name": "Flame Lotus",
-        "tier": ""
+        "tier": "Exceptional"
       }
     ]
   },
@@ -4385,7 +4385,7 @@
       },
       {
         "name": "Emberwisp Mystic",
-        "tier": ""
+        "tier": "Exceptional"
       },
       {
         "name": "P.ACE Zhuxin",
