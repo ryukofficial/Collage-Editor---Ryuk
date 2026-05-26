@@ -54,6 +54,7 @@ function fuzzyMatch(str, query) {
 }
 
 const HERO_ALIASES = {
+  yuzhong: ['yu zhong', 'yuzhong'],
   gusion: ['gusion', 'gus'], franco: ['franco'], johnson: ['johnson', 'john'],
   odette: ['odette'], lancelot: ['lancelot', 'lance'], alucard: ['alucard', 'alu'],
   vexana: ['vexana', 'vex'], layla: ['layla'], miya: ['miya'], ling: ['ling'],
