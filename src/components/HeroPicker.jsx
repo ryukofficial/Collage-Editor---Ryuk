@@ -13,11 +13,11 @@ const TIER_STYLES = {
   Common:      { bg: '#1a1a1a', border: '#6b7280', text: '#9ca3af', icon: '🔹' },
 }
 
-const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
+const PLACEHOLDER      = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
-const CELL_SIZE = 300
-const GITHUB_API = 'https://api.github.com/repos/ryukofficial/mlbb-assets/contents/'
-const CDN_BASE = 'https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/'
+const CELL_SIZE        = 300
+const GITHUB_API       = 'https://api.github.com/repos/ryukofficial/mlbb-assets/contents/'
+const CDN_BASE         = 'https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/'
 
 function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
@@ -34,7 +34,7 @@ function skinKeywords(skinName) {
 }
 
 function matchScore(filename, heroId, skinName) {
-  const f = slugify(filename.replace(/\.(jpg|jpeg|png|webp)$/i, ''))
+  const f       = slugify(filename.replace(/\.(jpg|jpeg|png|webp)$/i, ''))
   const aliases = HERO_ALIASES[heroId] || [heroId]
   const heroMatch = aliases.some(alias => f.includes(alias))
   if (!heroMatch) return 0
@@ -45,7 +45,7 @@ function matchScore(filename, heroId, skinName) {
 }
 
 function buildImageMap(files, heroId, skins) {
-  const map = {}
+  const map        = {}
   const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f))
   for (const skin of skins) {
     let bestFile = null, bestScore = 0.3
@@ -60,9 +60,9 @@ function buildImageMap(files, heroId, skins) {
 
 function preloadImage(src) {
   return new Promise(resolve => {
-    const img = new Image()
+    const img      = new Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    img.onload  = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
     img.onerror = () => resolve({ width: 300, height: 300 })
     img.src = src
   })
@@ -75,6 +75,38 @@ function loadTierAssignments() {
   } catch { return {} }
 }
 
+// ── Shared style helpers ───────────────────────────────────────
+const overlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 50,
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'center',
+  background: 'rgba(0,0,0,0.7)',
+  backdropFilter: 'blur(4px)',
+  // Shrink overlay when keyboard opens so sheet stays visible
+  paddingBottom: 'env(keyboard-inset-height, 0px)',
+}
+
+// Modal sheet: uses dvh so it recalculates when keyboard appears
+const sheetStyle = {
+  width: '100%',
+  maxWidth: '480px',
+  // dvh = dynamic viewport height — shrinks when keyboard opens
+  // Falls back to vh for older browsers
+  maxHeight: 'min(85dvh, 85vh)',
+  background: '#0e0e1a',
+  border: '1px solid #252535',
+  borderRadius: '20px 20px 0 0',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
+  // Ensure the sheet itself never goes under keyboard on iOS Safari
+  paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+}
+
 // ── Mode Select Screen ─────────────────────────────────────────
 function ModeSelect({ onSelectMode }) {
   return (
@@ -82,6 +114,7 @@ function ModeSelect({ onSelectMode }) {
       <p style={{ color: '#888', fontSize: '12px', textAlign: 'center', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         Choose selection mode
       </p>
+
       <button
         onClick={() => onSelectMode('hero')}
         style={{
@@ -100,6 +133,7 @@ function ModeSelect({ onSelectMode }) {
         </div>
         <span style={{ marginLeft: 'auto', color: '#6c63ff', fontSize: '18px' }}>›</span>
       </button>
+
       <button
         onClick={() => onSelectMode('collection')}
         style={{
@@ -125,16 +159,15 @@ function ModeSelect({ onSelectMode }) {
 // ── Collection Mode ────────────────────────────────────────────
 function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, selectedSkins, setSelectedSkins }) {
   const [activeTier, setActiveTier] = useState('Legend')
-  const [search, setSearch] = useState('')
+  const [search, setSearch]         = useState('')
 
   const assignments = useMemo(() => loadTierAssignments(), [])
 
-  // All skins in active tier
   const tierSkins = useMemo(() => {
     const result = []
     for (const hero of skinsData) {
       for (const skin of hero.skins) {
-        const key = `${hero.id}__${skin.name}`
+        const key  = `${hero.id}__${skin.name}`
         const tier = assignments[key] || skin.tier || ''
         if (tier === activeTier) {
           result.push({ ...skin, heroId: hero.id, heroName: hero.name, tier })
@@ -152,7 +185,6 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
     )
   }, [tierSkins, search])
 
-  // Build image maps for heroes in this tier that aren't cached yet
   useEffect(() => {
     if (repoFiles.length === 0) return
     const heroIds = [...new Set(tierSkins.map(s => s.heroId))]
@@ -173,7 +205,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
   const toggleSkin = (skin, resolvedUrl) => {
     if (!resolvedUrl) return
     setSelectedSkins(prev => {
-      const key = `${skin.heroId}__${skin.name}`
+      const key    = `${skin.heroId}__${skin.name}`
       const exists = prev.find(s => `${s.heroId}__${s.name}` === key)
       if (exists) return prev.filter(s => `${s.heroId}__${s.name}` !== key)
       return [...prev, { ...skin, image: resolvedUrl }]
@@ -184,7 +216,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
     const counts = {}
     for (const hero of skinsData) {
       for (const skin of hero.skins) {
-        const key = `${hero.id}__${skin.name}`
+        const key  = `${hero.id}__${skin.name}`
         const tier = assignments[key] || skin.tier || ''
         if (tier) counts[tier] = (counts[tier] || 0) + 1
       }
@@ -195,11 +227,14 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       {/* Tier tabs */}
-      <div style={{ display: 'flex', gap: '6px', padding: '10px 12px', overflowX: 'auto', flexShrink: 0, borderBottom: '1px solid #1a1a2e' }}>
+      <div style={{
+        display: 'flex', gap: '6px', padding: '10px 12px',
+        overflowX: 'auto', flexShrink: 0, borderBottom: '1px solid #1a1a2e',
+      }}>
         {TIERS.map(tier => {
-          const ts = TIER_STYLES[tier]
+          const ts       = TIER_STYLES[tier]
           const isActive = activeTier === tier
-          const count = tierCounts[tier] || 0
+          const count    = tierCounts[tier] || 0
           return (
             <button
               key={tier}
@@ -231,7 +266,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
         })}
       </div>
 
-      {/* Search */}
+      {/* Search — tapping this opens keyboard; dvh + env() keeps sheet visible */}
       <div style={{ padding: '10px 12px', flexShrink: 0 }}>
         <input
           type="text"
@@ -264,10 +299,10 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {filtered.map((skin, i) => {
               const resolvedUrl = getSkinImage(skin.heroId, skin.name)
-              const hasImage = !!resolvedUrl
-              const key = `${skin.heroId}__${skin.name}`
-              const isSelected = selectedSkins.find(s => `${s.heroId}__${s.name}` === key)
-              const ts = TIER_STYLES[activeTier]
+              const hasImage    = !!resolvedUrl
+              const key         = `${skin.heroId}__${skin.name}`
+              const isSelected  = selectedSkins.find(s => `${s.heroId}__${s.name}` === key)
+              const ts          = TIER_STYLES[activeTier]
               return (
                 <button
                   key={i}
@@ -302,8 +337,10 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
                     background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
                     padding: '16px 6px 5px',
                   }}>
-                    <p style={{ color: '#fff', fontSize: '9px', fontWeight: 600, margin: '0 0 2px', lineHeight: 1.2,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{
+                      color: '#fff', fontSize: '9px', fontWeight: 600, margin: '0 0 2px', lineHeight: 1.2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {skin.name}
                     </p>
                     <p style={{ color: '#aaa', fontSize: '9px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -327,15 +364,15 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
 
 // ── Main HeroPicker ────────────────────────────────────────────
 export default function HeroPicker() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [mode, setMode] = useState(null) // null | 'hero' | 'collection'
-  const [selectedHero, setSelectedHero] = useState(null)
-  const [search, setSearch] = useState('')
+  const [isOpen,        setIsOpen]        = useState(false)
+  const [mode,          setMode]          = useState(null)   // null | 'hero' | 'collection'
+  const [selectedHero,  setSelectedHero]  = useState(null)
+  const [search,        setSearch]        = useState('')
   const [selectedSkins, setSelectedSkins] = useState([])
-  const [isAdding, setIsAdding] = useState(false)
-  const [repoFiles, setRepoFiles] = useState([])
-  const [imageCache, setImageCache] = useState({})
-  const [fetchError, setFetchError] = useState(false)
+  const [isAdding,      setIsAdding]      = useState(false)
+  const [repoFiles,     setRepoFiles]     = useState([])
+  const [imageCache,    setImageCache]    = useState({})
+  const [fetchError,    setFetchError]    = useState(false)
 
   const addImages    = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
@@ -343,18 +380,22 @@ export default function HeroPicker() {
   const images       = useStore(s => s.images)
   const hasImages    = images.length > 0
 
+  // Fetch repo file listing once when picker opens
   useEffect(() => {
     if (!isOpen || repoFiles.length > 0) return
     fetch(GITHUB_API)
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) { setFetchError(true); return }
-        const names = data.filter(f => f.type === 'file' && /\.(jpg|jpeg|png|webp)$/i.test(f.name)).map(f => f.name)
+        const names = data
+          .filter(f => f.type === 'file' && /\.(jpg|jpeg|png|webp)$/i.test(f.name))
+          .map(f => f.name)
         setRepoFiles(names)
       })
       .catch(() => setFetchError(true))
   }, [isOpen])
 
+  // Build image map for selected hero
   useEffect(() => {
     if (!selectedHero || repoFiles.length === 0 || imageCache[selectedHero.id]) return
     const map = buildImageMap(repoFiles, selectedHero.id, selectedHero.skins)
@@ -385,8 +426,8 @@ export default function HeroPicker() {
     setIsAdding(true)
     saveSnapshot()
     const totalAfter = images.length + selectedSkins.length
-    const cols = Math.ceil(Math.sqrt(totalAfter))
-    const newImages = await Promise.all(
+    const cols       = Math.ceil(Math.sqrt(totalAfter))
+    const newImages  = await Promise.all(
       selectedSkins.map(async (skin, i) => {
         const { width, height } = await preloadImage(skin.image)
         const globalIndex = images.length + i
@@ -424,7 +465,6 @@ export default function HeroPicker() {
     setMode(null)
   }
 
-  // Header title logic
   const headerTitle = () => {
     if (!mode) return 'Add Skins'
     if (mode === 'hero') {
@@ -454,21 +494,28 @@ export default function HeroPicker() {
       </button>
 
       {isOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 50,
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-        }}>
-          <div style={{
-            width: '100%', maxWidth: '480px', maxHeight: '85vh',
-            background: '#0e0e1a', border: '1px solid #252535',
-            borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column',
-            overflow: 'hidden', boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
-          }}>
+        /*
+         * ── KEYBOARD FIX ────────────────────────────────────────────────────────
+         * overlayStyle uses:
+         *   paddingBottom: env(keyboard-inset-height, 0px)
+         *     → pushes the sheet up by exactly the keyboard height on Chrome/Android
+         *
+         * sheetStyle uses:
+         *   maxHeight: min(85dvh, 85vh)
+         *     → dvh = "dynamic viewport height" — automatically shrinks when
+         *       the keyboard appears so the sheet never goes under it
+         *   paddingBottom: env(safe-area-inset-bottom, 0px)
+         *     → accounts for home indicator on iPhone (iOS safe area)
+         * ────────────────────────────────────────────────────────────────────────
+         */
+        <div style={overlayStyle}>
+          <div style={sheetStyle}>
+
             {/* Header */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '14px 16px', borderBottom: '1px solid #1a1a2e', flexShrink: 0,
+              padding: '14px 16px', borderBottom: '1px solid #1a1a2e', flexShrink:0
+          ,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {mode && (
@@ -481,7 +528,12 @@ export default function HeroPicker() {
                 )}
                 <span style={{ color: '#fff', fontWeight: 700, fontSize: '16px' }}>{headerTitle()}</span>
               </div>
-              <button onClick={handleClose} style={{ background: 'none', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              <button
+                onClick={handleClose}
+                style={{ background: 'none', border: 'none', color: '#888', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}
+              >
+                ✕
+              </button>
             </div>
 
             {fetchError && (
@@ -493,32 +545,46 @@ export default function HeroPicker() {
             {/* Mode select */}
             {!mode && <ModeSelect onSelectMode={setMode} />}
 
-            {/* Hero mode */}
+            {/* Hero mode — hero list */}
             {mode === 'hero' && !selectedHero && (
               <>
                 <div style={{ padding: '10px 12px', flexShrink: 0 }}>
                   <input
-                    type="text" placeholder="Search hero..."
-                    value={search} onChange={e => setSearch(e.target.value)}
-                    style={{ width: '100%', background: '#1a1a2e', border: '1px solid #252535', borderRadius: '8px', padding: '8px 12px', color: '#fff', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+                    type="text"
+                    placeholder="Search hero..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{
+                      width: '100%', background: '#1a1a2e', border: '1px solid #252535',
+                      borderRadius: '8px', padding: '8px 12px', color: '#fff',
+                      fontSize: '13px', outline: 'none', boxSizing: 'border-box',
+                    }}
                   />
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     {filtered.map(hero => (
-                      <button key={hero.id} onClick={() => setSelectedHero(hero)} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px',
-                        background: '#1a1a2e', border: '1px solid #252535', borderRadius: '12px',
-                        padding: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s',
-                      }}
+                      <button
+                        key={hero.id}
+                        onClick={() => setSelectedHero(hero)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          background: '#1a1a2e', border: '1px solid #252535', borderRadius: '12px',
+                          padding: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s',
+                        }}
                         onMouseEnter={e => e.currentTarget.style.borderColor = '#6c63ff'}
                         onMouseLeave={e => e.currentTarget.style.borderColor = '#252535'}
                       >
-                        <img src={getHeroImage(hero)} alt={hero.name}
+                        <img
+                          src={getHeroImage(hero)}
+                          alt={hero.name}
                           style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover', background: '#252535', flexShrink: 0 }}
-                          onError={e => { e.target.src = HERO_PLACEHOLDER }} />
+                          onError={e => { e.target.src = HERO_PLACEHOLDER }}
+                        />
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600, margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hero.name}</p>
+                          <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600, margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {hero.name}
+                          </p>
                           <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>{hero.skins.length} skins</p>
                         </div>
                       </button>
@@ -528,43 +594,69 @@ export default function HeroPicker() {
               </>
             )}
 
-            {/* Hero skin grid */}
+            {/* Hero mode — skin grid */}
             {mode === 'hero' && selectedHero && (
               <>
                 <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                   <span style={{ color: '#888', fontSize: '12px' }}>
-                    {repoFiles.length === 0 && !fetchError ? '⏳ Loading...' : selectedSkins.length > 0 ? `${selectedSkins.length} selected` : 'Tap to select'}
+                    {repoFiles.length === 0 && !fetchError
+                      ? '⏳ Loading...'
+                      : selectedSkins.length > 0
+                        ? `${selectedSkins.length} selected`
+                        : 'Tap to select'}
                   </span>
                   {selectedSkins.length > 0 && (
-                    <button onClick={() => setSelectedSkins([])} style={{ background: 'none', border: 'none', color: '#6c63ff', fontSize: '12px', cursor: 'pointer' }}>Clear all</button>
+                    <button
+                      onClick={() => setSelectedSkins([])}
+                      style={{ background: 'none', border: 'none', color: '#6c63ff', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      Clear all
+                    </button>
                   )}
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                     {selectedHero.skins.map((skin, i) => {
                       const resolvedUrl = getSkinImage(selectedHero, skin)
-                      const hasImage = !!resolvedUrl
-                      const isSelected = selectedSkins.find(s => s.name === skin.name)
+                      const hasImage    = !!resolvedUrl
+                      const isSelected  = selectedSkins.find(s => s.name === skin.name)
                       return (
-                        <button key={i} onClick={() => toggleSkin(skin, resolvedUrl)} style={{
-                          position: 'relative', borderRadius: '10px', overflow: 'hidden',
-                          border: `2px solid ${isSelected ? '#6c63ff' : hasImage ? '#252535' : '#1a1a2e'}`,
-                          opacity: hasImage ? 1 : 0.4, cursor: hasImage ? 'pointer' : 'not-allowed',
-                          transform: isSelected ? 'scale(0.97)' : 'scale(1)', transition: 'all 0.15s',
-                          background: 'none', padding: 0, textAlign: 'left',
-                        }}>
-                          <img src={hasImage ? resolvedUrl : PLACEHOLDER} alt={skin.name}
+                        <button
+                          key={i}
+                          onClick={() => toggleSkin(skin, resolvedUrl)}
+                          style={{
+                            position: 'relative', borderRadius: '10px', overflow: 'hidden',
+                            border: `2px solid ${isSelected ? '#6c63ff' : hasImage ? '#252535' : '#1a1a2e'}`,
+                            opacity: hasImage ? 1 : 0.4,
+                            cursor: hasImage ? 'pointer' : 'not-allowed',
+                            transform: isSelected ? 'scale(0.97)' : 'scale(1)',
+                            transition: 'all 0.15s',
+                            background: 'none', padding: 0, textAlign: 'left',
+                          }}
+                        >
+                          <img
+                            src={hasImage ? resolvedUrl : PLACEHOLDER}
+                            alt={skin.name}
                             style={{ width: '100%', height: '112px', objectFit: 'cover', display: 'block', background: '#1a1a2e' }}
-                            onError={e => { e.target.src = PLACEHOLDER }} />
+                            onError={e => { e.target.src = PLACEHOLDER }}
+                          />
                           {isSelected && (
-                            <div style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px',
-                              background: '#6c63ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{
+                              position: 'absolute', top: '4px', right: '4px',
+                              width: '18px', height: '18px', background: '#6c63ff',
+                              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
                               <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>
                             </div>
                           )}
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', padding: '16px 6px 5px' }}>
-                            <p style={{ color: '#fff', fontSize: '9px', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skin.name}</p>
+                          <div style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+                            padding: '16px 6px 5px',
+                          }}>
+                            <p style={{ color: '#fff', fontSize: '9px', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {skin.name}
+                            </p>
                             <span style={{ fontSize: '9px', color: '#aaa' }}>{skin.category || ''}</span>
                           </div>
                           {!hasImage && (
@@ -609,6 +701,7 @@ export default function HeroPicker() {
                 </button>
               </div>
             )}
+
           </div>
         </div>
       )}
