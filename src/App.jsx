@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
+import { nanoid } from './store/nanoid'
 import { useDrop } from './useDrop'
 import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
@@ -41,6 +42,7 @@ export default function App() {
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
   const [diamondPopupOpen, setDiamondPopupOpen] = useState(false)
+  const [historyOpen, setHistoryOpen]   = useState(false)
 
   // ── Welcome screen ────────────────────────────────────────────
   const { show: showWelcome, dismiss: dismissWelcome } = useWelcome()
@@ -98,27 +100,50 @@ export default function App() {
   const redo            = useStore(s => s.redo)
   const removeSelected  = useStore(s => s.removeSelected)
 
+  // ── Export history store ──────────────────────────────────────
+  const exportHistory            = useStore(s => s.exportHistory)
+  const addExportHistoryEntry    = useStore(s => s.addExportHistoryEntry)
+  const removeExportHistoryEntry = useStore(s => s.removeExportHistoryEntry)
+  const clearExportHistoryStore  = useStore(s => s.clearExportHistoryStore)
+
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
   useKeyboard()
 
+  // ── Show restore toast once on mount if canvas was saved ──────
+  useEffect(() => {
+    const persisted = localStorage.getItem('ryuk_canvas_state')
+    if (!persisted) return
+    try {
+      const { images: imgs } = JSON.parse(persisted)
+      if (imgs?.length) {
+        import('react-hot-toast').then(({ default: toast }) => {
+          toast(`✨ Restored ${imgs.length} image${imgs.length !== 1 ? 's' : ''} from your last session`, {
+            duration: 3500,
+            style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #6c63ff55' },
+          })
+        })
+      }
+    } catch {}
+  }, [])
+
   // ── Device back button handling ───────────────────────────────
-  // Intercepts the popstate event and closes the topmost overlay
-  // instead of navigating away from the app.
   const hasSelection = selectedIds.length > 0
 
   useEffect(() => {
     const handlePopState = () => {
-      if (showPasswordPrompt) { setShowPasswordPrompt(false); return }
-      if (adminOpen)          { setAdminOpen(false);          return }
-      if (diamondPopupOpen)   { setDiamondPopupOpen(false);   return }
-      if (showWelcome)        { dismissWelcome();              return }
-      if (hasSelection)       { clearSelection();              return }
+      if (historyOpen)         { setHistoryOpen(false);         return }
+      if (showPasswordPrompt)  { setShowPasswordPrompt(false);  return }
+      if (adminOpen)           { setAdminOpen(false);           return }
+      if (diamondPopupOpen)    { setDiamondPopupOpen(false);    return }
+      if (showWelcome)         { dismissWelcome();               return }
+      if (hasSelection)        { clearSelection();               return }
     }
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [showPasswordPrompt, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+  }, [historyOpen, showPasswordPrompt, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+
   // ─────────────────────────────────────────────────────────────
 
   const handleProfileUpload = (e) => {
@@ -161,7 +186,30 @@ export default function App() {
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
       const blob = await exportCollage(images, backgroundColor, profileImage || null)
-      downloadBlob(blob, `ryukcreates-${Date.now()}.png`)
+      const filename = `ryukcreates-${Date.now()}.png`
+      downloadBlob(blob, filename)
+
+      // Generate thumbnail for history
+      let thumbnail = null
+      try {
+        const bmp = await createImageBitmap(blob)
+        const tw  = 160
+        const th  = Math.round((bmp.height / bmp.width) * tw)
+        const tc  = document.createElement('canvas')
+        tc.width  = tw
+        tc.height = th
+        tc.getContext('2d').drawImage(bmp, 0, 0, tw, th)
+        thumbnail = tc.toDataURL('image/jpeg', 0.6)
+      } catch {}
+
+      addExportHistoryEntry({
+        id:         nanoid(),
+        timestamp:  Date.now(),
+        thumbnail,
+        filename,
+        imageCount: images.length,
+      })
+
       toast.success('Exported! Check your downloads.', { id })
     } catch (e) {
       toast.error('Export failed: ' + e.message, { id })
@@ -172,11 +220,102 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* ── Welcome Screen (shows once, stored in localStorage) ── */}
+      {/* ── Welcome Screen ───────────────────────────────────── */}
       {showWelcome && <WelcomeScreen onDismiss={dismissWelcome} />}
 
       {/* ── Admin Panel ───────────────────────────────────────── */}
       {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
+
+      {/* ── Export History Modal ──────────────────────────────── */}
+      {historyOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 250,
+            background: 'rgba(0,0,0,0.72)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setHistoryOpen(false) }}
+        >
+          <div style={{
+            background: '#1a1a26', border: '1px solid #6c63ff55',
+            borderRadius: '18px', padding: '28px 24px',
+            width: 'min(94vw, 520px)', maxHeight: '80vh',
+            display: 'flex', flexDirection: 'column', gap: '16px',
+          }}>
+            {/* header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ color: '#c8c8e8', fontSize: '17px', fontWeight: 700, margin: 0 }}>
+                📁 Export History
+              </h2>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {exportHistory.length > 0 && (
+                  <button
+                    onClick={() => { if (window.confirm('Clear all export history?')) clearExportHistoryStore() }}
+                    style={{
+                      background: 'none', border: '1px solid #333', color: '#888',
+                      fontSize: '12px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
+                    }}
+                  >Clear all</button>
+                )}
+                <button onClick={() => setHistoryOpen(false)} style={{
+                  background: 'none', border: 'none', color: '#666',
+                  fontSize: '20px', cursor: 'pointer', lineHeight: 1,
+                }}>✕</button>
+              </div>
+            </div>
+
+            {/* list */}
+            <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {exportHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#555', fontSize: '14px' }}>
+                  No exports yet. Hit <strong style={{ color: '#6c63ff' }}>Export PNG</strong> to save your first collage.
+                </div>
+              ) : (
+                exportHistory.map(entry => (
+                  <div key={entry.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '14px',
+                    background: '#12121a', borderRadius: '10px', padding: '10px 12px',
+                    border: '1px solid #222',
+                  }}>
+                    {/* thumbnail */}
+                    <div style={{
+                      width: '54px', height: '36px', borderRadius: '6px', overflow: 'hidden',
+                      background: '#0d0d14', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {entry.thumbnail
+                        ? <img src={entry.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ fontSize: '18px' }}>🖼️</span>
+                      }
+                    </div>
+                    {/* info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        color: '#c8c8e8', fontSize: '13px', fontWeight: 600,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {entry.filename}
+                      </div>
+                      <div style={{ color: '#555', fontSize: '11px', marginTop: '2px' }}>
+                        {new Date(entry.timestamp).toLocaleString()} · {entry.imageCount} image{entry.imageCount !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                    {/* delete */}
+                    <button
+                      onClick={() => removeExportHistoryEntry(entry.id)}
+                      style={{
+                        background: 'none', border: 'none', color: '#444',
+                        fontSize: '16px', cursor: 'pointer', flexShrink: 0, padding: '4px',
+                      }}
+                      title="Remove from history"
+                    >🗑</button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Password Prompt ───────────────────────────────────── */}
       {showPasswordPrompt && (
@@ -292,6 +431,13 @@ export default function App() {
           </span>
           <div className="flex gap-2 items-center">
             <HeroPicker />
+            <button
+              className="btn-ghost text-sm px-2"
+              onClick={() => { setHistoryOpen(true); window.history.pushState({ overlay: 'history' }, '') }}
+              title="Export History"
+            >
+              📁
+            </button>
             <button className="btn-primary text-sm px-3" onClick={handleExport}>Export PNG</button>
           </div>
         </div>
