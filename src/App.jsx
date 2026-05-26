@@ -289,25 +289,18 @@ export default function App() {
 
       <div id="canvas-container" className="flex-1 relative bg-grid overflow-hidden"
         onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
+
+        {/* Drop overlay */}
         {isDragging && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-accent/10 border-2 border-dashed border-accent">
             <p className="text-accent text-xl font-semibold">Drop images here</p>
           </div>
         )}
-        {images.length === 0 && !isDragging && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p className="text-dim text-lg">Pick a hero or upload images</p>
-            <div className="flex gap-3">
-              <HeroPicker />
-              <label className="btn-ghost cursor-pointer text-sm px-3">
-                Upload
-                <input type="file" multiple accept="image/*" style={{ display: 'none' }}
-                  onChange={e => { if (e.target.files?.length) { handleFiles(e.target.files); e.target.value = '' } }} />
-              </label>
-            </div>
-          </div>
-        )}
 
+        {/* ── Empty state: removed the dead "+ Create / Upload" buttons ── */}
+        {/* Canvas is just blank until the user taps "+ Create" in the header */}
+
+        {/* Selection toolbar */}
         {hasSelection && (
           <div style={{
             position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
