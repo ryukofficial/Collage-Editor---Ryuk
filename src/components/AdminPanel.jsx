@@ -82,7 +82,8 @@ export default function AdminPanel({ onClose }) {
   }
 
   const selectAll = () => {
-    setSelected(new Set(filtered.map(s => `${s.heroId}__${s.skinName}`)))
+    // Only select unassigned skins
+    setSelected(new Set(filtered.filter(s => !assignments[`${s.heroId}__${s.skinName}`]).map(s => `${s.heroId}__${s.skinName}`)))
   }
 
   const clearSelection = () => setSelected(new Set())
@@ -234,7 +235,7 @@ export default function AdminPanel({ onClose }) {
           {/* Select all / clear row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ color: '#888', fontSize: '12px' }}>
-              {selected.size > 0 ? `${selected.size} selected` : 'Tap skins to select'}
+              {selected.size > 0 ? `${selected.size} selected` : 'Tap checkbox to select'}
             </span>
             <button onClick={selectAll} style={{
               background: 'none', border: '1px solid #333', borderRadius: '6px',
@@ -294,28 +295,37 @@ export default function AdminPanel({ onClose }) {
             const currentTier = assignments[key] || ''
             const colors = TIER_COLORS[currentTier] || TIER_COLORS['']
             const isSelected = selected.has(key)
+            const isLocked = bulkMode && !!currentTier
 
             return (
               <div key={key}
-                onPointerDown={(e) => { e.preventDefault(); if (bulkMode) { toggleSelect(key); setSearch('') } }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   background: isSelected ? '#1a1a3a' : '#0e0e1a',
                   border: `1px solid ${isSelected ? '#6c63ff' : currentTier ? colors.border + '55' : '#1a1a2e'}`,
                   borderRadius: '10px', padding: '10px 12px',
                   transition: 'all 0.15s',
-                  cursor: bulkMode ? 'pointer' : 'default',
+                  cursor: 'default',
+                  opacity: isLocked ? 0.45 : 1,
                 }}
               >
-                {/* Checkbox in bulk mode */}
+                {/* Checkbox in bulk mode — ONLY interaction point for selection */}
                 {bulkMode && (
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
-                    border: `2px solid ${isSelected ? '#6c63ff' : '#333'}`,
-                    background: isSelected ? '#6c63ff' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {isSelected && <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>✓</span>}
+                  <div
+                    onPointerDown={(e) => {
+                      e.preventDefault()
+                      if (!currentTier) { toggleSelect(key); setSearch('') }
+                    }}
+                    style={{
+                      width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                      border: `2px solid ${currentTier ? '#2a2a3a' : isSelected ? '#6c63ff' : '#555'}`,
+                      background: currentTier ? '#1a1a1a' : isSelected ? '#6c63ff' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: currentTier ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isSelected && <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>✓</span>}
+                    {currentTier && <span style={{ color: '#444', fontSize: '14px' }}>🔒</span>}
                   </div>
                 )}
 
