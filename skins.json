@@ -4,12 +4,12 @@
     "name": "Gusion",
     "role": "Assassin",
     "skins": [
-      { "name": "Desert Spider", "category": "Starlight" }
+      { "name": "Desert Spider", "category": "Starlight" },
       { "name": "Holy Blade", "category": "Basic" },
       { "name": "Moonlight Sonata", "category": "Basic" },
       { "name": "Hair Stylist", "category": "Elite" },
       { "name": "Cyber Ops", "category": "Starlight" },
-      { "name": "Dangerous Liaison", "category": "Valentines" },
+      { "name": "Dangerous Liaison", "category": "Special" },
       { "name": "V.E.N.O.M. Emperor Scorpion", "category": "Epic" },
       { "name": "K'", "category": "Collab" },
       { "name": "Cosmic Gleam", "category": "Legend" },
