@@ -29,7 +29,7 @@ export default function AdminPanel({ onClose }) {
   const [selected, setSelected] = useState(new Set())
   const [bulkMode, setBulkMode] = useState(false)
   const [publishing, setPublishing] = useState(false)
-  const [publishStatus, setPublishStatus] = useState(null) // 'success' | 'error' | null
+  const [publishStatus, setPublishStatus] = useState(null)
 
   const allSkins = useMemo(() => {
     const list = []
@@ -116,7 +116,6 @@ export default function AdminPanel({ onClose }) {
       const repo = import.meta.env.VITE_GITHUB_REPO
       const filePath = import.meta.env.VITE_GITHUB_FILE_PATH
 
-      // Build updated skins.json content
       const updated = skinsData.map(hero => ({
         ...hero,
         skins: hero.skins.map(skin => ({
@@ -126,7 +125,7 @@ export default function AdminPanel({ onClose }) {
       }))
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
 
-      // Get current file SHA (required by GitHub API to update a file)
+      // Get current file SHA
       const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -134,6 +133,7 @@ export default function AdminPanel({ onClose }) {
         }
       })
       const getData = await getRes.json()
+      if (!getData.sha) throw new Error('Could not get SHA')
       const sha = getData.sha
 
       // Commit updated file
@@ -151,6 +151,7 @@ export default function AdminPanel({ onClose }) {
         })
       })
 
+      await putRes.text() // consume response silently, prevents browser download
       if (putRes.ok) {
         setPublishStatus('success')
       } else {
