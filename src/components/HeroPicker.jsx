@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import skinsData from '../../skins.json'
 import useStore from '../store/useStore'
 
@@ -34,8 +34,8 @@ function skinKeywords(skinName) {
 }
 
 function matchScore(filename, heroId, skinName) {
-  const f       = slugify(filename.replace(/\.(jpg|jpeg|png|webp)$/i, ''))
-  const aliases = HERO_ALIASES[heroId] || [heroId]
+  const f         = slugify(filename.replace(/\.(jpg|jpeg|png|webp)$/i, ''))
+  const aliases   = HERO_ALIASES[heroId] || [heroId]
   const heroMatch = aliases.some(alias => f.includes(alias))
   if (!heroMatch) return 0
   const keywords = skinKeywords(skinName)
@@ -60,7 +60,7 @@ function buildImageMap(files, heroId, skins) {
 
 function preloadImage(src) {
   return new Promise(resolve => {
-    const img      = new Image()
+    const img       = new Image()
     img.crossOrigin = 'anonymous'
     img.onload  = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
     img.onerror = () => resolve({ width: 300, height: 300 })
@@ -75,7 +75,7 @@ function loadTierAssignments() {
   } catch { return {} }
 }
 
-// ── Shared style helpers ───────────────────────────────────────
+// ── Shared overlay + sheet styles (keyboard-safe) ─────────────
 const overlayStyle = {
   position: 'fixed',
   inset: 0,
@@ -85,16 +85,14 @@ const overlayStyle = {
   justifyContent: 'center',
   background: 'rgba(0,0,0,0.7)',
   backdropFilter: 'blur(4px)',
-  // Shrink overlay when keyboard opens so sheet stays visible
+  // Push sheet up by keyboard height on Chrome/Android
   paddingBottom: 'env(keyboard-inset-height, 0px)',
 }
 
-// Modal sheet: uses dvh so it recalculates when keyboard appears
 const sheetStyle = {
   width: '100%',
   maxWidth: '480px',
-  // dvh = dynamic viewport height — shrinks when keyboard opens
-  // Falls back to vh for older browsers
+  // dvh shrinks when keyboard appears; vh is fallback for old browsers
   maxHeight: 'min(85dvh, 85vh)',
   background: '#0e0e1a',
   border: '1px solid #252535',
@@ -103,8 +101,20 @@ const sheetStyle = {
   flexDirection: 'column',
   overflow: 'hidden',
   boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
-  // Ensure the sheet itself never goes under keyboard on iOS Safari
+  // iPhone home indicator
   paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+}
+
+// Scroll the search input into view when keyboard opens on iOS
+function useScrollIntoView() {
+  return useCallback(node => {
+    if (!node) return
+    const handler = () => {
+      setTimeout(() => node.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    }
+    node.addEventListener('focus', handler)
+    return () => node.removeEventListener('focus', handler)
+  }, [])
 }
 
 // ── Mode Select Screen ─────────────────────────────────────────
@@ -114,7 +124,6 @@ function ModeSelect({ onSelectMode }) {
       <p style={{ color: '#888', fontSize: '12px', textAlign: 'center', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         Choose selection mode
       </p>
-
       <button
         onClick={() => onSelectMode('hero')}
         style={{
@@ -133,7 +142,6 @@ function ModeSelect({ onSelectMode }) {
         </div>
         <span style={{ marginLeft: 'auto', color: '#6c63ff', fontSize: '18px' }}>›</span>
       </button>
-
       <button
         onClick={() => onSelectMode('collection')}
         style={{
@@ -160,6 +168,7 @@ function ModeSelect({ onSelectMode }) {
 function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, selectedSkins, setSelectedSkins }) {
   const [activeTier, setActiveTier] = useState('Legend')
   const [search, setSearch]         = useState('')
+  const searchRef                   = useScrollIntoView()
 
   const assignments = useMemo(() => loadTierAssignments(), [])
 
@@ -198,8 +207,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
   }, [activeTier, repoFiles])
 
   function getSkinImage(heroId, skinName) {
-    const map = imageCache[heroId] || {}
-    return map[skinName] || null
+    return (imageCache[heroId] || {})[skinName] || null
   }
 
   const toggleSkin = (skin, resolvedUrl) => {
@@ -266,9 +274,10 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
         })}
       </div>
 
-      {/* Search — tapping this opens keyboard; dvh + env() keeps sheet visible */}
+      {/* Search — stays above keyboard via dvh + scrollIntoView on focus */}
       <div style={{ padding: '10px 12px', flexShrink: 0 }}>
         <input
+          ref={searchRef}
           type="text"
           placeholder={`🔍 Search in ${activeTier}...`}
           value={search}
@@ -281,7 +290,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
         />
       </div>
 
-      {/* Skin grid */}
+      {/* Skin grid — scrollable area below search bar */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
@@ -374,11 +383,51 @@ export default function HeroPicker() {
   const [imageCache,    setImageCache]    = useState({})
   const [fetchError,    setFetchError]    = useState(false)
 
+  const heroSearchRef = useScrollIntoView()
+
   const addImages    = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
   const updateImage  = useStore(s => s.updateImage)
   const images       = useStore(s => s.images)
   const hasImages    = images.length > 0
+
+  // ── Back-button support ──────────────────────────────────────
+  // When modal opens: push a dummy history entry so Android back
+  // closes the modal instead of exiting the site.
+  // When modal closes (any reason): go back IF we pushed that entry.
+  const historyPushed = useRef(false)
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false)
+    setSelectedHero(null)
+    setSelectedSkins([])
+    setSearch('')
+    setMode(null)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      // Push a state so back button has somewhere to go
+      window.history.pushState({ heroPickerOpen: true }, '')
+      historyPushed.current = true
+
+      const onPopState = (e) => {
+        // User pressed back — close modal, don't navigate away
+        handleClose()
+        historyPushed.current = false
+      }
+      window.addEventListener('popstate', onPopState)
+      return () => window.removeEventListener('popstate', onPopState)
+    } else {
+      // Modal closed programmatically (✕ button, add to canvas, etc.)
+      // If we pushed a history entry, pop it so the browser state is clean
+      if (historyPushed.current) {
+        historyPushed.current = false
+        window.history.back()
+      }
+    }
+  }, [isOpen, handleClose])
+  // ────────────────────────────────────────────────────────────
 
   // Fetch repo file listing once when picker opens
   useEffect(() => {
@@ -457,14 +506,6 @@ export default function HeroPicker() {
     setMode(null)
   }
 
-  const handleClose = () => {
-    setIsOpen(false)
-    setSelectedHero(null)
-    setSelectedSkins([])
-    setSearch('')
-    setMode(null)
-  }
-
   const headerTitle = () => {
     if (!mode) return 'Add Skins'
     if (mode === 'hero') {
@@ -494,28 +535,13 @@ export default function HeroPicker() {
       </button>
 
       {isOpen && (
-        /*
-         * ── KEYBOARD FIX ────────────────────────────────────────────────────────
-         * overlayStyle uses:
-         *   paddingBottom: env(keyboard-inset-height, 0px)
-         *     → pushes the sheet up by exactly the keyboard height on Chrome/Android
-         *
-         * sheetStyle uses:
-         *   maxHeight: min(85dvh, 85vh)
-         *     → dvh = "dynamic viewport height" — automatically shrinks when
-         *       the keyboard appears so the sheet never goes under it
-         *   paddingBottom: env(safe-area-inset-bottom, 0px)
-         *     → accounts for home indicator on iPhone (iOS safe area)
-         * ────────────────────────────────────────────────────────────────────────
-         */
         <div style={overlayStyle}>
           <div style={sheetStyle}>
 
             {/* Header */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '14px 16px', borderBottom: '1px solid #1a1a2e', flexShrink:0
-          ,
+              padding: '14px 16px', borderBottom: '1px solid #1a1a2e', flexShrink: 0,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {mode && (
@@ -548,8 +574,10 @@ export default function HeroPicker() {
             {/* Hero mode — hero list */}
             {mode === 'hero' && !selectedHero && (
               <>
+                {/* Search bar is flexShrink:0 so it never scrolls away under keyboard */}
                 <div style={{ padding: '10px 12px', flexShrink: 0 }}>
                   <input
+                    ref={heroSearchRef}
                     type="text"
                     placeholder="Search hero..."
                     value={search}
@@ -561,6 +589,7 @@ export default function HeroPicker() {
                     }}
                   />
                 </div>
+                {/* Results scroll independently below the pinned search bar */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     {filtered.map(hero => (
