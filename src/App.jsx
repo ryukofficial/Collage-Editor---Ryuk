@@ -132,19 +132,25 @@ export default function App() {
 
   useEffect(() => {
     const handlePopState = () => {
-      if (historyOpen)         { setHistoryOpen(false);         return }
-      if (showPasswordPrompt)  { setShowPasswordPrompt(false);  return }
-      if (adminOpen)           { setAdminOpen(false);           return }
-      if (diamondPopupOpen)    { setDiamondPopupOpen(false);    return }
-      if (showWelcome)         { dismissWelcome();               return }
-      if (hasSelection)        { clearSelection();               return }
+      if (historyOpen)        { setHistoryOpen(false);        return }
+      if (showPasswordPrompt) { setShowPasswordPrompt(false); return }
+      if (adminOpen)          { setAdminOpen(false);          return }
+      if (diamondPopupOpen)   { setDiamondPopupOpen(false);   return }
+      if (showWelcome)        { dismissWelcome();              return }
+      if (hasSelection)       { clearSelection();              return }
     }
-
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [historyOpen, showPasswordPrompt, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
 
-  // ─────────────────────────────────────────────────────────────
+  // ── Open history modal (with back-button support) ─────────────
+  const openHistory = () => {
+    window.history.pushState({ overlay: 'history' }, '')
+    setHistoryOpen(true)
+  }
+  const closeHistory = () => {
+    setHistoryOpen(false)
+  }
 
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -183,37 +189,41 @@ export default function App() {
     if (!images.length) return
     const toast = (await import('react-hot-toast')).default
     const id = toast.loading('Exporting collage...')
+    let blob = null
+    let filename = `ryukcreates-${Date.now()}.png`
+
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
-      const blob = await exportCollage(images, backgroundColor, profileImage || null)
-      const filename = `ryukcreates-${Date.now()}.png`
+      blob = await exportCollage(images, backgroundColor, profileImage || null)
       downloadBlob(blob, filename)
-
-      // Generate thumbnail for history
-      let thumbnail = null
-      try {
-        const bmp = await createImageBitmap(blob)
-        const tw  = 160
-        const th  = Math.round((bmp.height / bmp.width) * tw)
-        const tc  = document.createElement('canvas')
-        tc.width  = tw
-        tc.height = th
-        tc.getContext('2d').drawImage(bmp, 0, 0, tw, th)
-        thumbnail = tc.toDataURL('image/jpeg', 0.6)
-      } catch {}
-
-      addExportHistoryEntry({
-        id:         nanoid(),
-        timestamp:  Date.now(),
-        thumbnail,
-        filename,
-        imageCount: images.length,
-      })
-
       toast.success('Exported! Check your downloads.', { id })
     } catch (e) {
       toast.error('Export failed: ' + e.message, { id })
+      return // stop here if export itself failed
     }
+
+    // ── Save to export history (always runs if export succeeded) ──
+    let thumbnail = null
+    try {
+      const bmp = await createImageBitmap(blob)
+      const tw  = 160
+      const th  = Math.round((bmp.height / bmp.width) * tw)
+      const tc  = document.createElement('canvas')
+      tc.width  = tw
+      tc.height = th
+      tc.getContext('2d').drawImage(bmp, 0, 0, tw, th)
+      thumbnail = tc.toDataURL('image/jpeg', 0.6)
+    } catch {
+      // thumbnail failed — save entry without it
+    }
+
+    addExportHistoryEntry({
+      id:         nanoid(),
+      timestamp:  Date.now(),
+      thumbnail,
+      filename,
+      imageCount: images.length,
+    })
   }
 
   return (
@@ -234,7 +244,7 @@ export default function App() {
             background: 'rgba(0,0,0,0.72)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={e => { if (e.target === e.currentTarget) setHistoryOpen(false) }}
+          onClick={e => { if (e.target === e.currentTarget) closeHistory() }}
         >
           <div style={{
             background: '#1a1a26', border: '1px solid #6c63ff55',
@@ -257,7 +267,7 @@ export default function App() {
                     }}
                   >Clear all</button>
                 )}
-                <button onClick={() => setHistoryOpen(false)} style={{
+                <button onClick={closeHistory} style={{
                   background: 'none', border: 'none', color: '#666',
                   fontSize: '20px', cursor: 'pointer', lineHeight: 1,
                 }}>✕</button>
@@ -433,7 +443,7 @@ export default function App() {
             <HeroPicker />
             <button
               className="btn-ghost text-sm px-2"
-              onClick={() => { setHistoryOpen(true); window.history.pushState({ overlay: 'history' }, '') }}
+              onClick={openHistory}
               title="Export History"
             >
               📁
@@ -451,7 +461,7 @@ export default function App() {
               onChange={e => { if (e.target.files?.length) { handleFiles(e.target.files); e.target.value = '' } }} />
           </label>
           {!profileImage ? (
-            <button className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border-[#6c63ff]/40 rounded"
+            <button className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border--[#6c63ff]/40 rounded"
               onClick={() => profileInputRef.current?.click()}>
               + Add Profile
             </button>
