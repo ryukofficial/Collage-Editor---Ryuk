@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
@@ -67,6 +67,7 @@ export default function App() {
       setShowPasswordPrompt(true)
       setPasswordInput('')
       setPasswordError(false)
+      window.history.pushState({ overlay: 'password' }, '')
     }
   }, [])
 
@@ -75,6 +76,7 @@ export default function App() {
       setShowPasswordPrompt(false)
       setAdminOpen(true)
       setPasswordError(false)
+      window.history.pushState({ overlay: 'admin' }, '')
     } else {
       setPasswordError(true)
       setPasswordInput('')
@@ -99,6 +101,25 @@ export default function App() {
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
   useKeyboard()
+
+  // ── Device back button handling ───────────────────────────────
+  // Intercepts the popstate event and closes the topmost overlay
+  // instead of navigating away from the app.
+  const hasSelection = selectedIds.length > 0
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showPasswordPrompt) { setShowPasswordPrompt(false); return }
+      if (adminOpen)          { setAdminOpen(false);          return }
+      if (diamondPopupOpen)   { setDiamondPopupOpen(false);   return }
+      if (showWelcome)        { dismissWelcome();              return }
+      if (hasSelection)       { clearSelection();              return }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [showPasswordPrompt, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+  // ─────────────────────────────────────────────────────────────
 
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -146,8 +167,6 @@ export default function App() {
       toast.error('Export failed: ' + e.message, { id })
     }
   }
-
-  const hasSelection = selectedIds.length > 0
 
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
@@ -218,7 +237,14 @@ export default function App() {
             .ticker-text { display: inline-block; white-space: nowrap; animation: ticker 10s linear infinite;
               font-weight: 700; font-size: 15px; color: #fff; letter-spacing: 0.05em; }
           `}</style>
-          <span className="ticker-text" style={{ cursor: 'pointer' }} onClick={() => setDiamondPopupOpen(true)}>
+          <span
+            className="ticker-text"
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              setDiamondPopupOpen(true)
+              window.history.pushState({ overlay: 'diamond' }, '')
+            }}
+          >
             💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now
           </span>
         </div>
