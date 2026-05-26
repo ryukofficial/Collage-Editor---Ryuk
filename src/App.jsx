@@ -39,6 +39,9 @@ export default function App() {
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
 
+  // ── NEW: track whether the diamond popup is open ──────────────
+  const [diamondPopupOpen, setDiamondPopupOpen] = useState(false)
+
   const images          = useStore(s => s.images)
   const selectedIds     = useStore(s => s.selectedIds)
   const canvasSize      = useStore(s => s.canvasSize)
@@ -52,6 +55,7 @@ export default function App() {
   const clearAll        = useStore(s => s.clearAll)
   const undo            = useStore(s => s.undo)
   const redo            = useStore(s => s.redo)
+  const removeSelected  = useStore(s => s.removeSelected)   // ← NEW
 
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
@@ -104,12 +108,19 @@ export default function App() {
     }
   }
 
+  // ── NEW: delete selected images ───────────────────────────────
+  const handleDeleteSelected = () => {
+    removeSelected()
+  }
+
+  const hasSelection = selectedIds.length > 0
+
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* Scrolling ticker — only visible when canvas is empty */}
-      {images.length === 0 && (
+      {/* ── Scrolling ticker — always visible unless diamond popup is open ── */}
+      {!diamondPopupOpen && (
         <div style={{
           position: 'fixed',
           bottom: 0,
@@ -137,15 +148,90 @@ export default function App() {
               letter-spacing: 0.05em;
             }
           `}</style>
-          <a
-            href="https://ryukofficial.in"
-            target="_blank"
-            rel="noopener noreferrer"
+          <span
             className="ticker-text"
-            style={{ textDecoration: 'none' }}
+            style={{ cursor: 'pointer' }}
+            onClick={() => setDiamondPopupOpen(true)}
           >
             💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now
-          </a>
+          </span>
+        </div>
+      )}
+
+      {/* ── Diamond popup ─────────────────────────────────────────── */}
+      {diamondPopupOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+            background: 'rgba(0,0,0,0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setDiamondPopupOpen(false) }}
+        >
+          <div style={{
+            background: '#1a1a26',
+            border: '1px solid #6c63ff',
+            borderRadius: '16px',
+            padding: '32px 28px',
+            width: '340px',
+            textAlign: 'center',
+            position: 'relative',
+          }}>
+            <button
+              onClick={() => setDiamondPopupOpen(false)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '14px',
+                background: 'none',
+                border: 'none',
+                color: '#888',
+                fontSize: '18px',
+                cursor: 'pointer',
+                lineHeight: 1,
+              }}
+            >✕</button>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>💎</div>
+            <h2 style={{ color: '#c8c8e8', fontSize: '20px', fontWeight: 700, margin: '0 0 8px' }}>Recharge Diamonds</h2>
+            <p style={{ color: '#888', fontSize: '14px', margin: '0 0 24px' }}>Get diamonds to unlock premium collage features.</p>
+            <a
+              href="https://ryukofficial.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block',
+                background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '15px',
+                padding: '12px 0',
+                borderRadius: '10px',
+                textDecoration: 'none',
+                marginBottom: '10px',
+              }}
+            >
+              Recharge Now →
+            </a>
+            <button
+              onClick={() => setDiamondPopupOpen(false)}
+              style={{
+                background: 'none',
+                border: '1px solid #333',
+                color: '#888',
+                fontSize: '13px',
+                padding: '8px 0',
+                width: '100%',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              Maybe later
+            </button>
+          </div>
         </div>
       )}
 
@@ -252,6 +338,67 @@ export default function App() {
           </div>
         )}
 
+        {/* ── NEW: floating delete toolbar when image(s) selected ── */}
+        {hasSelection && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: '#1a1a26',
+              border: '1px solid #6c63ff55',
+              borderRadius: '10px',
+              padding: '6px 12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#888' }}>
+              {selectedIds.length} selected
+            </span>
+            <div style={{ width: '1px', height: '16px', background: '#333' }} />
+            <button
+              onClick={handleDeleteSelected}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(239,68,68,0.12)',
+                border: '1px solid rgba(239,68,68,0.35)',
+                color: '#f87171',
+                fontSize: '13px',
+                fontWeight: 600,
+                padding: '4px 10px',
+                borderRadius: '7px',
+                cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}
+            >
+              🗑 Delete
+            </button>
+            <button
+              onClick={clearSelection}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#666',
+                fontSize: '16px',
+                cursor: 'pointer',
+                lineHeight: 1,
+                padding: '2px 4px',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <Stage
           ref={stageRef}
           width={window.innerWidth}
@@ -282,4 +429,4 @@ export default function App() {
       </div>
     </div>
   )
-}
+              }
