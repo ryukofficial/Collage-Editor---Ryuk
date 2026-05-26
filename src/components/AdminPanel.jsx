@@ -297,7 +297,7 @@ export default function AdminPanel({ onClose }) {
 
             return (
               <div key={key}
-                onClick={() => bulkMode && toggleSelect(key)}
+                onClick={() => { if (bulkMode) { toggleSelect(key); setSearch('') } }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   background: isSelected ? '#1a1a3a' : '#0e0e1a',
