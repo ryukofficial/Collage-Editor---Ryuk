@@ -32,26 +32,26 @@ function CanvasImage({ img, isSelected, onSelect }) {
 }
 
 export default function App() {
-  const stageRef = useRef()
-  const fileInputRef = useRef()
+  const stageRef        = useRef()
+  const fileInputRef    = useRef()
   const profileInputRef = useRef()
 
   const [profileImage, setProfileImage] = useState(null)
-  const [profileName, setProfileName] = useState('')
+  const [profileName,  setProfileName]  = useState('')
 
-  const images = useStore(s => s.images)
-  const selectedIds = useStore(s => s.selectedIds)
-  const canvasSize = useStore(s => s.canvasSize)
-  const stageScale = useStore(s => s.stageScale)
-  const stagePos = useStore(s => s.stagePos)
+  const images          = useStore(s => s.images)
+  const selectedIds     = useStore(s => s.selectedIds)
+  const canvasSize      = useStore(s => s.canvasSize)
+  const stageScale      = useStore(s => s.stageScale)
+  const stagePos        = useStore(s => s.stagePos)
   const backgroundColor = useStore(s => s.backgroundColor)
-  const selectImage = useStore(s => s.selectImage)
-  const clearSelection = useStore(s => s.clearSelection)
-  const setStageScale = useStore(s => s.setStageScale)
-  const setStagePos = useStore(s => s.setStagePos)
-  const clearAll = useStore(s => s.clearAll)
-  const undo = useStore(s => s.undo)
-  const redo = useStore(s => s.redo)
+  const selectImage     = useStore(s => s.selectImage)
+  const clearSelection  = useStore(s => s.clearSelection)
+  const setStageScale   = useStore(s => s.setStageScale)
+  const setStagePos     = useStore(s => s.setStagePos)
+  const clearAll        = useStore(s => s.clearAll)
+  const undo            = useStore(s => s.undo)
+  const redo            = useStore(s => s.redo)
 
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
@@ -74,10 +74,10 @@ export default function App() {
 
   const handleWheel = (e) => {
     e.evt.preventDefault()
-    const scaleBy = 1.08
-    const stage = e.target.getStage()
+    const scaleBy  = 1.08
+    const stage    = e.target.getStage()
     const oldScale = stage.scaleX()
-    const pointer = stage.getPointerPosition()
+    const pointer  = stage.getPointerPosition()
     const mousePointTo = {
       x: (pointer.x - stage.x()) / oldScale,
       y: (pointer.y - stage.y()) / oldScale,
@@ -90,14 +90,13 @@ export default function App() {
     })
   }
 
-  // ✅ FIXED: was calling exportToPNG which doesn't exist, now calls exportCollage
   const handleExport = async () => {
     if (!images.length) return
     const toast = (await import('react-hot-toast')).default
     const id = toast.loading('Exporting collage...')
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
-      const blob = await exportCollage(images, backgroundColor)
+      const blob = await exportCollage(images, backgroundColor, profileImage || null)
       downloadBlob(blob, `ryukcreates-${Date.now()}.png`)
       toast.success('Exported! Check your downloads.', { id })
     } catch (e) {
@@ -148,7 +147,6 @@ export default function App() {
             />
           </label>
 
-          {/* Profile button */}
           {!profileImage ? (
             <button
               className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border-[#6c63ff]/40 rounded"
@@ -240,6 +238,33 @@ export default function App() {
             ))}
           </Layer>
         </Stage>
+
+        {/* 💎 Floating Recharge Diamonds button */}
+        <a
+          href="https://ryukofficial.in"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
+            color: '#fff',
+            fontWeight: '700',
+            fontSize: '14px',
+            padding: '10px 24px',
+            borderRadius: '999px',
+            boxShadow: '0 4px 24px rgba(108,99,255,0.5)',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.03em',
+            border: '1px solid rgba(255,255,255,0.15)',
+          }}
+        >
+          💎 Recharge Diamonds
+        </a>
       </div>
     </div>
   )
