@@ -31,37 +31,44 @@ function CanvasImage({ img, isSelected, onSelect }) {
   )
 }
 
-// Profile image drawn centered on the canvas with circular clip
-function ProfileOverlay({ src, canvasWidth, canvasHeight }) {
+// Profile banner drawn ABOVE the collage on canvas
+// bannerH = one cell height, profile circle centered in it
+function ProfileBanner({ src, canvasWidth, canvasHeight, images }) {
   const [image] = useImage(src, 'anonymous')
-  if (!image) return null
+  if (!image || !images.length) return null
 
-  const size = Math.max(200, Math.round(Math.min(canvasWidth, canvasHeight) / 4))
-  const x = Math.round((canvasWidth - size) / 2)
-  const y = Math.round((canvasHeight - size) / 2)
-  const cx = x + size / 2
-  const cy = y + size / 2
-  const r  = size / 2
+  const avgW = Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length)
+  const avgH = Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
+  const cellSize = Math.min(avgW, avgH)
+  const cols     = Math.ceil(Math.sqrt(images.length))
+  const collageW = cols * cellSize
+
+  const profSize = cellSize
+  const profX    = Math.round((collageW - profSize) / 2)
+  const profY    = 0  // top of canvas = top of banner
+  const cx       = profX + profSize / 2
+  const cy       = profY + profSize / 2
+  const r        = profSize / 2
 
   return (
     <>
       <KonvaImage
         image={image}
-        x={x}
-        y={y}
-        width={size}
-        height={size}
+        x={profX}
+        y={profY}
+        width={profSize}
+        height={profSize}
         clipFunc={(ctx) => {
           ctx.arc(r, r, r, 0, Math.PI * 2)
         }}
+        listening={false}
       />
-      {/* White border circle */}
       <Circle
         x={cx}
         y={cy}
         radius={r}
         stroke="#ffffff"
-        strokeWidth={Math.max(4, Math.round(size / 40))}
+        strokeWidth={Math.max(4, Math.round(profSize / 40))}
         fill={null}
         listening={false}
       />
@@ -94,6 +101,15 @@ export default function App() {
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
   useKeyboard()
+
+  // Compute banner height for canvas offset (same logic as export)
+  const cellSize = images.length
+    ? Math.min(
+        Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length),
+        Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
+      )
+    : 0
+  const bannerH = profileImage && cellSize ? cellSize : 0
 
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -260,33 +276,38 @@ export default function App() {
           onWheel={handleWheel}
           onClick={e => { if (e.target === e.target.getStage()) clearSelection() }}
         >
-          {/* Layer 1: background + collage images */}
+          {/* Layer 1: background */}
           <Layer>
             <Rect
               width={canvasSize.width}
-              height={canvasSize.height}
+              height={canvasSize.height + bannerH}
               fill={backgroundColor}
             />
+          </Layer>
+
+          {/* Layer 2: profile banner on top */}
+          {profileImage && images.length > 0 && (
+            <Layer listening={false}>
+              <ProfileBanner
+                src={profileImage}
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+                images={images}
+              />
+            </Layer>
+          )}
+
+          {/* Layer 3: collage images, offset down by bannerH */}
+          <Layer>
             {images.map(img => (
               <CanvasImage
                 key={img.id}
-                img={img}
+                img={{ ...img, y: img.y + bannerH }}
                 isSelected={selectedIds.includes(img.id)}
                 onSelect={selectImage}
               />
             ))}
           </Layer>
-
-          {/* Layer 2: profile overlay on top — only when profile is set */}
-          {profileImage && (
-            <Layer listening={false}>
-              <ProfileOverlay
-                src={profileImage}
-                canvasWidth={canvasSize.width}
-                canvasHeight={canvasSize.height}
-              />
-            </Layer>
-          )}
         </Stage>
 
         {/* 💎 Floating Recharge Diamonds button */}
