@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useCallback } from 'react'
 import { Stage, Layer, Image as KonvaImage, Rect } from 'react-konva'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store/useStore'
@@ -6,6 +6,7 @@ import { useDrop } from './useDrop'
 import { useKeyboard } from './useKeyboard'
 import useImage from 'use-image'
 import HeroPicker from './components/HeroPicker'
+import AdminPanel from './components/AdminPanel'
 
 function CanvasImage({ img, isSelected, onSelect }) {
   const [image] = useImage(img.src)
@@ -38,9 +39,43 @@ export default function App() {
 
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
-
-  // ── NEW: track whether the diamond popup is open ──────────────
   const [diamondPopupOpen, setDiamondPopupOpen] = useState(false)
+
+  // ── Admin panel state ─────────────────────────────────────────
+  const [adminOpen, setAdminOpen] = useState(false)
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
+  const logoClickCount = useRef(0)
+  const logoClickTimer = useRef(null)
+
+  const ADMIN_PASSWORD = 'ryuk2025'
+
+  const handleLogoClick = useCallback(() => {
+    logoClickCount.current += 1
+    if (logoClickTimer.current) clearTimeout(logoClickTimer.current)
+    logoClickTimer.current = setTimeout(() => {
+      logoClickCount.current = 0
+    }, 800)
+    if (logoClickCount.current >= 3) {
+      logoClickCount.current = 0
+      clearTimeout(logoClickTimer.current)
+      setShowPasswordPrompt(true)
+      setPasswordInput('')
+      setPasswordError(false)
+    }
+  }, [])
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === ADMIN_PASSWORD) {
+      setShowPasswordPrompt(false)
+      setAdminOpen(true)
+      setPasswordError(false)
+    } else {
+      setPasswordError(true)
+      setPasswordInput('')
+    }
+  }
 
   const images          = useStore(s => s.images)
   const selectedIds     = useStore(s => s.selectedIds)
@@ -55,7 +90,7 @@ export default function App() {
   const clearAll        = useStore(s => s.clearAll)
   const undo            = useStore(s => s.undo)
   const redo            = useStore(s => s.redo)
-  const removeSelected  = useStore(s => s.removeSelected)   // ← NEW
+  const removeSelected  = useStore(s => s.removeSelected)
 
   const { isDragging, handleFiles, onDragEnter, onDragLeave, onDragOver, onDrop } = useDrop()
 
@@ -108,149 +143,124 @@ export default function App() {
     }
   }
 
-  // ── NEW: delete selected images ───────────────────────────────
-  const handleDeleteSelected = () => {
-    removeSelected()
-  }
-
   const hasSelection = selectedIds.length > 0
 
   return (
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* ── Scrolling ticker — always visible unless diamond popup is open ── */}
-      {!diamondPopupOpen && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
-          overflow: 'hidden',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-        }}>
-          <style>{`
-            @keyframes ticker {
-              0%   { transform: translateX(100vw); }
-              100% { transform: translateX(-100%); }
-            }
-            .ticker-text {
-              display: inline-block;
-              white-space: nowrap;
-              animation: ticker 10s linear infinite;
-              font-weight: 700;
-              font-size: 15px;
-              color: #fff;
-              letter-spacing: 0.05em;
-            }
-          `}</style>
-          <span
-            className="ticker-text"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setDiamondPopupOpen(true)}
-          >
-            💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now
-          </span>
-        </div>
-      )}
+      {/* ── Admin Panel ───────────────────────────────────────── */}
+      {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
 
-      {/* ── Diamond popup ─────────────────────────────────────────── */}
-      {diamondPopupOpen && (
+      {/* ── Password Prompt ───────────────────────────────────── */}
+      {showPasswordPrompt && (
         <div
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            background: 'rgba(0,0,0,0.65)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'fixed', inset: 0, zIndex: 300,
+            background: 'rgba(0,0,0,0.75)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) setDiamondPopupOpen(false) }}
+          onClick={e => { if (e.target === e.currentTarget) setShowPasswordPrompt(false) }}
         >
           <div style={{
-            background: '#1a1a26',
-            border: '1px solid #6c63ff',
-            borderRadius: '16px',
-            padding: '32px 28px',
-            width: '340px',
-            textAlign: 'center',
-            position: 'relative',
+            background: '#1a1a26', border: '1px solid #6c63ff',
+            borderRadius: '16px', padding: '32px 28px', width: '320px', textAlign: 'center',
           }}>
-            <button
-              onClick={() => setDiamondPopupOpen(false)}
+            <div style={{ fontSize: '28px', marginBottom: '12px' }}>🔐</div>
+            <h2 style={{ color: '#c8c8e8', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Admin Access</h2>
+            <p style={{ color: '#666', fontSize: '13px', marginBottom: '20px' }}>Enter password to continue</p>
+            <input
+              autoFocus
+              type="password"
+              value={passwordInput}
+              onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
+              onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
+              placeholder="Password"
               style={{
-                position: 'absolute',
-                top: '12px',
-                right: '14px',
-                background: 'none',
-                border: 'none',
-                color: '#888',
-                fontSize: '18px',
-                cursor: 'pointer',
-                lineHeight: 1,
+                width: '100%', background: '#12121a', border: `1px solid ${passwordError ? '#ef4444' : '#333'}`,
+                borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '14px',
+                outline: 'none', marginBottom: '8px',
               }}
-            >✕</button>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>💎</div>
-            <h2 style={{ color: '#c8c8e8', fontSize: '20px', fontWeight: 700, margin: '0 0 8px' }}>Recharge Diamonds</h2>
-            <p style={{ color: '#888', fontSize: '14px', margin: '0 0 24px' }}>Get diamonds to unlock premium collage features.</p>
-            <a
-              href="https://ryukofficial.in"
-              target="_blank"
-              rel="noopener noreferrer"
+            />
+            {passwordError && (
+              <p style={{ color: '#ef4444', fontSize: '12px', marginBottom: '8px' }}>Incorrect password</p>
+            )}
+            <button
+              onClick={handlePasswordSubmit}
               style={{
-                display: 'block',
-                background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '15px',
-                padding: '12px 0',
-                borderRadius: '10px',
-                textDecoration: 'none',
-                marginBottom: '10px',
+                width: '100%', background: 'linear-gradient(135deg, #6c63ff, #a855f7)',
+                border: 'none', borderRadius: '10px', padding: '11px',
+                color: '#fff', fontWeight: 700, fontSize: '14px', cursor: 'pointer', marginTop: '4px',
               }}
             >
-              Recharge Now →
-            </a>
-            <button
-              onClick={() => setDiamondPopupOpen(false)}
-              style={{
-                background: 'none',
-                border: '1px solid #333',
-                color: '#888',
-                fontSize: '13px',
-                padding: '8px 0',
-                width: '100%',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
-            >
-              Maybe later
+              Enter
             </button>
           </div>
         </div>
       )}
 
-      <input
-        ref={profileInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleProfileUpload}
-      />
+      {/* ── Diamond ticker ────────────────────────────────────── */}
+      {!diamondPopupOpen && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+          background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
+          overflow: 'hidden', height: '40px', display: 'flex', alignItems: 'center',
+        }}>
+          <style>{`
+            @keyframes ticker { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+            .ticker-text { display: inline-block; white-space: nowrap; animation: ticker 10s linear infinite;
+              font-weight: 700; font-size: 15px; color: #fff; letter-spacing: 0.05em; }
+          `}</style>
+          <span className="ticker-text" style={{ cursor: 'pointer' }} onClick={() => setDiamondPopupOpen(true)}>
+            💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💎 Recharge Diamonds Now
+          </span>
+        </div>
+      )}
+
+      {/* ── Diamond popup ─────────────────────────────────────── */}
+      {diamondPopupOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.65)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={e => { if (e.target === e.currentTarget) setDiamondPopupOpen(false) }}
+        >
+          <div style={{ background: '#1a1a26', border: '1px solid #6c63ff', borderRadius: '16px',
+            padding: '32px 28px', width: '340px', textAlign: 'center', position: 'relative' }}>
+            <button onClick={() => setDiamondPopupOpen(false)} style={{
+              position: 'absolute', top: '12px', right: '14px', background: 'none',
+              border: 'none', color: '#888', fontSize: '18px', cursor: 'pointer', lineHeight: 1,
+            }}>✕</button>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>💎</div>
+            <h2 style={{ color: '#c8c8e8', fontSize: '20px', fontWeight: 700, margin: '0 0 8px' }}>Recharge Diamonds</h2>
+            <p style={{ color: '#888', fontSize: '14px', margin: '0 0 24px' }}>Get diamonds to unlock premium collage features.</p>
+            <a href="https://ryukofficial.in" target="_blank" rel="noopener noreferrer" style={{
+              display: 'block', background: 'linear-gradient(135deg, #a855f7, #6c63ff)',
+              color: '#fff', fontWeight: 700, fontSize: '15px', padding: '12px 0',
+              borderRadius: '10px', textDecoration: 'none', marginBottom: '10px',
+            }}>Recharge Now →</a>
+            <button onClick={() => setDiamondPopupOpen(false)} style={{
+              background: 'none', border: '1px solid #333', color: '#888', fontSize: '13px',
+              padding: '8px 0', width: '100%', borderRadius: '8px', cursor: 'pointer',
+            }}>Maybe later</button>
+          </div>
+        </div>
+      )}
+
+      <input ref={profileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfileUpload} />
 
       <header className="bg-panel border-b border-border shrink-0">
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="font-display font-bold text-lg text-gradient shrink-0">Ryuk Creates</span>
+          {/* Triple-click logo */}
+          <span
+            className="font-display font-bold text-lg text-gradient shrink-0 cursor-pointer select-none"
+            onClick={handleLogoClick}
+            title="Ryuk Creates"
+          >
+            Ryuk Creates
+          </span>
           <div className="flex gap-2 items-center">
             <HeroPicker />
-            <button className="btn-primary text-sm px-3" onClick={handleExport}>
-              Export PNG
-            </button>
+            <button className="btn-primary text-sm px-3" onClick={handleExport}>Export PNG</button>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 pb-2 flex-wrap">
@@ -259,61 +269,31 @@ export default function App() {
           <button className="btn-ghost text-sm px-2" onClick={clearAll}>Clear</button>
           <label className="btn-ghost text-sm px-2 cursor-pointer">
             Upload
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={e => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleFiles(e.target.files)
-                  e.target.value = ''
-                }
-              }}
-            />
+            <input ref={fileInputRef} type="file" multiple accept="image/*" style={{ display: 'none' }}
+              onChange={e => { if (e.target.files?.length) { handleFiles(e.target.files); e.target.value = '' } }} />
           </label>
-
           {!profileImage ? (
-            <button
-              className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border-[#6c63ff]/40 rounded"
-              onClick={() => profileInputRef.current?.click()}
-            >
+            <button className="btn-ghost text-sm px-2 cursor-pointer text-[#6c63ff] border border-[#6c63ff]/40 rounded"
+              onClick={() => profileInputRef.current?.click()}>
               + Add Profile
             </button>
           ) : (
             <div className="flex items-center gap-2 bg-[#1a1a2e] border border-[#6c63ff]/40 rounded px-2 py-1">
-              <img
-                src={profileImage}
-                alt="profile"
-                className="w-5 h-5 rounded object-cover"
-              />
+              <img src={profileImage} alt="profile" className="w-5 h-5 rounded object-cover" />
               <span className="text-xs text-[#6c63ff] max-w-[80px] truncate">{profileName}</span>
-              <button
-                className="text-[#888] hover:text-red-400 text-xs ml-1"
-                onClick={handleRemoveProfile}
-              >
-                ✕
-              </button>
+              <button className="text-[#888] hover:text-red-400 text-xs ml-1" onClick={handleRemoveProfile}>✕</button>
             </div>
           )}
         </div>
       </header>
 
-      <div
-        id="canvas-container"
-        className="flex-1 relative bg-grid overflow-hidden"
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-      >
+      <div id="canvas-container" className="flex-1 relative bg-grid overflow-hidden"
+        onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
         {isDragging && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-accent/10 border-2 border-dashed border-accent">
             <p className="text-accent text-xl font-semibold">Drop images here</p>
           </div>
         )}
-
         {images.length === 0 && !isDragging && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <p className="text-dim text-lg">Pick a hero or upload images</p>
@@ -321,81 +301,31 @@ export default function App() {
               <HeroPicker />
               <label className="btn-ghost cursor-pointer text-sm px-3">
                 Upload
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={e => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleFiles(e.target.files)
-                      e.target.value = ''
-                    }
-                  }}
-                />
+                <input type="file" multiple accept="image/*" style={{ display: 'none' }}
+                  onChange={e => { if (e.target.files?.length) { handleFiles(e.target.files); e.target.value = '' } }} />
               </label>
             </div>
           </div>
         )}
 
-        {/* ── NEW: floating delete toolbar when image(s) selected ── */}
         {hasSelection && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '12px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 100,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: '#1a1a26',
-              border: '1px solid #6c63ff55',
-              borderRadius: '10px',
-              padding: '6px 12px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: '#888' }}>
-              {selectedIds.length} selected
-            </span>
+          <div style={{
+            position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px',
+            background: '#1a1a26', border: '1px solid #6c63ff55', borderRadius: '10px',
+            padding: '6px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          }}>
+            <span style={{ fontSize: '12px', color: '#888' }}>{selectedIds.length} selected</span>
             <div style={{ width: '1px', height: '16px', background: '#333' }} />
-            <button
-              onClick={handleDeleteSelected}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: 'rgba(239,68,68,0.12)',
-                border: '1px solid rgba(239,68,68,0.35)',
-                color: '#f87171',
-                fontSize: '13px',
-                fontWeight: 600,
-                padding: '4px 10px',
-                borderRadius: '7px',
-                cursor: 'pointer',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}
-            >
-              🗑 Delete
-            </button>
-            <button
-              onClick={clearSelection}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#666',
-                fontSize: '16px',
-                cursor: 'pointer',
-                lineHeight: 1,
-                padding: '2px 4px',
-              }}
-            >
-              ✕
-            </button>
+            <button onClick={removeSelected} style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
+              color: '#f87171', fontSize: '13px', fontWeight: 600, padding: '4px 10px',
+              borderRadius: '7px', cursor: 'pointer',
+            }}>🗑 Delete</button>
+            <button onClick={clearSelection} style={{
+              background: 'none', border: 'none', color: '#666', fontSize: '16px', cursor: 'pointer', lineHeight: 1, padding: '2px 4px',
+            }}>✕</button>
           </div>
         )}
 
@@ -403,30 +333,19 @@ export default function App() {
           ref={stageRef}
           width={window.innerWidth}
           height={window.innerHeight - 80}
-          scaleX={stageScale}
-          scaleY={stageScale}
-          x={stagePos.x}
-          y={stagePos.y}
+          scaleX={stageScale} scaleY={stageScale}
+          x={stagePos.x} y={stagePos.y}
           onWheel={handleWheel}
           onClick={e => { if (e.target === e.target.getStage()) clearSelection() }}
         >
           <Layer>
-            <Rect
-              width={canvasSize.width}
-              height={canvasSize.height}
-              fill={backgroundColor}
-            />
+            <Rect width={canvasSize.width} height={canvasSize.height} fill={backgroundColor} />
             {images.map(img => (
-              <CanvasImage
-                key={img.id}
-                img={img}
-                isSelected={selectedIds.includes(img.id)}
-                onSelect={selectImage}
-              />
+              <CanvasImage key={img.id} img={img} isSelected={selectedIds.includes(img.id)} onSelect={selectImage} />
             ))}
           </Layer>
         </Stage>
       </div>
     </div>
   )
-              }
+}
