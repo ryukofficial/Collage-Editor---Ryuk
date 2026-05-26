@@ -31,31 +31,6 @@ function CanvasImage({ img, isSelected, onSelect }) {
   )
 }
 
-function ProfileBanner({ src, collageW, onHeightKnown }) {
-  const [image] = useImage(src, 'anonymous')
-  const reportedRef = useRef(false)
-
-  if (!image) return null
-
-  const bannerH = Math.round(image.naturalHeight * (collageW / image.naturalWidth))
-
-  if (!reportedRef.current) {
-    reportedRef.current = true
-    setTimeout(() => onHeightKnown(bannerH), 0)
-  }
-
-  return (
-    <KonvaImage
-      image={image}
-      x={0}
-      y={0}
-      width={collageW}
-      height={bannerH}
-      listening={false}
-    />
-  )
-}
-
 export default function App() {
   const stageRef        = useRef()
   const fileInputRef    = useRef()
@@ -63,7 +38,6 @@ export default function App() {
 
   const [profileImage, setProfileImage] = useState(null)
   const [profileName,  setProfileName]  = useState('')
-  const [bannerH,      setBannerH]      = useState(0)
 
   const images          = useStore(s => s.images)
   const selectedIds     = useStore(s => s.selectedIds)
@@ -83,22 +57,12 @@ export default function App() {
 
   useKeyboard()
 
-  const collageW = (() => {
-    if (!images.length) return canvasSize.width
-    const avgW = Math.round(images.reduce((s, i) => s + i.naturalWidth,  0) / images.length)
-    const avgH = Math.round(images.reduce((s, i) => s + i.naturalHeight, 0) / images.length)
-    const cellSize = Math.min(avgW, avgH)
-    const cols = Math.ceil(Math.sqrt(images.length))
-    return cols * cellSize
-  })()
-
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     const url = URL.createObjectURL(file)
     setProfileImage(url)
     setProfileName(file.name)
-    setBannerH(0)
     e.target.value = ''
   }
 
@@ -106,7 +70,6 @@ export default function App() {
     if (profileImage) URL.revokeObjectURL(profileImage)
     setProfileImage(null)
     setProfileName('')
-    setBannerH(0)
   }
 
   const handleWheel = (e) => {
@@ -145,7 +108,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-void text-text overflow-hidden">
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1a1a26', color: '#c8c8e8', border: '1px solid #252535' } }} />
 
-      {/* Scrolling ticker bar — hidden when canvas has content on top */}
+      {/* Scrolling ticker — only visible when canvas is empty */}
       {images.length === 0 && (
         <div style={{
           position: 'fixed',
@@ -302,27 +265,14 @@ export default function App() {
         >
           <Layer>
             <Rect
-              width={collageW}
-              height={canvasSize.height + bannerH}
+              width={canvasSize.width}
+              height={canvasSize.height}
               fill={backgroundColor}
             />
-          </Layer>
-
-          {profileImage && (
-            <Layer listening={false}>
-              <ProfileBanner
-                src={profileImage}
-                collageW={collageW}
-                onHeightKnown={(h) => setBannerH(h)}
-              />
-            </Layer>
-          )}
-
-          <Layer>
             {images.map(img => (
               <CanvasImage
                 key={img.id}
-                img={{ ...img, y: img.y + bannerH }}
+                img={img}
                 isSelected={selectedIds.includes(img.id)}
                 onSelect={selectImage}
               />
