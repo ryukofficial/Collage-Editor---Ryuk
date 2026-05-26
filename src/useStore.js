@@ -27,7 +27,6 @@ function saveCanvasState(images, canvasSize, backgroundColor, backgroundTranspar
       backgroundTransparent,
     }))
   } catch (e) {
-    // Quota exceeded — silently ignore
     console.warn('Canvas autosave failed:', e.message)
   }
 }
@@ -40,10 +39,9 @@ export function loadExportHistory() {
 }
 
 export function saveExportHistory(entry) {
-  // entry: { id, timestamp, thumbnail, filename, imageCount }
   try {
     const history = loadExportHistory()
-    const updated = [entry, ...history].slice(0, 30) // keep last 30
+    const updated = [entry, ...history].slice(0, 30)
     localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(updated))
     return updated
   } catch (e) {
@@ -58,7 +56,6 @@ export function clearExportHistory() {
 
 export function saveProfileToStorage(profileImage, profileName) {
   try {
-    // Only store name; blob URLs don't survive reloads, so we skip storing the src
     if (profileName) {
       localStorage.setItem(LS_PROFILE_KEY, JSON.stringify({ profileName }))
     } else {
@@ -80,10 +77,10 @@ const persisted = loadCanvasState()
 const useStore = create(
   subscribeWithSelector((set, get) => ({
     // ─── Canvas ────────────────────────────────────────────────
-    canvasSize:           persisted?.canvasSize           ?? { ...DEFAULT_CANVAS },
-    stageScale:           0.15,
-    stagePos:             { x: 0, y: 0 },
-    backgroundColor:      persisted?.backgroundColor      ?? '#000000',
+    canvasSize:            persisted?.canvasSize            ?? { ...DEFAULT_CANVAS },
+    stageScale:            0.15,
+    stagePos:              { x: 0, y: 0 },
+    backgroundColor:       persisted?.backgroundColor       ?? '#000000',
     backgroundTransparent: persisted?.backgroundTransparent ?? false,
 
     setCanvasSize: (size) => {
@@ -124,6 +121,12 @@ const useStore = create(
     activeTool:  'select',
 
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
+
+    // ── NEW: used by ProjectsPanel to restore a saved project ──
+    setImages: (images) => {
+      set({ images, selectedIds: [] })
+      get()._persist()
+    },
 
     // Internal: persist after any image mutation
     _persist: () => {
@@ -302,7 +305,7 @@ const useStore = create(
     exportHistory: loadExportHistory(),
 
     addExportHistoryEntry: (entry) => set(s => {
-      const updated = saveExportHistory(entry) // saves to localStorage + returns new array
+      const updated = saveExportHistory(entry)
       return { exportHistory: updated }
     }),
 
