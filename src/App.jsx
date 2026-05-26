@@ -90,16 +90,14 @@ export default function App() {
     })
   }
 
+  // ✅ FIXED: was calling exportToPNG which doesn't exist, now calls exportCollage
   const handleExport = async () => {
     if (!images.length) return
     const toast = (await import('react-hot-toast')).default
     const id = toast.loading('Exporting collage...')
     try {
-      const { exportToPNG, downloadBlob } = await import('./utils/imageUtils')
-      const blob = await exportToPNG(stageRef.current, canvasSize, {
-        profileImage: profileImage || null,
-        onProgress: () => {},
-      })
+      const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
+      const blob = await exportCollage(images, backgroundColor)
       downloadBlob(blob, `ryukcreates-${Date.now()}.png`)
       toast.success('Exported! Check your downloads.', { id })
     } catch (e) {
