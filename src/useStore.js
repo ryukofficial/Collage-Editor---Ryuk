@@ -69,7 +69,27 @@ export function loadProfileFromStorage() {
   } catch { return null }
 }
 
-const persisted = loadCanvasState()
+// ── One-time migration: clear stale canvas state if zIndex values
+// are out of sync with array order (caused by old arrange bug) ──
+function migrateCanvasState() {
+  try {
+    const raw = localStorage.getItem('ryuk_canvas_state')
+    if (!raw) return null
+    const data = JSON.parse(raw)
+    if (!data?.images?.length) return data
+    // Check if zIndex matches array order — if not, fix it
+    const needsFix = data.images.some((img, i) => img.zIndex !== i)
+    if (needsFix) {
+      data.images = data.images
+        .sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
+        .map((img, i) => ({ ...img, zIndex: i }))
+      localStorage.setItem('ryuk_canvas_state', JSON.stringify(data))
+    }
+    return data
+  } catch { return null }
+}
+
+const persisted = migrateCanvasState()
 
 const useStore = create(
   subscribeWithSelector((set, get) => ({
