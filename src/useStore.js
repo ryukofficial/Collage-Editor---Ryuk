@@ -202,30 +202,53 @@ const useStore = create(
     selectAll:      () => set(s => ({ selectedIds: s.images.map(i => i.id) })),
     clearSelection: () => set({ selectedIds: [] }),
 
-    // ── Swap two images: keep each image's position/scale/rotation slot,
-    //    but swap the visual content (src, dimensions, name) between them ──
+    // ── Swap two images: swap src/name between slots, recalculate scale
+    //    so each image keeps the same rendered pixel size it had before ──
     swapImages: (idA, idB) => {
       set(s => {
         const a = s.images.find(i => i.id === idA)
         const b = s.images.find(i => i.id === idB)
         if (!a || !b) return {}
 
-        // Fields that belong to the "content" (what the image IS)
-        const contentFields = ['src', 'name', 'width', 'height', 'naturalWidth', 'naturalHeight', 'fileSize']
+        // Visual rendered size of each slot (pixels on canvas)
+        const aRenderedW = a.naturalWidth  * a.scaleX
+        const aRenderedH = a.naturalHeight * a.scaleY
+        const bRenderedW = b.naturalWidth  * b.scaleX
+        const bRenderedH = b.naturalHeight * b.scaleY
 
         return {
           images: s.images.map(img => {
             if (img.id === idA) {
-              // Keep A's position/transform, give it B's content
-              const content = {}
-              contentFields.forEach(f => { content[f] = b[f] })
-              return { ...img, ...content }
+              // Slot A keeps its position/rotation, gets B's image content
+              // Scale B's image to fill A's rendered size
+              return {
+                ...img,
+                src:          b.src,
+                name:         b.name,
+                width:        b.width,
+                height:       b.height,
+                naturalWidth:  b.naturalWidth,
+                naturalHeight: b.naturalHeight,
+                fileSize:     b.fileSize,
+                scaleX: aRenderedW / b.naturalWidth,
+                scaleY: aRenderedH / b.naturalHeight,
+              }
             }
             if (img.id === idB) {
-              // Keep B's position/transform, give it A's content
-              const content = {}
-              contentFields.forEach(f => { content[f] = a[f] })
-              return { ...img, ...content }
+              // Slot B keeps its position/rotation, gets A's image content
+              // Scale A's image to fill B's rendered size
+              return {
+                ...img,
+                src:          a.src,
+                name:         a.name,
+                width:        a.width,
+                height:       a.height,
+                naturalWidth:  a.naturalWidth,
+                naturalHeight: a.naturalHeight,
+                fileSize:     a.fileSize,
+                scaleX: bRenderedW / a.naturalWidth,
+                scaleY: bRenderedH / a.naturalHeight,
+              }
             }
             return img
           }),
