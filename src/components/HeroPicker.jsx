@@ -589,7 +589,6 @@ export default function HeroPicker({ onRegisterOpen }) {
     setSelectedSkins([])
     setMode(null)
   }
-  }
 
   const headerTitle = () => {
     if (!mode) return 'Add Skins'
