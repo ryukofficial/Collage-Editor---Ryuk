@@ -202,16 +202,31 @@ const useStore = create(
     selectAll:      () => set(s => ({ selectedIds: s.images.map(i => i.id) })),
     clearSelection: () => set({ selectedIds: [] }),
 
-    // ── Swap two images by exchanging their x/y/scaleX/scaleY positions ──
+    // ── Swap two images: keep each image's position/scale/rotation slot,
+    //    but swap the visual content (src, dimensions, name) between them ──
     swapImages: (idA, idB) => {
       set(s => {
         const a = s.images.find(i => i.id === idA)
         const b = s.images.find(i => i.id === idB)
         if (!a || !b) return {}
+
+        // Fields that belong to the "content" (what the image IS)
+        const contentFields = ['src', 'name', 'width', 'height', 'naturalWidth', 'naturalHeight', 'fileSize']
+
         return {
           images: s.images.map(img => {
-            if (img.id === idA) return { ...img, x: b.x, y: b.y, scaleX: b.scaleX, scaleY: b.scaleY, rotation: b.rotation }
-            if (img.id === idB) return { ...img, x: a.x, y: a.y, scaleX: a.scaleX, scaleY: a.scaleY, rotation: a.rotation }
+            if (img.id === idA) {
+              // Keep A's position/transform, give it B's content
+              const content = {}
+              contentFields.forEach(f => { content[f] = b[f] })
+              return { ...img, ...content }
+            }
+            if (img.id === idB) {
+              // Keep B's position/transform, give it A's content
+              const content = {}
+              contentFields.forEach(f => { content[f] = a[f] })
+              return { ...img, ...content }
+            }
             return img
           }),
           selectedIds: [],
