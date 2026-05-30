@@ -152,12 +152,14 @@ const useStore = create(
       const snap = JSON.stringify(s.images)
       const newHistory = [...s.history.slice(0, s.historyIndex + 1), snap]
       const reindexed = newOrder.map((img, i) => ({ ...img, zIndex: i }))
+      console.log('reorderImages called, old ids:', s.images.map(i=>i.id), 'new ids:', reindexed.map(i=>i.id))
       set({
         images: reindexed,
         selectedIds: [],
         history: newHistory.slice(-50),
         historyIndex: Math.min(newHistory.length - 1, 49),
       })
+      console.log('after set, store images:', get().images.map(i=>i.id))
       get()._persist()
     },
 
