@@ -122,6 +122,25 @@ const useStore = create(
       get()._persist()
     },
 
+    // ── Reorder images from ArrangePanel ──────────────────────────────────────
+    // Saves snapshot + reassigns zIndex atomically in one set() call,
+    // preventing the race condition between saveSnapshot() + setImages().
+    // zIndex must be reassigned so bringForward/sendBackward/etc. respect
+    // the new order and don't revert it on the next layer operation.
+    reorderImages: (newOrder) => {
+      const s = get()
+      const snap = JSON.stringify(s.images)
+      const newHistory = [...s.history.slice(0, s.historyIndex + 1), snap]
+      const reindexed = newOrder.map((img, i) => ({ ...img, zIndex: i }))
+      set({
+        images: reindexed,
+        selectedIds: [],
+        history: newHistory.slice(-50),
+        historyIndex: Math.min(newHistory.length - 1, 49),
+      })
+      get()._persist()
+    },
+
     _persist: () => {
       const s = get()
       saveCanvasState(s.images, s.canvasSize, s.backgroundColor, s.backgroundTransparent)
@@ -219,8 +238,6 @@ const useStore = create(
         return {
           images: s.images.map(img => {
             if (img.id === idA) {
-              // Slot A keeps its position/rotation, gets B's image content
-              // Scale B's image to fill A's rendered size
               return {
                 ...img,
                 src:          b.src,
@@ -235,8 +252,6 @@ const useStore = create(
               }
             }
             if (img.id === idB) {
-              // Slot B keeps its position/rotation, gets A's image content
-              // Scale A's image to fill B's rendered size
               return {
                 ...img,
                 src:          a.src,
