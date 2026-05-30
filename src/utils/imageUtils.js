@@ -49,71 +49,50 @@ function loadImg(src) {
   })
 }
 
-/**
- * exportCollage
- *
- * Changes vs previous version:
- *  - NO skin limit â€” exports every image passed in, unlimited count
- *  - cellSize uses the MAXIMUM natural dimension across all images
- *    (previously used average, which downscaled larger skins)
- *  - Canvas is created at full native resolution â€” no scaling down
- *  - toBlob uses 'image/png' at quality 1.0 (PNG is lossless; quality
- *    param has no effect on PNG but is kept explicit for clarity)
- *  - Profile banner drawn at full collage width, keeping its own
- *    native aspect ratio (no upscaling beyond natural size)
- */
 export async function exportCollage(images, backgroundColor, profileImageSrc = null) {
   if (!images.length) return null
 
-  // â”€â”€ Use the LARGEST natural dimension as cell size â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // This ensures no skin is ever downsampled below its native size.
-  // (The old average could shrink large Legend-tier skins.)
-  const maxDim  = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
-  const cellSize = maxDim || 300   // fallback if images have no natural size yet
+  const maxDim   = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
+  const cellSize = maxDim || 300
 
-  // â”€â”€ Unlimited grid layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // No cap on image count. Grid grows as needed.
   const cols = Math.ceil(Math.sqrt(images.length))
   const rows = Math.ceil(images.length / cols)
 
   const collageW = cols * cellSize
   const collageH = rows * cellSize
 
-  // â”€â”€ Profile banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Profile banner ──────────────────────────────────────────────
+  // Always stretch to full collage width, preserving aspect ratio
   let bannerH = 0
   let profEl  = null
   if (profileImageSrc) {
     try {
       profEl  = await loadImg(profileImageSrc)
-      // Scale to collage width but never upscale beyond native width
-      const scale = Math.min(1, collageW / profEl.naturalWidth)
+      // Always scale to exactly collageW — upscale or downscale as needed
+      const scale = collageW / profEl.naturalWidth
       bannerH = Math.round(profEl.naturalHeight * scale)
     } catch { profEl = null }
   }
 
   const totalH = bannerH + collageH
 
-  // â”€â”€ Create canvas at full native resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const canvas  = document.createElement('canvas')
   canvas.width  = collageW
   canvas.height = totalH
-  const ctx = canvas.getContext('2d', { alpha: false })   // alpha:false = slightly faster
+  const ctx = canvas.getContext('2d', { alpha: false })
 
-  // Background fill
   ctx.fillStyle = backgroundColor || '#000000'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  // Draw profile banner â€” scaled to collage width, top-aligned
+  // Draw profile banner at exactly collage width, top-aligned
   if (profEl) {
-    const scale  = Math.min(1, collageW / profEl.naturalWidth)
-    const drawW  = Math.round(profEl.naturalWidth  * scale)
-    const drawH  = Math.round(profEl.naturalHeight * scale)
+    const scale = collageW / profEl.naturalWidth
+    const drawW = collageW
+    const drawH = Math.round(profEl.naturalHeight * scale)
     ctx.drawImage(profEl, 0, 0, drawW, drawH)
   }
 
-  // â”€â”€ Draw every skin at full quality, no compression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Each skin is centre-cropped to a square then drawn at cellSize.
-  // Promise.all keeps it parallel for speed even with 100+ images.
+  // ── Draw every skin ─────────────────────────────────────────────
   await Promise.all(
     images.map((img, i) =>
       loadImg(img.src).then((el) => {
@@ -122,22 +101,20 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
         const destX = col * cellSize
         const destY = bannerH + row * cellSize
 
-        // Centre-crop source to square
         const srcSize = Math.min(el.naturalWidth, el.naturalHeight)
         const srcX    = (el.naturalWidth  - srcSize) / 2
         const srcY    = (el.naturalHeight - srcSize) / 2
 
         ctx.drawImage(el, srcX, srcY, srcSize, srcSize, destX, destY, cellSize, cellSize)
-      }).catch(() => { /* skip broken images silently */ })
+      }).catch(() => {})
     )
   )
 
-  // â”€â”€ Export as lossless PNG, full quality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => blob ? resolve(blob) : reject(new Error('Canvas export produced empty blob')),
       'image/png',
-      1.0   // PNG is lossless â€” this param is ignored by browsers but kept for intent
+      1.0
     )
   })
 }
@@ -149,4 +126,4 @@ export function downloadBlob(blob, filename) {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
-      }
+}
