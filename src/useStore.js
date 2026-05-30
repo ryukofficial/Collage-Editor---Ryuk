@@ -2,10 +2,8 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { nanoid } from './nanoid'
 
-// Default canvas size
 const DEFAULT_CANVAS = { width: 3840, height: 2160 }
 
-// ─── localStorage helpers ──────────────────────────────────────────────────
 const LS_CANVAS_KEY   = 'ryuk_canvas_state'
 const LS_HISTORY_KEY  = 'ryuk_export_history'
 const LS_PROFILE_KEY  = 'ryuk_profile'
@@ -71,12 +69,10 @@ export function loadProfileFromStorage() {
   } catch { return null }
 }
 
-// ─── Restore persisted state ────────────────────────────────────────────────
 const persisted = loadCanvasState()
 
 const useStore = create(
   subscribeWithSelector((set, get) => ({
-    // ─── Canvas ────────────────────────────────────────────────
     canvasSize:            persisted?.canvasSize            ?? { ...DEFAULT_CANVAS },
     stageScale:            0.15,
     stagePos:              { x: 0, y: 0 },
@@ -115,20 +111,17 @@ const useStore = create(
     },
     zoomActual: () => set({ stageScale: 1 }),
 
-    // ─── Images / Layers ───────────────────────────────────────
     images:      persisted?.images ?? [],
     selectedIds: [],
     activeTool:  'select',
 
     setActiveTool: (t) => set({ activeTool: t, selectedIds: [] }),
 
-    // ── NEW: used by ProjectsPanel to restore a saved project ──
     setImages: (images) => {
       set({ images, selectedIds: [] })
       get()._persist()
     },
 
-    // Internal: persist after any image mutation
     _persist: () => {
       const s = get()
       saveCanvasState(s.images, s.canvasSize, s.backgroundColor, s.backgroundTransparent)
@@ -198,7 +191,6 @@ const useStore = create(
       get()._persist()
     },
 
-    // Selection
     selectImage: (id, multi = false) => set(s => {
       if (!id) return { selectedIds: [] }
       if (multi) {
@@ -210,7 +202,24 @@ const useStore = create(
     selectAll:      () => set(s => ({ selectedIds: s.images.map(i => i.id) })),
     clearSelection: () => set({ selectedIds: [] }),
 
-    // Z-order
+    // ── Swap two images by exchanging their x/y/scaleX/scaleY positions ──
+    swapImages: (idA, idB) => {
+      set(s => {
+        const a = s.images.find(i => i.id === idA)
+        const b = s.images.find(i => i.id === idB)
+        if (!a || !b) return {}
+        return {
+          images: s.images.map(img => {
+            if (img.id === idA) return { ...img, x: b.x, y: b.y, scaleX: b.scaleX, scaleY: b.scaleY, rotation: b.rotation }
+            if (img.id === idB) return { ...img, x: a.x, y: a.y, scaleX: a.scaleX, scaleY: a.scaleY, rotation: a.rotation }
+            return img
+          }),
+          selectedIds: [],
+        }
+      })
+      get()._persist()
+    },
+
     bringForward: (id) => {
       set(s => {
         const imgs = [...s.images]
@@ -250,7 +259,6 @@ const useStore = create(
       get()._persist()
     },
 
-    // Auto-layout
     applyGridLayout: (cols = 4, gap = 0) => {
       set(s => {
         if (!s.images.length) return {}
@@ -267,7 +275,6 @@ const useStore = create(
       get()._persist()
     },
 
-    // ─── History (Undo/Redo) ───────────────────────────────────
     history:      [],
     historyIndex: -1,
 
@@ -296,12 +303,10 @@ const useStore = create(
     canUndo: () => get().historyIndex > 0,
     canRedo: () => get().historyIndex < get().history.length - 1,
 
-    // ─── Export ────────────────────────────────────────────────
     isExporting:    false,
     exportProgress: 0,
     setExporting: (v, p = 0) => set({ isExporting: v, exportProgress: p }),
 
-    // ─── Export History (persisted) ────────────────────────────
     exportHistory: loadExportHistory(),
 
     addExportHistoryEntry: (entry) => set(s => {
@@ -320,7 +325,6 @@ const useStore = create(
       return { exportHistory: [] }
     }),
 
-    // ─── UI state ──────────────────────────────────────────────
     showLayers:     true,
     showProperties: true,
     showGrid:       false,
