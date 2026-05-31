@@ -274,7 +274,7 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       return
     }
 
-    // ── Grid layout: fill canvas perfectly ──────────────────────
+    // ── Grid layout: fill canvas edge to edge, no gaps ───────────
     const CANVAS_W = 3840
     const CANVAS_H = 2160
     const total = results.length
@@ -286,15 +286,14 @@ Include every skin you can read. If a skin name spans two lines, join them with 
     const positioned = results.map((img, i) => {
       const col = i % cols
       const row = Math.floor(i / cols)
-      const scale = Math.min(cellW / img.naturalWidth, cellH / img.naturalHeight)
-      const scaledW = img.naturalWidth * scale
-      const scaledH = img.naturalHeight * scale
+      const scaleX = cellW / img.naturalWidth
+      const scaleY = cellH / img.naturalHeight
       return {
         ...img,
-        x: col * cellW + (cellW - scaledW) / 2,
-        y: row * cellH + (cellH - scaledH) / 2,
-        scaleX: scale,
-        scaleY: scale,
+        x: col * cellW,
+        y: row * cellH,
+        scaleX,
+        scaleY,
       }
     })
     // ─────────────────────────────────────────────────────────────
@@ -493,4 +492,4 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       </div>
     </div>
   )
-                             }
+    }
