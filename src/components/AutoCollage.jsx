@@ -170,7 +170,7 @@ export default function AutoCollage({ onClose }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 1000,
           messages: [{
             role: 'user',
@@ -462,4 +462,4 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       </div>
     </div>
   )
-}
+        }
