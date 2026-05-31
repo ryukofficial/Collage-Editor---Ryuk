@@ -21,7 +21,6 @@ function matchScore(filename, heroId, skinName) {
   return matched.length / keywords.length
 }
 
-// Build a flat lookup: "heroname skinname" -> { heroId, heroName, skinName }
 const SKIN_LOOKUP = {}
 for (const hero of skinsData) {
   for (const skin of hero.skins) {
@@ -275,8 +274,33 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       return
     }
 
+    // ── Grid layout: fill canvas perfectly ──────────────────────
+    const CANVAS_W = 3840
+    const CANVAS_H = 2160
+    const total = results.length
+    const cols = Math.ceil(Math.sqrt(total * (CANVAS_W / CANVAS_H)))
+    const rows = Math.ceil(total / cols)
+    const cellW = CANVAS_W / cols
+    const cellH = CANVAS_H / rows
+
+    const positioned = results.map((img, i) => {
+      const col = i % cols
+      const row = Math.floor(i / cols)
+      const scale = Math.min(cellW / img.naturalWidth, cellH / img.naturalHeight)
+      const scaledW = img.naturalWidth * scale
+      const scaledH = img.naturalHeight * scale
+      return {
+        ...img,
+        x: col * cellW + (cellW - scaledW) / 2,
+        y: row * cellH + (cellH - scaledH) / 2,
+        scaleX: scale,
+        scaleY: scale,
+      }
+    })
+    // ─────────────────────────────────────────────────────────────
+
     saveSnapshot()
-    addImages(results)
+    addImages(positioned)
     onClose()
   }, [found, addImages, saveSnapshot, onClose])
 
@@ -469,4 +493,4 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       </div>
     </div>
   )
-}
+                             }
