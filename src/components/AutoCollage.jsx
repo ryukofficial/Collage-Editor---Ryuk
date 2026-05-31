@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import skinsData from '../../skins.json'
 import useStore from '../store/useStore'
 
-// ── Constants (same as HeroPicker) ──────────────────────────────────────────
+// ── Constants ────────────────────────────────────────────────────────────────
 const CDN_BASE   = 'https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/'
 const GITHUB_API = 'https://api.github.com/repos/ryukofficial/mlbb-assets/contents/'
 const PLACEHOLDER = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
@@ -30,16 +30,13 @@ for (const hero of skinsData) {
   }
 }
 
-// Find best matching skin from Claude's extracted text
 function findSkin(heroText, skinText) {
   const hSlug = slugify(heroText || '')
   const sSlug = slugify(skinText || '')
   const fullKey = `${hSlug} ${sSlug}`
 
-  // Try exact full match first
   if (SKIN_LOOKUP[fullKey]) return SKIN_LOOKUP[fullKey]
 
-  // Try partial — find hero first, then match skin within it
   const hero = skinsData.find(h =>
     slugify(h.name) === hSlug ||
     slugify(h.name).includes(hSlug) ||
@@ -47,7 +44,6 @@ function findSkin(heroText, skinText) {
   )
   if (!hero) return null
 
-  // Find best skin match within this hero
   let best = null, bestScore = 0
   for (const skin of hero.skins) {
     const sWords = slugify(skin.name).split(' ').filter(w => w.length >= 3)
@@ -63,17 +59,12 @@ function findSkin(heroText, skinText) {
   return null
 }
 
-// Files are all in root: "HeroName SkinName.jpg"
-// Try exact match first, then fuzzy via GitHub API listing
 async function fetchSkinImage(heroId, heroName, skinName) {
-  // Candidate filenames — format is "HeroName SkinName.jpg"
   const candidates = [
     `${heroName} ${skinName}.jpg`,
     `${heroName} ${skinName}.png`,
     `${heroName} ${skinName}.webp`,
-    // lowercase variants
     `${heroName.toLowerCase()} ${skinName.toLowerCase()}.jpg`,
-    // first word of skin name only
     `${heroName} ${skinName.split(' ')[0]}.jpg`,
   ]
 
@@ -89,7 +80,6 @@ async function fetchSkinImage(heroId, heroName, skinName) {
     if (ok) return url
   }
 
-  // Fallback: list all files from root via GitHub API and fuzzy match
   try {
     const res = await fetch(GITHUB_API, {
       headers: { 'Accept': 'application/vnd.github.v3+json' }
@@ -113,7 +103,6 @@ async function fetchSkinImage(heroId, heroName, skinName) {
   }
 }
 
-// Load image and get natural dimensions
 function loadImg(src) {
   return new Promise(resolve => {
     const img = new Image()
@@ -124,7 +113,6 @@ function loadImg(src) {
   })
 }
 
-// Convert file to base64, resizing to max 1024px to stay within API limits
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -146,7 +134,6 @@ function fileToBase64(file) {
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      // fallback: read raw
       const r = new FileReader()
       r.onload = () => resolve(r.result.split(',')[1])
       r.onerror = reject
@@ -161,12 +148,12 @@ export default function AutoCollage({ onClose }) {
   const addImages    = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
 
-  const [step, setStep]           = useState('upload') // upload | scanning | results | adding
+  const [step, setStep]               = useState('upload')
   const [screenshots, setScreenshots] = useState([])
-  const [found, setFound]         = useState([])   // matched skins
-  const [failed, setFailed]       = useState([])   // names Claude read but couldn't match
-  const [progress, setProgress]   = useState('')
-  const [error, setError]         = useState('')
+  const [found, setFound]             = useState([])
+  const [failed, setFailed]           = useState([])
+  const [progress, setProgress]       = useState('')
+  const [error, setError]             = useState('')
   const fileRef = useRef()
 
   const handleFiles = useCallback((files) => {
@@ -185,11 +172,9 @@ export default function AutoCollage({ onClose }) {
     setError('')
 
     try {
-      // Build messages for Claude API — one image per screenshot
       const imageContents = await Promise.all(screenshots.map(async (file) => {
         const b64 = await fileToBase64(file)
-        const mediaType = 'image/jpeg' // always jpeg after canvas compression
-        return { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } }
+        return { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }
       }))
 
       setProgress('Reading skin names from screenshots…')
@@ -220,7 +205,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       const data = await response.json()
       if (!response.ok) throw new Error(`API ${response.status}: ${JSON.stringify(data?.error || data)}`)
 
-      // Parse response
       const rawText = data.content.map(c => c.text || '').join('')
       let parsed = []
       try {
@@ -232,7 +216,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
 
       setProgress(`Found ${parsed.length} skins in screenshots. Matching to database…`)
 
-      // Match each extracted skin to database
       const matchedSkins = []
       const failedSkins  = []
 
@@ -245,7 +228,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
         }
       }
 
-      // Deduplicate matched skins
       const seen = new Set()
       const unique = matchedSkins.filter(m => {
         const key = `${m.heroId}__${m.skinName}`
@@ -298,7 +280,7 @@ Include every skin you can read. If a skin name spans two lines, join them with 
     onClose()
   }, [found, addImages, saveSnapshot, onClose])
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div
       style={{
@@ -358,7 +340,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
                 />
               </div>
 
-              {/* Screenshot previews */}
               {screenshots.length > 0 && (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                   {screenshots.map((f, i) => (
@@ -404,7 +385,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
           {/* Results */}
           {step === 'results' && (
             <>
-              {/* Summary */}
               <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
                 <div style={{ flex: 1, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#22c55e' }}>{found.length}</p>
@@ -416,7 +396,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
                 </div>
               </div>
 
-              {/* Matched skins */}
               {found.length > 0 && (
                 <>
                   <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, color: '#22c55e' }}>✅ MATCHED SKINS</p>
@@ -441,7 +420,6 @@ Include every skin you can read. If a skin name spans two lines, join them with 
                 </>
               )}
 
-              {/* Failed */}
               {failed.length > 0 && (
                 <>
                   <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: '#f87171' }}>❌ COULDN'T MATCH</p>
@@ -482,4 +460,13 @@ Include every skin you can read. If a skin name spans two lines, join them with 
           {step === 'adding' && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: '40px', marginBottom: '16px' }}>⬇️</div>
-              
+              <p style={{ margin: '0 0 8px', color: '#c8c8e8', fontWeight: 700, fontSize: '16px' }}>Adding skins to canvas…</p>
+              <p style={{ margin: 0, color: '#6c63ff', fontSize: '13px' }}>{progress}</p>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
+}
