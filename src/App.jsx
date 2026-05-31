@@ -254,7 +254,7 @@ export default function App() {
   const stageRef        = useRef()
   const fileInputRef    = useRef()
   const profileInputRef = useRef()
-  const openHeroPicker  = useRef(null)
+  const [heroPickerOpen, setHeroPickerOpen] = useState(false)
 
   const [profileImage,      setProfileImage]      = useState(null)
   const [profileName,       setProfileName]        = useState('')
@@ -387,7 +387,7 @@ export default function App() {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleOpenHeroPicker = useCallback(() => {
-    if (openHeroPicker.current) openHeroPicker.current()
+    setHeroPickerOpen(true)
   }, [])
 
   const handleLoadProject = useCallback((snapshot) => {
@@ -675,7 +675,7 @@ export default function App() {
           </span>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <button style={btnPrimary} onClick={handleOpenHeroPicker}>+ Create</button>
-            <HeroPicker onRegisterOpen={fn => { openHeroPicker.current = fn }} />
+            <HeroPicker open={heroPickerOpen} onClose={() => setHeroPickerOpen(false)} />
             <button style={btnPrimary} onClick={handleExport}>Export PNG</button>
             <button style={{ ...btnPrimary, background: 'linear-gradient(135deg,#f59e0b,#d97706)' }} onClick={() => setAutoCollageOpen(true)}>✨ Auto</button>
           </div>
