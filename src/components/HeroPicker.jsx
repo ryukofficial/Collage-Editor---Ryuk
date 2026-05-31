@@ -404,7 +404,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function HeroPicker({ onRegisterOpen }) {
+export default function HeroPicker({ open, onClose }) {
   const [isOpen,        setIsOpen]        = useState(false)
   const [mode,          setMode]          = useState(null)
   const [selectedHero,  setSelectedHero]  = useState(null)
@@ -417,8 +417,8 @@ export default function HeroPicker({ onRegisterOpen }) {
   const [keyboardHeight, setKeyboardHeight] = useState(0)
 
   useEffect(() => {
-    if (onRegisterOpen) onRegisterOpen(() => setIsOpen(true))
-  }, [])
+    if (open) setIsOpen(true)
+  }, [open])
 
   const heroSearchRef = useScrollIntoView()
   const vvHeight      = useVisualViewportHeight()
@@ -462,7 +462,8 @@ export default function HeroPicker({ onRegisterOpen }) {
     setSelectedSkins([])
     setSearch('')
     setMode(null)
-  }, [])
+    if (onClose) onClose()
+  }, [onClose])
 
   useEffect(() => {
     if (isOpen) {
