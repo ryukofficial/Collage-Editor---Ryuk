@@ -189,8 +189,8 @@ Include every skin you can read. If a skin name spans two lines, join them with 
         })
       })
 
-      if (!response.ok) throw new Error(`API error ${response.status}`)
       const data = await response.json()
+      if (!response.ok) throw new Error(`API ${response.status}: ${JSON.stringify(data?.error || data)}`)
 
       // Parse response
       const rawText = data.content.map(c => c.text || '').join('')
