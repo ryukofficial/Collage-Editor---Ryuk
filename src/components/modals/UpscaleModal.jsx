@@ -24,26 +24,14 @@ const MAX_SIZE_BYTES = 1.2 * 1024 * 1024; // 1.2 MB limit from imageupscaler API
 export default function UpscaleModal({ isOpen, onClose, imageBlob, imageName = 'collage' }) {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('upscaler_api_key') || '');
   const [showKey, setShowKey] = useState(false);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('idle'); // idle | loading | done | error
   const [errorMsg, setErrorMsg] = useState('');
   const [resultUrl, setResultUrl] = useState('');
   const [originalPreview, setOriginalPreview] = useState('');
-  const [canvasBlob, setCanvasBlob] = useState(null);
   const abortRef = useRef(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    try {
-      const canvas = document.querySelector('canvas');
-      if (canvas) {
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-        fetch(dataUrl).then(r => r.blob()).then(blob => setCanvasBlob(blob));
-      }
-    } catch {}
-  }, [isOpen]);
-
-  const activeBlob = imageBlob || canvasBlob;
-  const previewUrl = activeBlob ? URL.createObjectURL(activeBlob) : '';
+  // Generate a preview URL from the blob when it's available
+  const previewUrl = imageBlob ? URL.createObjectURL(imageBlob) : '';
 
   if (!isOpen) return null;
 
@@ -59,14 +47,14 @@ export default function UpscaleModal({ isOpen, onClose, imageBlob, imageName = '
       setStatus('error');
       return;
     }
-    if (!activeBlob) {
-      setErrorMsg('No collage image found. Please add skins to the canvas first.');
+    if (!imageBlob) {
+      setErrorMsg('No collage image found. Please export your collage first.');
       setStatus('error');
       return;
     }
-    if (activeBlob.size > MAX_SIZE_BYTES) {
+    if (imageBlob.size > MAX_SIZE_BYTES) {
       setErrorMsg(
-        `Image is ${(activeBlob.size / 1024).toFixed(0)} KB — the API limit is 1.2 MB. ` +
+        `Image is ${(imageBlob.size / 1024).toFixed(0)} KB — the API limit is 1.2 MB. ` +
         `Try reducing the canvas size before exporting.`
       );
       setStatus('error');
@@ -79,7 +67,7 @@ export default function UpscaleModal({ isOpen, onClose, imageBlob, imageName = '
 
     const formData = new FormData();
     // Convert blob to a File so the API gets a proper filename + type
-    const file = new File([activeBlob], `${imageName}.jpg`, { type: 'image/jpeg' });
+    const file = new File([imageBlob], `${imageName}.jpg`, { type: 'image/jpeg' });
     formData.append('file_image', file);
 
     try {
@@ -142,7 +130,6 @@ export default function UpscaleModal({ isOpen, onClose, imageBlob, imageName = '
     setStatus('idle');
     setErrorMsg('');
     setResultUrl('');
-    setCanvasBlob(null);
     onClose();
   };
 
@@ -184,8 +171,8 @@ export default function UpscaleModal({ isOpen, onClose, imageBlob, imageName = '
                     : <span className="text-white/20 text-xs">No preview</span>
                   }
                 </div>
-                {activeBlob && (
-                  <p className="text-xs text-white/30">{(activeBlob.size / 1024).toFixed(0)} KB</p>
+                {imageBlob && (
+                  <p className="text-xs text-white/30">{(imageBlob.size / 1024).toFixed(0)} KB</p>
                 )}
               </div>
               <div className="space-y-1.5">
