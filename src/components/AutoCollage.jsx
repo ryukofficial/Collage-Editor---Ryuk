@@ -66,7 +66,7 @@ function findSkin(heroText, skinText) {
 // Fetch skin image URL from GitHub (same logic as HeroPicker)
 async function fetchSkinImage(heroId, skinName) {
   try {
-    const res = await fetch(`${GITHUB_API}${encodeURIComponent(heroId)}`)
+    const res = await fetch(`${GITHUB_API}${heroId}`)
     if (!res.ok) return null
     const files = await res.json()
     const imageFiles = files
@@ -79,7 +79,7 @@ async function fetchSkinImage(heroId, skinName) {
       if (score > bestScore) { bestScore = score; bestFile = file }
     }
     if (!bestFile) return null
-    return CDN_BASE + encodeURIComponent(heroId) + '/' + encodeURIComponent(bestFile)
+    return `${CDN_BASE}${encodeURIComponent(heroId)}/${encodeURIComponent(bestFile)}`
   } catch {
     return null
   }
@@ -397,7 +397,7 @@ Include every skin you can read. If a skin name spans two lines, join them with 
                       <div key={i} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #252535', background: '#0e0e1a' }}>
                         <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', background: '#1a1a2e' }}>
                           <img
-                            src={`${CDN_BASE}${encodeURIComponent(m.heroId)}/${encodeURIComponent(m.heroId)}_${slugify(m.skinName).replace(/\s+/g, '_')}.jpg`}
+                            src={PLACEHOLDER}
                             alt=""
                             onError={e => { e.target.src = PLACEHOLDER }}
                             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
@@ -462,4 +462,4 @@ Include every skin you can read. If a skin name spans two lines, join them with 
       </div>
     </div>
   )
-        }
+}
