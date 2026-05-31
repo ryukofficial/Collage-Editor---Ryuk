@@ -144,7 +144,7 @@ export default function AutoCollage({ onClose }) {
 
       setProgress('Reading skin names from screenshots…')
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/scan-skins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
