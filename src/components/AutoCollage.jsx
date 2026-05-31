@@ -96,13 +96,35 @@ function loadImg(src) {
   })
 }
 
-// Convert file to base64
+// Convert file to base64, resizing to max 1024px to stay within API limits
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(r.result.split(',')[1])
-    r.onerror = reject
-    r.readAsDataURL(file)
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1024
+      let { naturalWidth: w, naturalHeight: h } = img
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX }
+        else        { w = Math.round(w * MAX / h); h = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width  = w
+      canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+      resolve(dataUrl.split(',')[1])
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      // fallback: read raw
+      const r = new FileReader()
+      r.onload = () => resolve(r.result.split(',')[1])
+      r.onerror = reject
+      r.readAsDataURL(file)
+    }
+    img.src = url
   })
 }
 
@@ -138,7 +160,7 @@ export default function AutoCollage({ onClose }) {
       // Build messages for Claude API — one image per screenshot
       const imageContents = await Promise.all(screenshots.map(async (file) => {
         const b64 = await fileToBase64(file)
-        const mediaType = file.type || 'image/jpeg'
+        const mediaType = 'image/jpeg' // always jpeg after canvas compression
         return { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } }
       }))
 
