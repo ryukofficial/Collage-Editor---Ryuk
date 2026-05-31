@@ -143,15 +143,54 @@ const useStore = create(
     },
 
     // ── Reorder images from ArrangePanel ──────────────────────────────────────
-    // Saves snapshot + reassigns zIndex atomically in one set() call,
-    // preventing the race condition between saveSnapshot() + setImages().
-    // zIndex must be reassigned so bringForward/sendBackward/etc. respect
-    // the new order and don't revert it on the next layer operation.
+    // Keep each slot's on-canvas position/size (x, y, rendered W/H, rotation),
+    // and slot the new image content into the array in the user-chosen order.
+    // So moving #9 to #1 actually swaps their places on the live canvas — not
+    // just z-order — and the result matches the export.
     reorderImages: (newOrder) => {
       const s = get()
+      if (!newOrder?.length || newOrder.length !== s.images.length) return
+
       const snap = JSON.stringify(s.images)
       const newHistory = [...s.history.slice(0, s.historyIndex + 1), snap]
-      const reindexed = newOrder.map((img, i) => ({ ...img, zIndex: i }))
+
+      // Current slots in canvas array order — these define each on-canvas box
+      const slots = [...s.images].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
+
+      const reindexed = slots.map((slot, i) => {
+        const content = newOrder[i]
+        if (!content) return { ...slot, zIndex: i }
+
+        // Preserve the slot's rendered size on canvas
+        const renderedW = slot.naturalWidth  * slot.scaleX
+        const renderedH = slot.naturalHeight * slot.scaleY
+
+        return {
+          // keep slot's placement
+          id:       slot.id,
+          x:        slot.x,
+          y:        slot.y,
+          rotation: slot.rotation,
+          zIndex:   i,
+
+          // adopt new content
+          src:           content.src,
+          name:          content.name,
+          width:         content.width,
+          height:        content.height,
+          naturalWidth:  content.naturalWidth,
+          naturalHeight: content.naturalHeight,
+          fileSize:      content.fileSize,
+          opacity:       content.opacity ?? slot.opacity,
+          visible:       content.visible ?? slot.visible,
+          locked:        content.locked  ?? slot.locked,
+
+          // recompute scale so the new content fills this slot at the same size
+          scaleX: renderedW / content.naturalWidth,
+          scaleY: renderedH / content.naturalHeight,
+        }
+      })
+
       set({
         images: reindexed,
         selectedIds: [],
