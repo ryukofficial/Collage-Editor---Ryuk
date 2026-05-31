@@ -40,25 +40,25 @@ const CELL_SIZE        = 300
 const GITHUB_API       = 'https://api.github.com/repos/ryukofficial/mlbb-assets/contents/'
 const CDN_BASE         = 'https://raw.githubusercontent.com/ryukofficial/mlbb-assets/refs/heads/main/'
 
+// ── Module-level cache — persists for the entire session ─────────────────────
+let _cachedRepoFiles = []
+let _cacheLoaded     = false
+
 function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
 }
 
-// Fuzzy match: returns true if all chars of query appear in order in str
-// Also returns true for normal includes, and handles 1-char typos via bigram overlap
 function fuzzyMatch(str, query) {
   if (!query) return true
   const s = str.toLowerCase()
   const q = query.toLowerCase().trim()
   if (s.includes(q)) return true
-  // sequential char match (fast fuzzy)
   let si = 0, qi = 0
   while (si < s.length && qi < q.length) {
     if (s[si] === q[qi]) qi++
     si++
   }
   if (qi === q.length) return true
-  // bigram overlap for typo tolerance (e.g. "langcelot" → "lancelot")
   if (q.length >= 4) {
     const bigrams = (t) => {
       const set = new Set()
@@ -110,16 +110,6 @@ function buildImageMap(files, heroId, skins) {
   return map
 }
 
-function preloadImage(src) {
-  return new Promise(resolve => {
-    const img       = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload  = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-    img.onerror = () => resolve({ width: 300, height: 300 })
-    img.src = src
-  })
-}
-
 function loadTierAssignments() {
   try {
     const raw = localStorage.getItem('mlbb_tiers')
@@ -127,7 +117,6 @@ function loadTierAssignments() {
   } catch { return {} }
 }
 
-// ── Tracks the visible viewport height so sheet stays above keyboard ──
 function useVisualViewportHeight() {
   const [vvHeight, setVvHeight] = useState(() =>
     window.visualViewport ? window.visualViewport.height : window.innerHeight
@@ -146,7 +135,6 @@ function useVisualViewportHeight() {
   return vvHeight
 }
 
-// Scroll the search input into view when keyboard opens on iOS
 function useScrollIntoView() {
   return useCallback(node => {
     if (!node) return
@@ -158,7 +146,7 @@ function useScrollIntoView() {
   }, [])
 }
 
-// ── Mode Select Screen ─────────────────────────────────────────
+// ── Mode Select Screen ────────────────────────────────────────────────────────
 function ModeSelect({ onSelectMode }) {
   return (
     <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -205,7 +193,7 @@ function ModeSelect({ onSelectMode }) {
   )
 }
 
-// ── Collection Mode ────────────────────────────────────────────
+// ── Collection Mode ───────────────────────────────────────────────────────────
 function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, selectedSkins, setSelectedSkins }) {
   const [activeTier, setActiveTier] = useState('Legend')
   const [search, setSearch]         = useState('')
@@ -388,12 +376,15 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
                     padding: '16px 6px 5px',
                   }}>
                     <p style={{
-                      color: '#fff', fontSize: '9px', fontWeight: 600, margin: '0 0 2px', lineHeight: 1.2,
+                      color: '#fff', fontSize: '9px', fontWeight: 600, margin: 0, lineHeight: 1.2,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {skin.name}
                     </p>
-                    <p style={{ color: '#aaa', fontSize: '9px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{
+                      color: '#aaa', fontSize: '8px', margin: '2px 0 0', lineHeight: 1.2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {skin.heroName}
                     </p>
                   </div>
@@ -412,33 +403,24 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, fetchError, sele
   )
 }
 
-// ── Main HeroPicker ────────────────────────────────────────────
-export default function HeroPicker({ onRegisterOpen }) {
+// ── Main Component ────────────────────────────────────────────────────────────
+export default function HeroPicker() {
   const [isOpen,        setIsOpen]        = useState(false)
-  const [mode,          setMode]          = useState(null)   // null | 'hero' | 'collection'
+  const [mode,          setMode]          = useState(null)
   const [selectedHero,  setSelectedHero]  = useState(null)
-  const [search,        setSearch]        = useState('')
   const [selectedSkins, setSelectedSkins] = useState([])
-  const [isAdding,      setIsAdding]      = useState(false)
-  const [repoFiles,     setRepoFiles]     = useState([])
+  const [search,        setSearch]        = useState('')
+  const [repoFiles,     setRepoFiles]     = useState(_cachedRepoFiles)
   const [imageCache,    setImageCache]    = useState({})
   const [fetchError,    setFetchError]    = useState(false)
+  const [isAdding,      setIsAdding]      = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
 
   const heroSearchRef = useScrollIntoView()
-
-  // Expose open() to parent via callback
-  useEffect(() => {
-    if (onRegisterOpen) onRegisterOpen(() => setIsOpen(true))
-  }, [onRegisterOpen])
-
-  // ── Keyboard-aware sheet positioning ─────────────────────────
-  const vvHeight       = useVisualViewportHeight()
-  const keyboardHeight = window.innerHeight - vvHeight
+  const vvHeight      = useVisualViewportHeight()
 
   const overlayStyle = {
-    position: 'fixed',
-    inset: 0,
-    zIndex: 50,
+    position: 'fixed', inset: 0, zIndex: 200,
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'center',
@@ -461,7 +443,6 @@ export default function HeroPicker({ onRegisterOpen }) {
     paddingBottom: keyboardHeight > 0 ? '0px' : 'env(safe-area-inset-bottom, 0px)',
     transition: 'margin-bottom 0.2s ease, max-height 0.2s ease',
   }
-  // ─────────────────────────────────────────────────────────────
 
   const addImages    = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
@@ -469,7 +450,6 @@ export default function HeroPicker({ onRegisterOpen }) {
   const images       = useStore(s => s.images)
   const hasImages    = images.length > 0
 
-  // ── Back-button support ──────────────────────────────────────
   const historyPushed = useRef(false)
 
   const handleClose = useCallback(() => {
@@ -486,7 +466,6 @@ export default function HeroPicker({ onRegisterOpen }) {
       historyPushed.current = true
 
       const onPopState = () => {
-        // If a hero is selected, go back to hero list; if in a mode, go back to mode select
         if (selectedHero) {
           setSelectedHero(null)
           setSelectedSkins([])
@@ -511,18 +490,23 @@ export default function HeroPicker({ onRegisterOpen }) {
       }
     }
   }, [isOpen, mode, selectedHero, handleClose])
-  // ─────────────────────────────────────────────────────────────
 
-  // Fetch repo file listing once when picker opens
+  // ── Fetch repo file list — uses module-level cache after first load ──────────
   useEffect(() => {
-    if (!isOpen || repoFiles.length > 0) return
+    if (!isOpen) return
+    if (_cacheLoaded) {
+      setRepoFiles(_cachedRepoFiles)
+      return
+    }
     fetch(GITHUB_API)
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) { setFetchError(true); return }
         const names = data
           .filter(f => f.type === 'file' && /\.(jpg|jpeg|png|webp)$/i.test(f.name))
-          .map(f => f.name)
+           .map(f => f.name)
+        _cachedRepoFiles = names
+        _cacheLoaded     = true
         setRepoFiles(names)
       })
       .catch(() => setFetchError(true))
@@ -554,30 +538,33 @@ export default function HeroPicker({ onRegisterOpen }) {
     })
   }
 
+  // ── Add to canvas — no preloadImage, instant ─────────────────────────────────
   const handleAddToCanvas = async () => {
     if (!selectedSkins.length || isAdding) return
     setIsAdding(true)
     saveSnapshot()
     const totalAfter = images.length + selectedSkins.length
     const cols       = Math.ceil(Math.sqrt(totalAfter))
-    const newImages  = await Promise.all(
-      selectedSkins.map(async (skin, i) => {
-        const { width, height } = await preloadImage(skin.image)
-        const globalIndex = images.length + i
-        return {
-          src: skin.image,
-          x: (globalIndex % cols) * CELL_SIZE,
-          y: Math.floor(globalIndex / cols) * CELL_SIZE,
-          naturalWidth: width, naturalHeight: height,
-          scaleX: CELL_SIZE / width, scaleY: CELL_SIZE / height,
-          rotation: 0, opacity: 1,
-        }
-      })
-    )
+    const newImages  = selectedSkins.map((skin, i) => {
+      const globalIndex = images.length + i
+      return {
+        src:          skin.image,
+        x:            (globalIndex % cols) * CELL_SIZE,
+        y:            Math.floor(globalIndex / cols) * CELL_SIZE,
+        naturalWidth:  300,
+        naturalHeight: 450,
+        scaleX:        1,
+        scaleY:        1,
+        rotation:      0,
+        opacity:       1,
+        name:          skin.name,
+        fileSize:      0,
+      }
+    })
     images.forEach((img, i) => {
       updateImage(img.id, {
-        x: (i % cols) * CELL_SIZE,
-        y: Math.floor(i / cols) * CELL_SIZE,
+        x:      (i % cols) * CELL_SIZE,
+        y:      Math.floor(i / cols) * CELL_SIZE,
         scaleX: CELL_SIZE / img.naturalWidth,
         scaleY: CELL_SIZE / img.naturalHeight,
       })
@@ -602,7 +589,7 @@ export default function HeroPicker({ onRegisterOpen }) {
 
   const handleBack = () => {
     if (selectedHero) { setSelectedHero(null); setSelectedSkins([]); return }
-    if (mode)         { setMode(null);          return }
+    if (mode)         { setMode(null); return }
     handleClose()
   }
 
@@ -620,7 +607,7 @@ export default function HeroPicker({ onRegisterOpen }) {
         <div style={overlayStyle} onClick={e => { if (e.target === e.currentTarget) handleClose() }}>
           <div style={sheetStyle}>
 
-            {/* ── Sheet header ── */}
+            {/* Header */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '14px 16px 10px', borderBottom: '1px solid #1a1a2e', flexShrink: 0,
@@ -664,7 +651,7 @@ export default function HeroPicker({ onRegisterOpen }) {
               </div>
             </div>
 
-            {/* ── Sheet body ── */}
+            {/* Body */}
             <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
               {/* Mode select */}
