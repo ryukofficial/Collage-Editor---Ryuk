@@ -63,12 +63,40 @@ function findSkin(heroText, skinText) {
   return null
 }
 
-// Fetch skin image URL from GitHub (same logic as HeroPicker)
-async function fetchSkinImage(heroId, skinName) {
+// Files are all in root: "HeroName SkinName.jpg"
+// Try exact match first, then fuzzy via GitHub API listing
+async function fetchSkinImage(heroId, heroName, skinName) {
+  // Candidate filenames — format is "HeroName SkinName.jpg"
+  const candidates = [
+    `${heroName} ${skinName}.jpg`,
+    `${heroName} ${skinName}.png`,
+    `${heroName} ${skinName}.webp`,
+    // lowercase variants
+    `${heroName.toLowerCase()} ${skinName.toLowerCase()}.jpg`,
+    // first word of skin name only
+    `${heroName} ${skinName.split(' ')[0]}.jpg`,
+  ]
+
+  for (const candidate of candidates) {
+    const url = CDN_BASE + encodeURIComponent(candidate)
+    const ok = await new Promise(resolve => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload  = () => resolve(true)
+      img.onerror = () => resolve(false)
+      img.src = url
+    })
+    if (ok) return url
+  }
+
+  // Fallback: list all files from root via GitHub API and fuzzy match
   try {
-    const res = await fetch(`${GITHUB_API}${heroId}`)
+    const res = await fetch(GITHUB_API, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    })
     if (!res.ok) return null
     const files = await res.json()
+    if (!Array.isArray(files)) return null
     const imageFiles = files
       .filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f.name))
       .map(f => f.name)
@@ -79,7 +107,7 @@ async function fetchSkinImage(heroId, skinName) {
       if (score > bestScore) { bestScore = score; bestFile = file }
     }
     if (!bestFile) return null
-    return `${CDN_BASE}${encodeURIComponent(heroId)}/${encodeURIComponent(bestFile)}`
+    return CDN_BASE + encodeURIComponent(bestFile)
   } catch {
     return null
   }
@@ -246,7 +274,7 @@ Include every skin you can read. If a skin name spans two lines, join them with 
     for (let i = 0; i < found.length; i++) {
       const { heroId, heroName, skinName } = found[i]
       setProgress(`Fetching ${i + 1} / ${found.length}: ${heroName} — ${skinName}`)
-      const url = await fetchSkinImage(heroId, skinName)
+      const url = await fetchSkinImage(heroId, heroName, skinName)
       if (!url) continue
       const loaded = await loadImg(url)
       if (!loaded) continue
@@ -454,12 +482,4 @@ Include every skin you can read. If a skin name spans two lines, join them with 
           {step === 'adding' && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: '40px', marginBottom: '16px' }}>⬇️</div>
-              <p style={{ margin: '0 0 8px', color: '#c8c8e8', fontWeight: 700, fontSize: '16px' }}>Building collage…</p>
-              <p style={{ margin: 0, color: '#6c63ff', fontSize: '12px', lineHeight: 1.6 }}>{progress}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
+              
