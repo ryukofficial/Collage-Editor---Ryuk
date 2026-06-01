@@ -289,15 +289,14 @@ Include every skin you can read. If a skin name spans two lines, join them with 
     const positioned = results.map((img, i) => {
       const col = i % cols
       const row = Math.floor(i / cols)
-      const scaleX = cellW / img.naturalWidth
-      const scaleY = cellH / img.naturalHeight
-      return {
-        ...img,
-        x: col * cellW,
-        y: row * cellH,
-        scaleX,
-        scaleY,
-      }
+      const scale = Math.min(cellW / img.naturalWidth, cellH / img.naturalHeight)
+return {
+  ...img,
+  x: col * cellW,
+  y: row * cellH,
+  scaleX: scale,
+  scaleY: scale,
+}
     })
     // ─────────────────────────────────────────────────────────────
 
