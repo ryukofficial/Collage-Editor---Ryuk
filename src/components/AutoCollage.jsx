@@ -287,17 +287,24 @@ Include every skin you can read. If a skin name spans two lines, join them with 
     const cellH = CANVAS_H / rows
 
     const positioned = results.map((img, i) => {
-      const col = i % cols
-      const row = Math.floor(i / cols)
-      const scale = Math.min(cellW / img.naturalWidth, cellH / img.naturalHeight)
-return {
-  ...img,
-  x: col * cellW,
-  y: row * cellH,
-  scaleX: scale,
-  scaleY: scale,
-}
-    })
+  const col = i % cols
+  const row = Math.floor(i / cols)
+  
+  const isLastRow = row === rows - 1
+  const itemsInLastRow = total - (rows - 1) * cols
+  const lastRowCellW = isLastRow ? CANVAS_W / itemsInLastRow : cellW
+
+  const currentCellW = isLastRow ? lastRowCellW : cellW
+  const currentX = isLastRow ? col * lastRowCellW : col * cellW
+
+  return {
+    ...img,
+    x: currentX,
+    y: row * cellH,
+    scaleX: currentCellW / img.naturalWidth,
+    scaleY: cellH / img.naturalHeight,
+  }
+})
     // ─────────────────────────────────────────────────────────────
 
     saveSnapshot()
