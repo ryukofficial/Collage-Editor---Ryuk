@@ -63,7 +63,7 @@
       },
       {
         "name": "Marvelous Maestro",
-        "tier": "8 Anniversary"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -105,7 +105,7 @@
       },
       {
         "name": "Death",
-        "tier": "Basic"
+        "tier": "Exceptional"
       }
     ]
   },
@@ -269,7 +269,7 @@
       },
       {
         "name": "Venom Vespid",
-        "tier": "Epic"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -479,7 +479,7 @@
       },
       {
         "name": "Infernal Warlord",
-        "tier": "Epic"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -505,11 +505,11 @@
       },
       {
         "name": "Soul Defiler",
-        "tier": "Epic"
+        "tier": "Deluxe"
       },
       {
         "name": "Castle Master",
-        "tier": "Epic"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -1261,11 +1261,11 @@
       },
       {
         "name": "Atomic Pop Eudora",
-        "tier": "Atomic"
+        "tier": "Expectional"
       },
       {
         "name": "Midnight's Allure",
-        "tier": "Covenant"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -1833,7 +1833,7 @@
       },
       {
         "name": "Rakshesha",
-        "tier": "Epic"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -1907,35 +1907,35 @@
       },
       {
         "name": "Great Inventor",
-        "tier": "Epic"
+        "tier": "Deluxe"
       },
       {
         "name": "V.E.N.O.M Octopus",
-        "tier": "Epic"
+        "tier": "Deluxe"
       },
       {
         "name": "Referee",
-        "tier": "Special"
+        "tier": "Exceptional"
       },
       {
         "name": "Pulsar Prodigy",
-        "tier": "Special"
+        "tier": "Exceptional"
       },
       {
         "name": "Star Magician",
-        "tier": "Elite"
+        "tier": "Exceptional"
       },
       {
         "name": "Naughty Joker",
-        "tier": "Basic"
+        "tier": "Expectional"
       },
       {
         "name": "Royal Magister",
-        "tier": "Starlight"
+        "tier": "Expectional"
       },
       {
         "name": "Dreaming Koi",
-        "tier": "Starlight"
+        "tier": "Expectional"
       }
     ]
   },
@@ -2161,7 +2161,7 @@
       },
       {
         "name": "Proto Guardian",
-        "tier": "Dino Pals"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -2455,7 +2455,7 @@
       },
       {
         "name": "Gemini Halo",
-        "tier": "Zodiac"
+        "tier": "Deluxe"
       }
     ]
   },
@@ -2991,7 +2991,7 @@
       },
       {
         "name": "School Idol",
-        "tier": "Basic"
+        "tier": "Exceptional"
       }
     ]
   },
@@ -3365,7 +3365,7 @@
       },
       {
         "name": "Glass Blade",
-        "tier": "Basic"
+        "tier": "Exceptional"
       }
     ]
   },
@@ -3837,7 +3837,7 @@
       },
       {
         "name": "Wasp Queen",
-        "tier": "Basic"
+        "tier": "Expectional"
       }
     ]
   },
