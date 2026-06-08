@@ -3,8 +3,7 @@ import skinsData from '../../skins.json'
 import useStore from '../store/useStore'
 
 const TIERS = [
-  'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional',
-  'Collector', 'Starlight', 'Epic', 
+  'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional','Starlight', 'Epic', 
 ]
 
 const TIER_STYLES = {
