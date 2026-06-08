@@ -4,13 +4,7 @@ import useStore from '../store/useStore'
 
 const TIERS = [
   'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional',
-  'Collector', 'Starlight', 'Epic', 'Special', 'Elite',
-  'Lightborn', 'Covenant', 'Zodiac', 'Atomic', 'KOF',
-  'Dino Pals', 'Meow', 'Create', '8 Anniversary',
-  'Rising', 'Golden Month', 'Halloween', 'MSC', 'M Series',
-  'Champion', 'FMVP', 'Annual Starlight', 'Neymar Collab',
-  "Valentine's Premium", 'Licensed', 'Anniversary', 'All Star', 'AS', 'MCGG',
-  'Basic', 'Common',
+  'Collector', 'Starlight', 'Epic', 
 ]
 
 const TIER_STYLES = {
