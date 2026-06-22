@@ -689,12 +689,19 @@ export default function HeroPicker({ open, onClose }) {
     const CANVAS_W=3840, total=images.length+selectedSkins.length
     const cols=Math.ceil(Math.sqrt(total)), cell=Math.floor(CANVAS_W/cols)
     images.forEach((img,i) => updateImage(img.id, { x:(i%cols)*cell, y:Math.floor(i/cols)*cell, scaleX:cell/img.naturalWidth, scaleY:cell/img.naturalHeight }))
-    const nw=300, nh=400
-    addImages(selectedSkins.map((skin,i) => {
-      const gi=images.length+i
-      return { src:skin.image, x:(gi%cols)*cell, y:Math.floor(gi/cols)*cell, naturalWidth:nw, naturalHeight:nh, scaleX:cell/nw, scaleY:cell/nh, rotation:0, opacity:1, name:skin.name, fileSize:0 }
-    }))
-    setIsAdding(false); setIsOpen(false); setSelectedHero(null); setSelectedSkins([]); setMode(null)
+    const skinData = await Promise.all(selectedSkins.map((skin) =>
+  new Promise((resolve) => {
+    const el = new Image()
+    el.onload = () => resolve({ skin, nw: el.naturalWidth, nh: el.naturalHeight })
+    el.onerror = () => resolve({ skin, nw: 300, nh: 400 })
+    el.src = skin.image
+  })
+))
+addImages(skinData.map(({ skin, nw, nh }, i) => {
+  const gi=images.length+i
+  return { src:skin.image, x:(gi%cols)*cell, y:Math.floor(gi/cols)*cell, naturalWidth:nw, naturalHeight:nh, scaleX:cell/nw, scaleY:cell/nh, rotation:0, opacity:1, name:skin.name, fileSize:0 }
+}))
+setIsAdding(false); setIsOpen(false); setSelectedHero(null); setSelectedSkins([]); setMode(null)
   }
 
   const headerTitle = () => {
