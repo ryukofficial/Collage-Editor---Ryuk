@@ -58,16 +58,17 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   const cols = Math.ceil(Math.sqrt(images.length))
   const rows = Math.ceil(images.length / cols)
 
-  // Grid dimensions are the source of truth — always exact, never fractional
   const collageW = cols * cellSize
   const collageH = rows * cellSize
 
-  // Profile scales to match collageW — never the other way around
-  let profEl  = null
+  // ── Profile banner ──────────────────────────────────────────────
+  // Always stretch to full collage width, preserving aspect ratio
   let bannerH = 0
+  let profEl  = null
   if (profileImageSrc) {
     try {
       profEl  = await loadImg(profileImageSrc)
+      // Always scale to exactly collageW — upscale or downscale as needed
       const scale = collageW / profEl.naturalWidth
       bannerH = Math.round(profEl.naturalHeight * scale)
     } catch { profEl = null }
@@ -81,15 +82,17 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   const ctx = canvas.getContext('2d', { alpha: false })
 
   ctx.fillStyle = backgroundColor || '#000000'
-  ctx.fillRect(0, 0, collageW, totalH)
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  // Draw profile stretched exactly to collageW
+  // Draw profile banner at exactly collage width, top-aligned
   if (profEl) {
     const scale = collageW / profEl.naturalWidth
-    ctx.drawImage(profEl, 0, 0, collageW, Math.round(profEl.naturalHeight * scale))
+    const drawW = collageW
+    const drawH = Math.round(profEl.naturalHeight * scale)
+    ctx.drawImage(profEl, 0, 0, drawW, drawH)
   }
 
-  // Draw every skin — each gets exactly cellSize × cellSize, no overlap, no cut
+  // ── Draw every skin ─────────────────────────────────────────────
   await Promise.all(
     images.map((img, i) =>
       loadImg(img.src).then((el) => {
@@ -98,7 +101,6 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
         const destX = col * cellSize
         const destY = bannerH + row * cellSize
 
-        // Center-crop source to square
         const srcSize = Math.min(el.naturalWidth, el.naturalHeight)
         const srcX    = (el.naturalWidth  - srcSize) / 2
         const srcY    = (el.naturalHeight - srcSize) / 2
