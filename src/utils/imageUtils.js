@@ -52,29 +52,39 @@ function loadImg(src) {
 export async function exportCollage(images, backgroundColor, profileImageSrc = null) {
   if (!images.length) return null
 
-  const maxDim   = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
-  const cellSize = maxDim || 300
-
   const cols = Math.ceil(Math.sqrt(images.length))
   const rows = Math.ceil(images.length / cols)
 
-  const collageW = cols * cellSize
-  const collageH = rows * cellSize
-
-  // ── Profile banner ──────────────────────────────────────────────
-  // Always stretch to full collage width, preserving aspect ratio
-  let bannerH = 0
+  // ── Load profile first ───────────────────────────────────────────
   let profEl  = null
+  let bannerH = 0
   if (profileImageSrc) {
     try {
-      profEl  = await loadImg(profileImageSrc)
-      // Always scale to exactly collageW — upscale or downscale as needed
-      const scale = collageW / profEl.naturalWidth
-      bannerH = Math.round(profEl.naturalHeight * scale)
+      profEl = await loadImg(profileImageSrc)
     } catch { profEl = null }
   }
 
-  const totalH = bannerH + collageH
+  // ── Determine collageW ───────────────────────────────────────────
+  // If a profile exists, use its natural width as the canvas width so
+  // the grid and profile share the same width with no stretching.
+  // cellSize is derived from that width so every skin fits exactly.
+  // Without a profile, use the original maxDim-based sizing.
+  let collageW, cellSize
+
+  if (profEl) {
+    collageW = profEl.naturalWidth
+    cellSize = Math.floor(collageW / cols)
+    // Ensure collageW is an exact multiple (no fractional right edge)
+    collageW = cols * cellSize
+    bannerH  = Math.round(profEl.naturalHeight * (collageW / profEl.naturalWidth))
+  } else {
+    const maxDim = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
+    cellSize = maxDim || 300
+    collageW = cols * cellSize
+  }
+
+  const collageH = rows * cellSize
+  const totalH   = bannerH + collageH
 
   const canvas  = document.createElement('canvas')
   canvas.width  = collageW
@@ -82,17 +92,15 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   const ctx = canvas.getContext('2d', { alpha: false })
 
   ctx.fillStyle = backgroundColor || '#000000'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, collageW, totalH)
 
-  // Draw profile banner at exactly collage width, top-aligned
+  // Draw profile at exactly collageW wide, preserving aspect ratio
   if (profEl) {
-    const scale = collageW / profEl.naturalWidth
-    const drawW = collageW
-    const drawH = Math.round(profEl.naturalHeight * scale)
-    ctx.drawImage(profEl, 0, 0, drawW, drawH)
+    const drawH = Math.round(profEl.naturalHeight * (collageW / profEl.naturalWidth))
+    ctx.drawImage(profEl, 0, 0, collageW, drawH)
   }
 
-  // ── Draw every skin ─────────────────────────────────────────────
+  // Draw every skin — each fits exactly in its cellSize × cellSize cell
   await Promise.all(
     images.map((img, i) =>
       loadImg(img.src).then((el) => {
