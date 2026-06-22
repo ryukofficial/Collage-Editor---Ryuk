@@ -52,34 +52,25 @@ function loadImg(src) {
 export async function exportCollage(images, backgroundColor, profileImageSrc = null) {
   if (!images.length) return null
 
-  // ── Load profile first so we can use its width to size the grid ─
-  let profEl  = null
-  let bannerH = 0
-  if (profileImageSrc) {
-    try {
-      profEl = await loadImg(profileImageSrc)
-    } catch { profEl = null }
-  }
-
   const maxDim   = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
   const cellSize = maxDim || 300
 
   const cols = Math.ceil(Math.sqrt(images.length))
   const rows = Math.ceil(images.length / cols)
 
-  // ── If profile exists, use whichever is wider: grid or profile ──
-  // This ensures the collage width always matches the profile width
-  const gridW = cols * cellSize
-  const collageW = profEl ? Math.max(gridW, profEl.naturalWidth) : gridW
+  // Grid dimensions are the source of truth — always exact, never fractional
+  const collageW = cols * cellSize
+  const collageH = rows * cellSize
 
-  // Recompute cellSize so the grid fills collageW exactly
-  const finalCellSize = Math.floor(collageW / cols)
-  const collageH = rows * finalCellSize
-
-  // Scale profile to match collageW, preserving aspect ratio
-  if (profEl) {
-    const scale = collageW / profEl.naturalWidth
-    bannerH = Math.round(profEl.naturalHeight * scale)
+  // Profile scales to match collageW — never the other way around
+  let profEl  = null
+  let bannerH = 0
+  if (profileImageSrc) {
+    try {
+      profEl  = await loadImg(profileImageSrc)
+      const scale = collageW / profEl.naturalWidth
+      bannerH = Math.round(profEl.naturalHeight * scale)
+    } catch { profEl = null }
   }
 
   const totalH = bannerH + collageH
@@ -90,28 +81,29 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   const ctx = canvas.getContext('2d', { alpha: false })
 
   ctx.fillStyle = backgroundColor || '#000000'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, collageW, totalH)
 
-  // Draw profile banner at exactly collageW wide, top-aligned
+  // Draw profile stretched exactly to collageW
   if (profEl) {
     const scale = collageW / profEl.naturalWidth
     ctx.drawImage(profEl, 0, 0, collageW, Math.round(profEl.naturalHeight * scale))
   }
 
-  // ── Draw every skin ─────────────────────────────────────────────
+  // Draw every skin — each gets exactly cellSize × cellSize, no overlap, no cut
   await Promise.all(
     images.map((img, i) =>
       loadImg(img.src).then((el) => {
         const col   = i % cols
         const row   = Math.floor(i / cols)
-        const destX = col * finalCellSize
-        const destY = bannerH + row * finalCellSize
+        const destX = col * cellSize
+        const destY = bannerH + row * cellSize
 
+        // Center-crop source to square
         const srcSize = Math.min(el.naturalWidth, el.naturalHeight)
         const srcX    = (el.naturalWidth  - srcSize) / 2
         const srcY    = (el.naturalHeight - srcSize) / 2
 
-        ctx.drawImage(el, srcX, srcY, srcSize, srcSize, destX, destY, finalCellSize, finalCellSize)
+        ctx.drawImage(el, srcX, srcY, srcSize, srcSize, destX, destY, cellSize, cellSize)
       }).catch(() => {})
     )
   )
