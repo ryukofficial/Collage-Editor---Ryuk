@@ -29,18 +29,34 @@ const btnGhost     = { ...btnBase, background: 'none', color: '#c8c8e8' }
 const btnArrangeOn = { ...btnBase, background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid #22c55e' }
 
 function CanvasImage({ img, isSelected, onSelect }) {
-  const [image] = useImage(img.src)
+  const [image] = useImage(img.src, 'anonymous') // ← add 'anonymous' for CORS
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
   const handleClick = useCallback(() => {
     onSelectRef.current(img.id)
   }, [img.id])
   const borderColor = isSelected ? '#6c63ff' : null
+
+  // Build crop props only when crop data exists on the image
+  const cropProps = (img.cropW && img.cropH) ? {
+    crop: {
+      x: img.cropX ?? 0,
+      y: img.cropY ?? 0,
+      width: img.cropW,
+      height: img.cropH,
+    },
+    width: img.cropW,
+    height: img.cropH,
+  } : {
+    width: img.naturalWidth,
+    height: img.naturalHeight,
+  }
+
   return (
     <KonvaImage
       image={image}
       x={img.x} y={img.y}
-      width={img.naturalWidth} height={img.naturalHeight}
+      {...cropProps}
       scaleX={img.scaleX} scaleY={img.scaleY}
       rotation={img.rotation} opacity={img.opacity}
       onClick={handleClick}
