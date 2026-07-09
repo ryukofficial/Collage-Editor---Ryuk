@@ -39,17 +39,79 @@ export function loadImageFiles(files, { onProgress } = {}) {
   })
 }
 
-function loadImg(src) {
+// ── Robust image loader ──────────────────────────────────────────────────────
+// Retries transient failures (dropped connections, CDN throttling, timeouts)
+// instead of giving up on the first error. Each attempt also has its own
+// timeout so a hung request can't stall forever.
+function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {}) {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload  = () => resolve(img)
-    img.onerror = () => reject(new Error('Failed to load: ' + src))
-    img.src = src
+    let attempt = 0
+
+    const attemptLoad = () => {
+      attempt++
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      let settled = false
+
+      const timer = setTimeout(() => {
+        if (settled) return
+        settled = true
+        img.onload = null
+        img.onerror = null
+        img.src = ''
+        onFail(new Error('Timed out loading: ' + src))
+      }, timeoutMs)
+
+      img.onload = () => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        resolve(img)
+      }
+      img.onerror = () => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        onFail(new Error('Failed to load: ' + src))
+      }
+      img.src = src
+    }
+
+    const onFail = (err) => {
+      if (attempt < retries) {
+        setTimeout(attemptLoad, retryDelayMs * attempt) // linear backoff
+      } else {
+        reject(err)
+      }
+    }
+
+    attemptLoad()
   })
 }
 
-export async function exportCollage(images, backgroundColor, profileImageSrc = null) {
+// ── Concurrency-limited map ────────────────────────────────────────────────
+// Firing 100-200+ simultaneous image requests (one giant Promise.all) is what
+// causes intermittent blank cells on export — some requests get throttled or
+// dropped, especially on slower connections. This runs a bounded number of
+// loads at once instead, which is both more reliable and easier on the CDN.
+async function mapWithConcurrency(items, limit, iteratee) {
+  const results = new Array(items.length)
+  let cursor = 0
+
+  async function worker() {
+    while (cursor < items.length) {
+      const idx = cursor++
+      results[idx] = await iteratee(items[idx], idx)
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, worker)
+  await Promise.all(workers)
+  return results
+}
+
+export async function exportCollage(images, backgroundColor, profileImageSrc = null, options = {}) {
+  const { onProgress, onImageError, concurrency = 10 } = options
   if (!images.length) return null
 
   const cols = Math.ceil(Math.sqrt(images.length))
@@ -90,43 +152,61 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
     ctx.drawImage(profEl, 0, 0, collageW, drawH)
   }
 
-  await Promise.all(
-    images.map((img, i) =>
-      loadImg(img.src).then((el) => {
-        const col   = i % cols
-        const row   = Math.floor(i / cols)
-        const destX = col * cellSize
-        const destY = bannerH + row * cellSize
+  let done = 0
+  const failed = []
 
-        let srcX, srcY, srcW, srcH
+  await mapWithConcurrency(images, concurrency, async (img, i) => {
+    try {
+      const el = await loadImg(img.src)
 
-        if (img.cropW && img.cropH) {
-          // Use stored crop from HeroPicker / AutoCollage
-          srcX = img.cropX ?? 0
-          srcY = img.cropY ?? 0
-          srcW = img.cropW
-          srcH = img.cropH
-        } else {
-          // Fallback: center-square crop for manually uploaded images
-          const srcSize = Math.min(el.naturalWidth, el.naturalHeight)
-          srcX = (el.naturalWidth  - srcSize) / 2
-          srcY = (el.naturalHeight - srcSize) / 2
-          srcW = srcSize
-          srcH = srcSize
-        }
+      const col   = i % cols
+      const row   = Math.floor(i / cols)
+      const destX = col * cellSize
+      const destY = bannerH + row * cellSize
 
-        ctx.drawImage(el, srcX, srcY, srcW, srcH, destX, destY, cellSize, cellSize)
-      }).catch(() => {})
-    )
-  )
+      let srcX, srcY, srcW, srcH
 
-  return new Promise((resolve, reject) => {
+      if (img.cropW && img.cropH) {
+        // Use stored crop from HeroPicker / AutoCollage
+        srcX = img.cropX ?? 0
+        srcY = img.cropY ?? 0
+        srcW = img.cropW
+        srcH = img.cropH
+      } else {
+        // Fallback: center-square crop for manually uploaded images
+        const srcSize = Math.min(el.naturalWidth, el.naturalHeight)
+        srcX = (el.naturalWidth  - srcSize) / 2
+        srcY = (el.naturalHeight - srcSize) / 2
+        srcW = srcSize
+        srcH = srcSize
+      }
+
+      ctx.drawImage(el, srcX, srcY, srcW, srcH, destX, destY, cellSize, cellSize)
+    } catch (err) {
+      failed.push({ name: img.name || img.src, src: img.src })
+      onImageError && onImageError(img, err)
+    } finally {
+      done++
+      onProgress && onProgress(done / images.length)
+    }
+  })
+
+  if (failed.length) {
+    console.warn(`exportCollage: ${failed.length} image(s) failed to load after retries:`, failed)
+  }
+
+  const blob = await new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => blob ? resolve(blob) : reject(new Error('Canvas export produced empty blob')),
       'image/png',
       1.0
     )
   })
+
+  // Attach failure info to the blob so callers can surface it without
+  // changing the function's return type (still just a Blob).
+  blob.failedImages = failed
+  return blob
 }
 
 export function downloadBlob(blob, filename) {
