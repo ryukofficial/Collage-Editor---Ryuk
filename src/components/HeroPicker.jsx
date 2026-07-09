@@ -7,18 +7,18 @@ const TIERS = [
 ]
 
 const TIER_STYLES = {
-  Legend:          { bg: '#2a1a00', border: '#f5c842', text: '#f5c842', icon: '👑' },
-  Grand:           { bg: '#1a002a', border: '#a855f7', text: '#c084fc', icon: '💜' },
-  Exquisite:       { bg: '#001a2a', border: '#38bdf8', text: '#7dd3fc', icon: '💎' },
-  Deluxe:          { bg: '#001a10', border: '#34d399', text: '#6ee7b7', icon: '✨' },
-  Exceptional:     { bg: '#1a1500', border: '#facc15', text: '#fde68a', icon: '⭐' },
-  Starlight:       { bg: '#1a1a2a', border: '#818cf8', text: '#c7d2fe', icon: '🌟' },
-  Epic:            { bg: '#1a002a', border: '#e879f9', text: '#f0abfc', icon: '🔮' },
+  Legend:          { bg: '#2a1a00', border: '#f5c842', text: '#f5c842', icon: 'ðŸ‘‘' },
+  Grand:           { bg: '#1a002a', border: '#a855f7', text: '#c084fc', icon: 'ðŸ’œ' },
+  Exquisite:       { bg: '#001a2a', border: '#38bdf8', text: '#7dd3fc', icon: 'ðŸ’Ž' },
+  Deluxe:          { bg: '#001a10', border: '#34d399', text: '#6ee7b7', icon: 'âœ¨' },
+  Exceptional:     { bg: '#1a1500', border: '#facc15', text: '#fde68a', icon: 'â­' },
+  Starlight:       { bg: '#1a1a2a', border: '#818cf8', text: '#c7d2fe', icon: 'ðŸŒŸ' },
+  Epic:            { bg: '#1a002a', border: '#e879f9', text: '#f0abfc', icon: 'ðŸ”®' },
 }
 
-// ── Series map — skin name → series name (case-insensitive via SERIES_MAP below) ─
+// â”€â”€ Series map â€” skin name â†’ series name (case-insensitive via SERIES_MAP below) â”€
 // Special override: "The Beacon" belongs to Nexus Sea but Layla's version
-// is handled as standalone Legend — see heroSeriesOverrides below.
+// is handled as standalone Legend â€” see heroSeriesOverrides below.
 const SERIES_MAP_RAW = {
   // Shadow Covenant
   "Midnight's Allure": "Shadow Covenant", "Phantasmal Revelry": "Shadow Covenant",
@@ -34,7 +34,7 @@ const SERIES_MAP_RAW = {
   "Vessel of Gluttony": "Soul Vessels", "Vessel of Pride": "Soul Vessels",
   "Vessel of Ruin": "Soul Vessels", "Vessel of Deceit": "Soul Vessels",
   "Vessel of Rage": "Soul Vessels",
-  // Nexus Sea — Layla's "The Beacon" is excluded via heroSeriesOverrides
+  // Nexus Sea â€” Layla's "The Beacon" is excluded via heroSeriesOverrides
   "The Annihilator": "Nexus Sea", "The Navigator": "Nexus Sea",
   // P.ACE
   "P.ACE Fanny": "P.ACE", "P.ACE Cici": "P.ACE", "P.ACE Zhuxin": "P.ACE",
@@ -47,16 +47,16 @@ const SERIES_MAP_RAW = {
   "Deadeye Spectre": "The Aspirants", "Cyber Cherubin": "The Aspirants", "Mecha Maiden": "The Aspirants",
   "Blade of Kibou": "The Aspirants", "Miss Hikari": "The Aspirants",
   // NARUTO
-  "Naruto Uzumaki": "MLBB × NARUTO Collab", "Sasuke Uchiha": "MLBB × NARUTO Collab",
-  "Sakura Haruno": "MLBB × NARUTO Collab", "Minato Namikaze": "MLBB × NARUTO Collab",
-  "Itachi Uchiha": "MLBB × NARUTO Collab", "Kakashi Hatake": "MLBB × NARUTO Collab",
-  "Gaara": "MLBB × NARUTO Collab",
+  "Naruto Uzumaki": "MLBB Ã— NARUTO Collab", "Sasuke Uchiha": "MLBB Ã— NARUTO Collab",
+  "Sakura Haruno": "MLBB Ã— NARUTO Collab", "Minato Namikaze": "MLBB Ã— NARUTO Collab",
+  "Itachi Uchiha": "MLBB Ã— NARUTO Collab", "Kakashi Hatake": "MLBB Ã— NARUTO Collab",
+  "Gaara": "MLBB Ã— NARUTO Collab",
   // Neobeasts
   "Neobeast Pharsa": "Neobeasts", "Neobeast Brody": "Neobeasts", "Neobeast Ling": "Neobeasts",
   "Neobeast Fredrinn": "Neobeasts", "Neobeast Lylia": "Neobeasts", "Neo Ling": "Neobeasts",
-  // HUNTER×HUNTER
-  "Gon": "HUNTER×HUNTER Collab", "Hisoka": "HUNTER×HUNTER Collab",
-  "Killua": "HUNTER×HUNTER Collab", "Kurapika": "HUNTER×HUNTER Collab",
+  // HUNTERÃ—HUNTER
+  "Gon": "HUNTERÃ—HUNTER Collab", "Hisoka": "HUNTERÃ—HUNTER Collab",
+  "Killua": "HUNTERÃ—HUNTER Collab", "Kurapika": "HUNTERÃ—HUNTER Collab",
   // Kishin Densetsu
   "Strings of Fate": "Kishin Densetsu", "Breath of Naraka": "Kishin Densetsu",
   "Guardian of the Shrine": "Kishin Densetsu",
@@ -102,19 +102,19 @@ const SERIES_MAP_RAW = {
   // Heavenly Artifact
   "Empyrean Paladin": "Heavenly Artifact", "Elysium Guardian": "Heavenly Artifact",
   // Transformers
-  "Soundwave & Ravage": "MLBB × Transformers Collab", "Starscream": "MLBB × Transformers Collab",
-  "Grimlock": "MLBB × Transformers Collab", "Optimus Prime": "MLBB × Transformers Collab",
-  "Megatron": "MLBB × Transformers Collab", "Bumblebee": "MLBB × Transformers Collab",
+  "Soundwave & Ravage": "MLBB Ã— Transformers Collab", "Starscream": "MLBB Ã— Transformers Collab",
+  "Grimlock": "MLBB Ã— Transformers Collab", "Optimus Prime": "MLBB Ã— Transformers Collab",
+  "Megatron": "MLBB Ã— Transformers Collab", "Bumblebee": "MLBB Ã— Transformers Collab",
   // 515 eParty
   "M-World Yin": "515 eParty", "M-World Ling": "515 eParty", "M-World Wanwan": "515 eParty",
   "S.T.U.N. Chou": "515 eParty", "S.T.U.N. Selena": "515 eParty", "S.T.U.N. Brody": "515 eParty",
   "Fashion Expert": "515 eParty", "Storm Rider": "515 eParty",
   // Sanrio
-  "Heartstring": "MLBB × Sanrio Collab", "Fluffy Dream": "MLBB × Sanrio Collab",
-  "Bad Bro": "MLBB × Sanrio Collab", "Moon Artist": "MLBB × Sanrio Collab",
+  "Heartstring": "MLBB Ã— Sanrio Collab", "Fluffy Dream": "MLBB Ã— Sanrio Collab",
+  "Bad Bro": "MLBB Ã— Sanrio Collab", "Moon Artist": "MLBB Ã— Sanrio Collab",
   // Star Wars
-  "Obi-Wan Kenobi": "MLBB × Star Wars Collab", "Master Yoda": "MLBB × Star Wars Collab",
-  "First Order Jet Trooper": "MLBB × Star Wars Collab", "Darth Vader": "MLBB × Star Wars Collab",
+  "Obi-Wan Kenobi": "MLBB Ã— Star Wars Collab", "Master Yoda": "MLBB Ã— Star Wars Collab",
+  "First Order Jet Trooper": "MLBB Ã— Star Wars Collab", "Darth Vader": "MLBB Ã— Star Wars Collab",
   // Blazing Bounties
   "Blazing Gun": "Blazing Bounties", "Blazing Force": "Blazing Bounties", "Blazing Trace": "Blazing Bounties",
   "Blazing Axe": "Blazing Bounties", "Blazing Shadow": "Blazing Bounties",
@@ -263,7 +263,7 @@ const SERIES_MAP_RAW = {
   "Jester": "Halloween",
   // Neymar
   "Neymar Jr": "Neymar Collab", "Halo Striker": "Neymar Collab",
-  // Nexus Sea — Layla's "The Beacon" is excluded via HERO_SERIES_EXCLUDE, kept as standalone Legend
+  // Nexus Sea â€” Layla's "The Beacon" is excluded via HERO_SERIES_EXCLUDE, kept as standalone Legend
   "The Beacon": "Nexus Sea",
   // Annual Starlight extra
   "Water Lily": "Annual Starlight", "Experiment 21": "Annual Starlight",
@@ -286,15 +286,15 @@ const SERIES_MAP_RAW = {
   "Keyforged Champion": "MCGG",
 }
 
-// Normalized lookup map — all keys lowercased so matching is case-insensitive
+// Normalized lookup map â€” all keys lowercased so matching is case-insensitive
 const SERIES_MAP = Object.fromEntries(
   Object.entries(SERIES_MAP_RAW).map(([k, v]) => [k.toLowerCase(), v])
 )
 
-// ── Per-hero series overrides — heroId__skinName → null (no series) ───────────
+// â”€â”€ Per-hero series overrides â€” heroId__skinName â†’ null (no series) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Used to exclude specific hero+skin combos from their series
 // e.g. Layla's "The Beacon" is a Legend skin, not Nexus Sea
-// Layla's "The Beacon" is a Legend skin — exclude it from Nexus Sea series grouping
+// Layla's "The Beacon" is a Legend skin â€” exclude it from Nexus Sea series grouping
 // so it appears standalone under Legend tier instead
 const HERO_SERIES_EXCLUDE = new Set([
   'layla__The Beacon',
@@ -415,8 +415,8 @@ function ModeSelect({ onSelectMode }) {
     <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <p style={{ color: '#888', fontSize: '12px', textAlign: 'center', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Choose selection mode</p>
       {[
-        { mode: 'hero', icon: '🦸', title: 'Hero', desc: 'Browse skins by hero', color: '#6c63ff' },
-        { mode: 'collection', icon: '💎', title: 'Collection', desc: 'Browse by tier — Legend, Grand, Exquisite and more', color: '#a855f7' },
+        { mode: 'hero', icon: 'ðŸ¦¸', title: 'Hero', desc: 'Browse skins by hero', color: '#6c63ff' },
+        { mode: 'collection', icon: 'ðŸ’Ž', title: 'Collection', desc: 'Browse by tier â€” Legend, Grand, Exquisite and more', color: '#a855f7' },
       ].map(({ mode, icon, title, desc, color }) => (
         <button key={mode} onClick={() => onSelectMode(mode)}
           style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#1a1a2e', border: '1px solid #252535', borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s' }}
@@ -427,7 +427,7 @@ function ModeSelect({ onSelectMode }) {
             <p style={{ color: '#fff', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>{title}</p>
             <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{desc}</p>
           </div>
-          <span style={{ marginLeft: 'auto', color, fontSize: '18px' }}>›</span>
+          <span style={{ marginLeft: 'auto', color, fontSize: '18px' }}>â€º</span>
         </button>
       ))}
     </div>
@@ -514,7 +514,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
     return counts
   }, [assignments, seriesTiers])
 
-  const TIER_STYLES_DEFAULT = { bg: '#1a1a1a', border: '#555', text: '#aaa', icon: '🎮' }
+  const TIER_STYLES_DEFAULT = { bg: '#1a1a1a', border: '#555', text: '#aaa', icon: 'ðŸŽ®' }
   const ts = TIER_STYLES[activeTier] || TIER_STYLES_DEFAULT
 
   return (
@@ -535,7 +535,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
 
       {/* Search */}
       <div style={{ padding:'10px 12px', flexShrink:0 }}>
-        <input ref={searchRef} type="text" placeholder={`🔍 Search in ${activeTier}...`} value={search}
+        <input ref={searchRef} type="text" placeholder={`ðŸ” Search in ${activeTier}...`} value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ width:'100%', background:'#0e1120', border:'1px solid #2a2400', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
       </div>
@@ -544,7 +544,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
       <div style={{ flex:1, overflowY:'auto', padding:'0 10px 12px' }}>
         {filtered.length===0 ? (
           <div style={{ textAlign:'center', padding:'40px 20px' }}>
-            <p style={{ fontSize:'32px', marginBottom:'12px' }}>{tierCounts[activeTier]?'🔍':'📭'}</p>
+            <p style={{ fontSize:'32px', marginBottom:'12px' }}>{tierCounts[activeTier]?'ðŸ”':'ðŸ“­'}</p>
             <p style={{ color:'#b89a5a', fontSize:'14px', fontWeight:600, marginBottom:'6px' }}>
               {search?'No results found':`No ${activeTier} skins yet`}
             </p>
@@ -559,7 +559,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
               <button onClick={() => setCollapsed(p => ({ ...p, [series]: !p[series] }))}
                 style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:isOther?'#0e1120':ts.bg, border:`1px solid ${isOther?'#2a2400':ts.border+'66'}`, borderRadius:'10px', padding:'8px 12px', marginBottom:isCollapsed?0:'8px', cursor:'pointer' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                  <span style={{ fontSize:'14px' }}>{isOther?'🎮':ts.icon}</span>
+                  <span style={{ fontSize:'14px' }}>{isOther?'ðŸŽ®':ts.icon}</span>
                   <span style={{ color:isOther?'#8a7a4a':ts.text, fontSize:'12px', fontWeight:700 }}>
                     {isOther?'Other':`${series} Series`}
                   </span>
@@ -567,7 +567,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
                     {skins.length}
                   </span>
                 </div>
-                <span style={{ color:isOther?'#555':ts.text, fontSize:'14px', transform:isCollapsed?'rotate(-90deg)':'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
+                <span style={{ color:isOther?'#555':ts.text, fontSize:'14px', transform:isCollapsed?'rotate(-90deg)':'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>â–¾</span>
               </button>
 
               {!isCollapsed && (
@@ -583,11 +583,12 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
                         style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?ts.border:hasImg?'#2a2400':'#1a1400'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#0e1120', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
                         <div style={{ position:'relative', width:'100%' }}>
                           <img src={hasImg?url:PLACEHOLDER} alt={skin.name}
+                            crossOrigin="anonymous"
                             style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#0e1120' }}
                             onError={e => { e.target.src=PLACEHOLDER }} />
                           {isSel && (
                             <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:ts.border, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                              <span style={{ color:'#000', fontSize:'9px', fontWeight:800 }}>✓</span>
+                              <span style={{ color:'#000', fontSize:'9px', fontWeight:800 }}>âœ“</span>
                             </div>
                           )}
                           {showBadge && (
@@ -745,8 +746,7 @@ export default function HeroPicker({ open, onClose }) {
         fileSize: 0,
       }
     })
-
-  addImages(newImages)
+    addImages(newImages)
   setIsAdding(false)
   setIsOpen(false)
   setSelectedHero(null)
@@ -777,17 +777,17 @@ export default function HeroPicker({ open, onClose }) {
             {/* Header */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px 10px', borderBottom:'1px solid #1e1800', flexShrink:0 }}>
               <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                {(mode||selectedHero) && <button onClick={handleBack} style={{ background:'none', border:'none', color:'#f5c842', fontSize:'20px', cursor:'pointer', padding:'0 4px', lineHeight:1 }}>‹</button>}
+                {(mode||selectedHero) && <button onClick={handleBack} style={{ background:'none', border:'none', color:'#f5c842', fontSize:'20px', cursor:'pointer', padding:'0 4px', lineHeight:1 }}>â€¹</button>}
                 <span style={{ color:'#fff', fontSize:'16px', fontWeight:700 }}>{headerTitle()}</span>
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                 {selectedSkins.length>0 && (
                   <button onClick={handleAddToCanvas} disabled={isAdding}
                     style={{ background:'linear-gradient(135deg, #f5c842, #f59e0b)', border:'none', borderRadius:'8px', padding:'7px 14px', color:'#0a0d14', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity:isAdding?0.6:1 }}>
-                    {isAdding?'Adding…':`Add ${selectedSkins.length}`}
+                    {isAdding?'Addingâ€¦':`Add ${selectedSkins.length}`}
                   </button>
                 )}
-                <button onClick={handleClose} style={{ background:'none', border:'none', color:'#666', fontSize:'20px', cursor:'pointer', lineHeight:1, padding:'2px 4px' }}>✕</button>
+                <button onClick={handleClose} style={{ background:'none', border:'none', color:'#666', fontSize:'20px', cursor:'pointer', lineHeight:1, padding:'2px 4px' }}>âœ•</button>
               </div>
             </div>
 
@@ -803,7 +803,7 @@ export default function HeroPicker({ open, onClose }) {
               {mode==='hero' && !selectedHero && (
                 <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
                   <div style={{ padding:'10px 12px', flexShrink:0 }}>
-                    <input ref={heroSearchRef} type="text" placeholder="🔍 Search hero..." value={search} onChange={e => setSearch(e.target.value)}
+                    <input ref={heroSearchRef} type="text" placeholder="ðŸ” Search hero..." value={search} onChange={e => setSearch(e.target.value)}
                       style={{ width:'100%', background:'#0e1120', border:'1px solid #2a2400', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
                   </div>
                   <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
@@ -813,7 +813,7 @@ export default function HeroPicker({ open, onClose }) {
                           style={{ background:'#0e1120', border:'1px solid #2a2400', borderRadius:'12px', overflow:'hidden', cursor:'pointer', padding:0, textAlign:'left', transition:'border-color 0.15s' }}
                           onMouseEnter={e => e.currentTarget.style.borderColor='#f5c842'}
                           onMouseLeave={e => e.currentTarget.style.borderColor='#2a2400'}>
-                          <img src={getHeroImage(hero)} alt={hero.name} style={{ width:'100%', height:'80px', objectFit:'cover', display:'block' }} onError={e => { e.target.src=HERO_PLACEHOLDER }} />
+                          <img src={getHeroImage(hero)} alt={hero.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block' }} onError={e => { e.target.src=HERO_PLACEHOLDER }} />
                           <div style={{ padding:'6px 8px' }}>
                             <p style={{ color:'#fff', fontSize:'11px', fontWeight:600, margin:'0 0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{hero.name}</p>
                             <p style={{ color:'#666', fontSize:'10px', margin:0 }}>{hero.skins.length} skins</p>
@@ -828,7 +828,7 @@ export default function HeroPicker({ open, onClose }) {
               {mode==='hero' && selectedHero && (
                 <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
                   <div style={{ padding:'10px 12px', flexShrink:0 }}>
-                    <input type="text" placeholder="🔍 Search skin..." value={search} onChange={e => setSearch(e.target.value)}
+                    <input type="text" placeholder="ðŸ” Search skin..." value={search} onChange={e => setSearch(e.target.value)}
                       style={{ width:'100%', background:'#0e1120', border:'1px solid #2a2400', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
                   </div>
                   <div style={{ flex:1, overflowY:'auto', padding:'0 10px 12px' }}>
@@ -840,10 +840,10 @@ export default function HeroPicker({ open, onClose }) {
                           <button key={i} onClick={() => toggleSkin(skin, url)}
                             style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?'#f5c842':hasImg?'#2a2400':'#1a1400'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#0e1120', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
                             <div style={{ position:'relative', width:'100%' }}>
-                              <img src={hasImg?url:PLACEHOLDER} alt={skin.name} style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#0e1120' }} onError={e => { e.target.src=PLACEHOLDER }} />
+                              <img src={hasImg?url:PLACEHOLDER} alt={skin.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#0e1120' }} onError={e => { e.target.src=PLACEHOLDER }} />
                               {isSel && (
                                 <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:'#f5c842', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                  <span style={{ color:'#0a0d14', fontSize:'9px', fontWeight:800 }}>✓</span>
+                                  <span style={{ color:'#0a0d14', fontSize:'9px', fontWeight:800 }}>âœ“</span>
                                 </div>
                               )}
                               {!hasImg && <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ color:'#555', fontSize:'9px' }}>No Image</span></div>}
