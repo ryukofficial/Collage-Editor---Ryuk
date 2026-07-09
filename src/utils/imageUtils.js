@@ -39,11 +39,18 @@ export function loadImageFiles(files, { onProgress } = {}) {
   })
 }
 
-// ── Robust image loader ──────────────────────────────────────────────────────
+// â”€â”€ Robust image loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Retries transient failures (dropped connections, CDN throttling, timeouts)
 // instead of giving up on the first error. Each attempt also has its own
 // timeout so a hung request can't stall forever.
-function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {}) {
+//
+// IMPORTANT: When the same image URL was previously loaded elsewhere in the
+// page WITHOUT crossOrigin (e.g. in <img> thumbnails), the browser may have
+// cached a non-CORS response. Re-fetching with crossOrigin='anonymous' then
+// returns that poisoned cache entry and fails the CORS check â€” resulting in
+// blank/black cells in the exported canvas. On every retry we append a
+// cache-busting query param to force a fresh CORS-enabled fetch.
+function loadImg(src, { retries = 4, retryDelayMs = 500, timeoutMs = 20000 } = {}) {
   return new Promise((resolve, reject) => {
     let attempt = 0
 
@@ -52,6 +59,13 @@ function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {
       const img = new Image()
       img.crossOrigin = 'anonymous'
       let settled = false
+
+      // First attempt uses the original URL (fast â€” hits cache if CORS is OK).
+      // Subsequent attempts append a unique query param to bypass any
+      // poisoned/non-CORS cache entry.
+      const finalSrc = attempt === 1
+        ? src
+        : src + (src.includes('?') ? '&' : '?') + '_cb=' + Date.now() + '_' + attempt
 
       const timer = setTimeout(() => {
         if (settled) return
@@ -62,10 +76,16 @@ function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {
         onFail(new Error('Timed out loading: ' + src))
       }, timeoutMs)
 
-      img.onload = () => {
+      img.onload = async () => {
         if (settled) return
         settled = true
         clearTimeout(timer)
+        // Ensure the image is fully decoded before we hand it back to the
+        // caller. Without this, drawImage() on some browsers/tiles can draw
+        // an empty frame if the decoder hasn't finished yet.
+        try {
+          if (typeof img.decode === 'function') await img.decode()
+        } catch { /* decode failure is non-fatal; drawImage will still work */ }
         resolve(img)
       }
       img.onerror = () => {
@@ -74,7 +94,7 @@ function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {
         clearTimeout(timer)
         onFail(new Error('Failed to load: ' + src))
       }
-      img.src = src
+      img.src = finalSrc
     }
 
     const onFail = (err) => {
@@ -89,9 +109,9 @@ function loadImg(src, { retries = 3, retryDelayMs = 700, timeoutMs = 20000 } = {
   })
 }
 
-// ── Concurrency-limited map ────────────────────────────────────────────────
+// â”€â”€ Concurrency-limited map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Firing 100-200+ simultaneous image requests (one giant Promise.all) is what
-// causes intermittent blank cells on export — some requests get throttled or
+// causes intermittent blank cells on export â€” some requests get throttled or
 // dropped, especially on slower connections. This runs a bounded number of
 // loads at once instead, which is both more reliable and easier on the CDN.
 async function mapWithConcurrency(items, limit, iteratee) {
@@ -111,7 +131,7 @@ async function mapWithConcurrency(items, limit, iteratee) {
 }
 
 export async function exportCollage(images, backgroundColor, profileImageSrc = null, options = {}) {
-  const { onProgress, onImageError, concurrency = 10 } = options
+  const { onProgress, onImageError, concurrency = 6 } = options
   if (!images.length) return null
 
   const cols = Math.ceil(Math.sqrt(images.length))
