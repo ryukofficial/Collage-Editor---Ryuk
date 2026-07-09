@@ -5,15 +5,14 @@ import useStore from '../store/useStore'
 const TIERS = [
   'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional','Starlight', 'Epic', 
 ]
-
 const TIER_STYLES = {
-  Legend:          { bg: '#2a1a00', border: '#f5c842', text: '#f5c842', icon: 'ðŸ‘‘' },
-  Grand:           { bg: '#1a002a', border: '#a855f7', text: '#c084fc', icon: 'ðŸ’œ' },
-  Exquisite:       { bg: '#001a2a', border: '#38bdf8', text: '#7dd3fc', icon: 'ðŸ’Ž' },
-  Deluxe:          { bg: '#001a10', border: '#34d399', text: '#6ee7b7', icon: 'âœ¨' },
-  Exceptional:     { bg: '#1a1500', border: '#facc15', text: '#fde68a', icon: 'â­' },
-  Starlight:       { bg: '#1a1a2a', border: '#818cf8', text: '#c7d2fe', icon: 'ðŸŒŸ' },
-  Epic:            { bg: '#1a002a', border: '#e879f9', text: '#f0abfc', icon: 'ðŸ”®' },
+  Legend:          { bg: '#2a1a00', border: '#f5c842', text: '#f5c842', icon: '👑' },
+  Grand:           { bg: '#1a002a', border: '#a855f7', text: '#c084fc', icon: '💜' },
+  Exquisite:       { bg: '#001a2a', border: '#38bdf8', text: '#7dd3fc', icon: '💎' },
+  Deluxe:          { bg: '#001a10', border: '#34d399', text: '#6ee7b7', icon: '✨' },
+  Exceptional:     { bg: '#1a1500', border: '#facc15', text: '#fde68a', icon: '⭐' },
+  Starlight:       { bg: '#1a1a2a', border: '#818cf8', text: '#c7d2fe', icon: '🌟' },
+  Epic:            { bg: '#1a002a', border: '#e879f9', text: '#f0abfc', icon: '🔮' },
 }
 
 // â”€â”€ Series map â€” skin name â†’ series name (case-insensitive via SERIES_MAP below) â”€
