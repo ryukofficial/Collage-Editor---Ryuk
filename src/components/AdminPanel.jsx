@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import skinsData from '../../skins.json'
+import { adminSaveTiers } from '../utils/wallet'
 
 const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
 
@@ -108,56 +109,20 @@ export default function AdminPanel({ onClose }) {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  // Saves the tiers into skins.json on GitHub. The GitHub token lives only on the
+  // server (/api/admin-save-tiers), which also checks that you are an admin.
   const handlePublish = async () => {
     setPublishing(true)
     setPublishStatus(null)
     try {
-      const token = import.meta.env.VITE_GITHUB_TOKEN
-      const repo = import.meta.env.VITE_GITHUB_REPO
-      const filePath = import.meta.env.VITE_GITHUB_FILE_PATH
-
-      const updated = skinsData.map(hero => ({
-        ...hero,
-        skins: hero.skins.map(skin => ({
-          ...skin,
-          tier: assignments[`${hero.id}__${skin.name}`] || '',
-        }))
-      }))
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
-
-      // Get current file SHA
-      const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-        }
-      })
-      const getData = await getRes.json()
-      if (!getData.sha) throw new Error('Could not get SHA')
-      const sha = getData.sha
-
-      // Commit updated file
-      const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: 'Update skin tiers from admin panel',
-          content,
-          sha,
-        })
-      })
-
-      await putRes.text() // consume response silently, prevents browser download
-      if (putRes.ok) {
-        setPublishStatus('success')
-      } else {
-        setPublishStatus('error')
+      const tiers = {}
+      for (const hero of skinsData) for (const skin of hero.skins) {
+        tiers[`${hero.id}__${skin.name}`] = assignments[`${hero.id}__${skin.name}`] || ''
       }
+      await adminSaveTiers(tiers)
+      setPublishStatus('success')
     } catch (e) {
+      console.error('[admin] publish failed', e?.message)
       setPublishStatus('error')
     }
     setPublishing(false)

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { X, Copy, Check, LogOut, RefreshCw } from 'lucide-react'
+import { X, LogOut, RefreshCw, Copy, Check } from 'lucide-react'
+import QRCode from 'qrcode'
 import {
-  useWallet, walletEnabled, signUp, logIn, logOut, refreshWallet, requestTopup, walletHistory,
-  upiLink, UPI_ID, UPI_NAME, AUTO_COLLAGE_PRICE, walletError, cleanPhone,
-  adminPendingTopups, adminDecideTopup, adminAdjustBalance,
+  useWallet, walletEnabled, signUp, logIn, logOut, refreshWallet, walletHistory,
+  AUTO_COLLAGE_PRICE, walletError, cleanPhone, UPI_ID, UPI_NAME, upiLink, whatsappLink,
+  adminAdjustBalance, adminFindWallet, adminRecentAdjustments,
 } from '../utils/wallet'
 
 // ── Look (same palette as the rest of the app) ───────────────────────────────
@@ -25,7 +26,8 @@ const btnPrimary = { ...btn, background: C.accent, border: `1px solid ${C.accent
 const label = { display: 'block', margin: '0 0 6px', color: C.text2, fontSize: '12px', fontWeight: 600 }
 const section = { background: C.surface, border: `1px solid ${C.divider}`, borderRadius: '12px', padding: '14px', marginBottom: '12px' }
 const errorText = { margin: '8px 0 0', color: C.red, fontSize: '13px', lineHeight: 1.45 }
-const okText = { margin: '8px 0 0', color: C.green, fontSize: '13px', lineHeight: 1.45 }
+// short code that proves which account a WhatsApp message came from
+const walletCode = user => String(user?.id || '').replace(/-/g, '').slice(0, 6).toUpperCase()
 const rupees = n => `₹${Number(n || 0).toLocaleString('en-IN')}`
 const when = t => new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
 
@@ -96,196 +98,184 @@ function AuthForm({ reason }) {
   )
 }
 
-// ── Add money (manual UPI) ───────────────────────────────────────────────────
-function AddMoney({ onSent }) {
-  const [amount, setAmount] = useState(50)
+// ── Add money: pay by UPI, then message the admin on WhatsApp ────────────────
+function AddMoney({ phone, code }) {
+  const [amount, setAmount] = useState('')
   const [utr, setUtr] = useState('')
+  const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  const [done, setDone] = useState('')
+  const n = Number(amount) || 0
+
+  // the QR holds only your UPI ID (+ amount if typed); it is made on the phone
+  useEffect(() => {
+    if (!UPI_ID) return
+    let alive = true
+    QRCode.toDataURL(upiLink(n), { margin: 1, width: 440, errorCorrectionLevel: 'M' })
+      .then(url => { if (alive) setQr(url) })
+      .catch(() => { if (alive) setQr('') })
+    return () => { alive = false }
+  }, [n])
 
   const copyId = async () => {
     try { await navigator.clipboard.writeText(UPI_ID); setCopied(true); setTimeout(() => setCopied(false), 1500) }
-    catch { /* clipboard blocked: the ID is shown on screen anyway */ }
-  }
-
-  const submit = async e => {
-    e.preventDefault()
-    setError(''); setDone('')
-    setBusy(true)
-    try {
-      await requestTopup(amount, utr)
-      setDone(`Sent! ${rupees(amount)} will be added once the payment is checked.`)
-      setUtr('')
-      onSent()
-    } catch (err) {
-      setError(walletError(err))
-    } finally {
-      setBusy(false)
-    }
+    catch { /* clipboard blocked: the ID is on screen anyway */ }
   }
 
   if (!UPI_ID) {
-    return (
-      <div style={section}>
-        <p style={{ margin: 0, color: C.text2, fontSize: '13px' }}>Adding money isn’t available yet. (Admin: set VITE_UPI_ID in Vercel.)</p>
-      </div>
-    )
+    return <div style={section}><p style={{ margin: 0, color: C.text2, fontSize: '13px' }}>Adding money isn’t set up yet. (Admin: set VITE_UPI_ID in Vercel.)</p></div>
   }
 
+  const message = [
+    'Hi! I added money to my Ryuk Creates wallet.',
+    `Wallet phone: ${phone}`,
+    `Wallet code: ${code}`,
+    `Amount: ${n > 0 ? rupees(n) : '(amount)'}`,
+    `UPI reference (UTR): ${utr.trim() || '(attached screenshot)'}`,
+  ].join('\n')
+
   return (
-    <form onSubmit={submit} style={section}>
-      <p style={{ margin: '0 0 10px', color: C.text, fontSize: '14px', fontWeight: 700 }}>Add money</p>
+    <div style={section}>
+      <p style={{ margin: '0 0 12px', color: C.text, fontSize: '14px', fontWeight: 700 }}>Add money</p>
 
-      <label style={label}>1. Choose an amount</label>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
-        {[20, 50, 100, 200, 500].map(a => (
-          <button key={a} type="button" onClick={() => setAmount(a)}
-            style={{ ...btn, height: '36px', padding: '0 12px', fontSize: '13px', background: amount === a ? C.accent : C.raised, borderColor: amount === a ? C.accent : C.border, color: amount === a ? '#fff' : C.text }}>
-            {rupees(a)}
-          </button>
-        ))}
+      <label style={label}>1. Pay any amount to this UPI</label>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 10px' }}>
+        {qr
+          ? <img src={qr} alt={`UPI QR code for ${UPI_ID}`} style={{ width: '200px', height: '200px', borderRadius: '10px', background: '#fff', padding: '6px' }} />
+          : <div style={{ width: '200px', height: '200px', borderRadius: '10px', background: C.raised }} />}
       </div>
-      <input style={{ ...input, marginBottom: '6px' }} inputMode="numeric" aria-label="Amount in rupees"
-        value={amount} onChange={e => setAmount(Number(e.target.value.replace(/\D/g, '')) || '')} />
-      <p style={{ margin: '0 0 14px', color: C.text3, fontSize: '12px' }}>
-        {amount >= AUTO_COLLAGE_PRICE ? `= ${Math.floor(amount / AUTO_COLLAGE_PRICE)} Auto Collage${Math.floor(amount / AUTO_COLLAGE_PRICE) === 1 ? '' : 's'} (₹${AUTO_COLLAGE_PRICE} each)` : `Minimum ₹10`}
-      </p>
-
-      <label style={label}>2. Pay with any UPI app</label>
-      <a href={upiLink(amount || 0)} style={{ ...btnPrimary, width: '100%', boxSizing: 'border-box', textDecoration: 'none', marginBottom: '8px' }}>
-        Pay {rupees(amount)} with UPI app
-      </a>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: C.raised, border: `1px solid ${C.border}`, borderRadius: '8px', padding: '8px 10px', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: C.raised, border: `1px solid ${C.border}`, borderRadius: '8px', padding: '8px 10px', marginBottom: '8px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, color: C.text3, fontSize: '11px' }}>or pay manually to {UPI_NAME}</p>
+          <p style={{ margin: 0, color: C.text3, fontSize: '11px' }}>{UPI_NAME}</p>
           <p style={{ margin: '2px 0 0', color: C.text, fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{UPI_ID}</p>
         </div>
         <button type="button" onClick={copyId} style={{ ...btn, height: '32px', padding: '0 10px', fontSize: '12px' }}>
           {copied ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
         </button>
       </div>
-
-      <label style={label} htmlFor="w-utr">3. Enter the UPI reference number (UTR) from your payment app</label>
-      <input id="w-utr" style={input} placeholder="e.g. 412345678901" autoCapitalize="characters"
-        value={utr} onChange={e => setUtr(e.target.value)} />
-      <p style={{ margin: '6px 0 0', color: C.text3, fontSize: '12px', lineHeight: 1.5 }}>
-        Find it in your UPI app’s payment details (12 digits, sometimes called “UPI Ref No” or “UTR”).
+      <input style={{ ...input, marginBottom: '8px' }} inputMode="numeric" placeholder="Amount (optional), e.g. 100" aria-label="Amount in rupees"
+        value={amount} onChange={e => setAmount(e.target.value.replace(/\D/g, '').slice(0, 5))} />
+      <a href={upiLink(n)} style={{ ...btnPrimary, width: '100%', boxSizing: 'border-box', textDecoration: 'none' }}>
+        {n > 0 ? `Pay ${rupees(n)} with a UPI app` : 'Open a UPI app to pay'}
+      </a>
+      <p style={{ margin: '6px 0 14px', color: C.text3, fontSize: '12px' }}>
+        ₹{AUTO_COLLAGE_PRICE} = 1 Auto Collage scan.
       </p>
 
-      {error && <p style={errorText}>{error}</p>}
-      {done && <p style={okText}>{done}</p>}
-      <button type="submit" disabled={busy || !utr.trim() || !amount} style={{ ...btnPrimary, width: '100%', marginTop: '12px', opacity: busy || !utr.trim() || !amount ? 0.5 : 1 }}>
-        {busy ? 'Sending…' : "I've paid — send for approval"}
-      </button>
-    </form>
+      <label style={label} htmlFor="w-utr">2. UPI reference number (optional, helps us find your payment)</label>
+      <input id="w-utr" style={{ ...input, marginBottom: '10px' }} placeholder="e.g. 412345678901" value={utr} onChange={e => setUtr(e.target.value.replace(/[^\w]/g, '').slice(0, 30))} />
+
+      <label style={label}>3. Tell us on WhatsApp</label>
+      <a href={whatsappLink(message)} target="_blank" rel="noopener noreferrer"
+        style={{ ...btn, width: '100%', boxSizing: 'border-box', textDecoration: 'none', background: '#16a34a', borderColor: '#16a34a', color: '#fff' }}>
+        I’ve paid — message on WhatsApp
+      </a>
+      <p style={{ margin: '8px 0 0', color: C.text3, fontSize: '11px', lineHeight: 1.5 }}>
+        Send the payment screenshot in the chat too. The money is added to your wallet by hand after we check the payment.
+      </p>
+    </div>
   )
 }
 
 // ── Activity list ────────────────────────────────────────────────────────────
+const TITLES = { topup: 'Money added', charge: 'Auto Collage scan', refund: 'Refund · nothing found' }
 function History({ data }) {
   if (!data) return <p style={{ color: C.text3, fontSize: '13px', margin: '4px 0 12px' }}>Loading…</p>
-  const rows = [
-    ...data.requests.map(r => ({
-      key: `r${r.id}`, t: r.created_at, amount: r.amount,
-      title: r.status === 'pending' ? 'Top-up waiting for approval' : 'Top-up rejected',
-      sub: `UPI ${r.utr}`, color: r.status === 'pending' ? C.amber : C.red, sign: '',
-    })),
-    ...data.transactions.map(x => ({
-      key: `t${x.id}`, t: x.created_at, amount: Math.abs(x.amount),
-      title: x.kind === 'charge' ? 'Auto Collage' : x.kind === 'topup' ? 'Money added' : (x.note || 'Adjusted by admin'),
-      sub: x.kind === 'topup' ? x.note : '', color: x.amount < 0 ? C.text2 : C.green, sign: x.amount < 0 ? '−' : '+',
-    })),
-  ].sort((a, b) => new Date(b.t) - new Date(a.t))
-
-  if (!rows.length) return <p style={{ color: C.text3, fontSize: '13px', margin: '4px 0 12px' }}>No activity yet.</p>
+  if (!data.length) return <p style={{ color: C.text3, fontSize: '13px', margin: '4px 0 12px' }}>No activity yet.</p>
   return (
     <div style={{ ...section, padding: '4px 14px' }}>
-      {rows.map((r, i) => (
-        <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderTop: i ? `1px solid ${C.divider}` : 'none' }}>
+      {data.map((x, i) => (
+        <div key={x.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderTop: i ? `1px solid ${C.divider}` : 'none' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 600 }}>{r.title}</p>
-            <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {when(r.t)}{r.sub ? ` · ${r.sub}` : ''}
-            </p>
+            <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 600 }}>{TITLES[x.kind] || x.note || 'Changed by admin'}</p>
+            <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '11px' }}>{when(x.created_at)}</p>
           </div>
-          <span style={{ color: r.color, fontSize: '14px', fontWeight: 700, flexShrink: 0 }}>{r.sign}{rupees(r.amount)}</span>
+          <span style={{ color: x.amount < 0 ? C.text2 : C.green, fontSize: '14px', fontWeight: 700, flexShrink: 0 }}>
+            {x.amount < 0 ? '−' : '+'}{rupees(Math.abs(x.amount))}
+          </span>
         </div>
       ))}
     </div>
   )
 }
 
-// ── Admin: approve top-ups, adjust balances ──────────────────────────────────
+// ── Admin: add money for customers, recent payments ──────────────────────────
 function AdminSection() {
-  const [pending, setPending] = useState(null)
-  const [error, setError] = useState('')
-  const [busyId, setBusyId] = useState(null)
-  const [adjPhone, setAdjPhone] = useState('')
-  const [adjAmount, setAdjAmount] = useState('')
-  const [adjMsg, setAdjMsg] = useState('')
+  const [phone, setPhone] = useState('')
+  const [amount, setAmount] = useState('')
+  const [found, setFound] = useState(null)
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [payments, setPayments] = useState(null)
 
-  const load = useCallback(async () => {
-    setError('')
-    try { setPending(await adminPendingTopups()) } catch (err) { setError(walletError(err)) }
+  const loadPayments = useCallback(async () => {
+    try { setPayments(await adminRecentAdjustments()) } catch (err) { setPayments([]); setMsg(walletError(err)) }
   }, [])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { loadPayments() }, [loadPayments])
 
-  const decide = async (id, approve) => {
-    setBusyId(id); setError('')
-    try { await adminDecideTopup(id, approve); await load() }
-    catch (err) { setError(walletError(err)) }
-    finally { setBusyId(null) }
+  const look = async () => {
+    setMsg(''); setFound(null)
+    try {
+      const w = await adminFindWallet(phone)
+      if (!w) setMsg('No account with that phone number.')
+      setFound(w)
+    } catch (err) { setMsg(walletError(err)) }
   }
 
-  const adjust = async e => {
+  const apply = async e => {
     e.preventDefault()
-    setAdjMsg('')
+    const n = Number(amount)
+    if (!Number.isInteger(n) || n === 0) { setMsg('Enter a whole amount, e.g. 50 to add or -20 to remove.'); return }
+    if (!window.confirm(`${n > 0 ? 'Add' : 'Remove'} ₹${Math.abs(n)} ${n > 0 ? 'to' : 'from'} ${cleanPhone(phone)}?`)) return
+    setBusy(true); setMsg('')
     try {
-      const bal = await adminAdjustBalance(adjPhone, adjAmount, 'Adjusted by admin')
-      setAdjMsg(`Done. ${cleanPhone(adjPhone)} now has ${rupees(bal)}.`)
-      setAdjAmount('')
-    } catch (err) { setAdjMsg(walletError(err)) }
+      const bal = await adminAdjustBalance(phone, n, n > 0 ? 'Added by admin' : 'Removed by admin')
+      setMsg(`Done. ${cleanPhone(phone)} now has ${rupees(bal)}.`)
+      setFound(f => (f ? { ...f, balance: bal } : f))
+      setAmount('')
+      loadPayments()
+    } catch (err) { setMsg(walletError(err)) }
+    finally { setBusy(false) }
   }
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '18px 0 8px' }}>
-        <p style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: 700 }}>Admin · top-ups to check {pending ? `(${pending.length})` : ''}</p>
-        <button type="button" onClick={load} aria-label="Refresh" style={{ ...btn, height: '32px', padding: '0 10px' }}><RefreshCw size={14} /></button>
+      <p style={{ margin: '18px 0 8px', color: C.text, fontSize: '14px', fontWeight: 700 }}>Admin</p>
+      <form onSubmit={apply} style={section}>
+        <p style={{ margin: '0 0 10px', color: C.text, fontSize: '13px', fontWeight: 700 }}>Add or remove money for a customer</p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <input style={{ ...input, flex: 1 }} inputMode="numeric" placeholder="Customer phone" value={phone} onChange={e => { setPhone(e.target.value); setFound(null) }} />
+          <button type="button" onClick={look} disabled={!phone} style={{ ...btn, opacity: phone ? 1 : 0.5 }}>Check</button>
+        </div>
+        {found && (
+          <p style={{ margin: '0 0 8px', color: C.text2, fontSize: '12px', lineHeight: 1.5 }}>
+            {found.phone} · balance {rupees(found.balance)} · code <b style={{ color: C.text }}>{found.code}</b>
+            <br /><span style={{ color: C.text3 }}>Add money only if this code matches the one in their WhatsApp message.</span>
+          </p>
+        )}
+        <input style={input} inputMode="numeric" placeholder="₹ amount (use − to remove)" value={amount} onChange={e => setAmount(e.target.value.replace(/[^\d-]/g, '').slice(0, 7))} />
+        <button type="submit" disabled={busy || !phone || !amount} style={{ ...btnPrimary, width: '100%', marginTop: '10px', opacity: busy || !phone || !amount ? 0.5 : 1 }}>
+          {busy ? 'Saving…' : 'Apply'}
+        </button>
+        {msg && <p style={{ margin: '8px 0 0', color: C.text2, fontSize: '12px' }}>{msg}</p>}
+      </form>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '6px 0 8px' }}>
+        <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 700 }}>Money you added recently</p>
+        <button type="button" onClick={loadPayments} aria-label="Refresh" style={{ ...btn, height: '32px', padding: '0 10px' }}><RefreshCw size={14} /></button>
       </div>
-      <div style={{ ...section, padding: pending?.length ? '4px 14px' : '14px' }}>
-        {!pending && !error && <p style={{ margin: 0, color: C.text3, fontSize: '13px' }}>Loading…</p>}
-        {pending && !pending.length && <p style={{ margin: 0, color: C.text3, fontSize: '13px' }}>Nothing waiting.</p>}
-        {pending?.map((p, i) => (
-          <div key={p.id} style={{ padding: '10px 0', borderTop: i ? `1px solid ${C.divider}` : 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <span style={{ color: C.text, fontSize: '14px', fontWeight: 700 }}>{rupees(p.amount)}</span>
-              <span style={{ color: C.text3, fontSize: '11px' }}>{when(p.created_at)}</span>
+      <div style={{ ...section, padding: payments?.length ? '4px 14px' : '14px' }}>
+        {!payments && <p style={{ margin: 0, color: C.text3, fontSize: '13px' }}>Loading…</p>}
+        {payments && !payments.length && <p style={{ margin: 0, color: C.text3, fontSize: '13px' }}>Nothing yet.</p>}
+        {payments?.map((p, i) => (
+          <div key={`${p.created_at}${i}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderTop: i ? `1px solid ${C.divider}` : 'none' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 600 }}>{p.phone}</p>
+              <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '11px' }}>{when(p.created_at)} · balance now {rupees(p.balance_after)}</p>
             </div>
-            <p style={{ margin: '2px 0 8px', color: C.text2, fontSize: '12px' }}>{p.phone} · UTR <b style={{ color: C.text }}>{p.utr}</b></p>
-            <p style={{ margin: '0 0 8px', color: C.text3, fontSize: '11px' }}>Check your bank/UPI app for this reference and amount before approving.</p>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" disabled={busyId === p.id} onClick={() => decide(p.id, true)}
-                style={{ ...btn, flex: 1, height: '36px', background: '#16a34a', borderColor: '#16a34a', color: '#fff' }}>Approve</button>
-              <button type="button" disabled={busyId === p.id} onClick={() => decide(p.id, false)}
-                style={{ ...btn, flex: 1, height: '36px', color: C.red }}>Reject</button>
-            </div>
+            <span style={{ color: p.amount < 0 ? C.text2 : C.green, fontSize: '14px', fontWeight: 700 }}>{p.amount < 0 ? '−' : '+'}{rupees(Math.abs(p.amount))}</span>
           </div>
         ))}
-        {error && <p style={errorText}>{error}</p>}
       </div>
-
-      <form onSubmit={adjust} style={section}>
-        <p style={{ margin: '0 0 10px', color: C.text, fontSize: '13px', fontWeight: 700 }}>Add or remove money by phone number</p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input style={{ ...input, flex: 2 }} inputMode="numeric" placeholder="Phone" value={adjPhone} onChange={e => setAdjPhone(e.target.value)} />
-          <input style={{ ...input, flex: 1 }} inputMode="numeric" placeholder="₹ (use − to remove)" value={adjAmount} onChange={e => setAdjAmount(e.target.value.replace(/[^\d-]/g, ''))} />
-        </div>
-        <button type="submit" disabled={!adjPhone || !adjAmount} style={{ ...btn, width: '100%', marginTop: '10px', opacity: !adjPhone || !adjAmount ? 0.5 : 1 }}>Apply</button>
-        {adjMsg && <p style={{ margin: '8px 0 0', color: C.text2, fontSize: '12px' }}>{adjMsg}</p>}
-      </form>
     </>
   )
 }
@@ -298,7 +288,7 @@ export default function WalletPanel({ onClose, reason }) {
   const [showAdd, setShowAdd] = useState(false)
 
   const loadHistory = useCallback(async () => {
-    try { setHistory(await walletHistory()) } catch { setHistory({ transactions: [], requests: [] }) }
+    try { setHistory(await walletHistory()) } catch { setHistory([]) }
   }, [])
 
   useEffect(() => {
@@ -333,9 +323,9 @@ export default function WalletPanel({ onClose, reason }) {
             <>
               <div style={{ ...section, display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, color: C.text3, fontSize: '12px' }}>Balance · {w.phone}</p>
+                  <p style={{ margin: 0, color: C.text3, fontSize: '12px' }}>Balance · {w.phone} · code {walletCode(w.user)}</p>
                   <p style={{ margin: '2px 0 0', color: C.text, fontSize: '28px', fontWeight: 700 }}>{w.balance == null ? '…' : rupees(w.balance)}</p>
-                  <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '12px' }}>Auto Collage costs ₹{AUTO_COLLAGE_PRICE} each time you add skins to the canvas.</p>
+                  <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '12px' }}>Auto Collage costs ₹{AUTO_COLLAGE_PRICE} per scan, refunded automatically if no skin is found.</p>
                 </div>
               </div>
 
@@ -344,7 +334,7 @@ export default function WalletPanel({ onClose, reason }) {
               {!showAdd ? (
                 <button type="button" onClick={() => setShowAdd(true)} style={{ ...btnPrimary, width: '100%', marginBottom: '12px' }}>Add money</button>
               ) : (
-                <AddMoney onSent={loadHistory} />
+                <AddMoney phone={w.phone} code={walletCode(w.user)} />
               )}
 
               <p style={{ margin: '6px 0 8px', color: C.text, fontSize: '14px', fontWeight: 700 }}>Activity</p>

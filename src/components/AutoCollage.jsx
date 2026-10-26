@@ -3,6 +3,8 @@ import skinsData from '../../skins.json'
 import useStore from '../store/useStore'
 import { ASSET_REPOS, cdnUrl, loadAssetFiles } from '../utils/assetRepos'
 import { sortForCollage } from '../utils/skinSeries'
+import { useWallet, walletEnabled, refreshWallet, walletError, AUTO_COLLAGE_PRICE } from '../utils/wallet'
+import { scanScreenshotsOnServer } from '../utils/serverScan'
 import { buildVocabulary, scanScreenshots, disposeScanner, sortByPosition, norm } from '../utils/skinScanner'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -301,7 +303,8 @@ function ShotViewer({ url, shot, picked, thumbs, title, onClose, onPrev, onNext 
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function AutoCollage({ onClose }) {
+export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
+  const wallet = useWallet()
   const addImages    = useStore(s => s.addImages)
   const saveSnapshot = useStore(s => s.saveSnapshot)
 
@@ -392,6 +395,17 @@ export default function AutoCollage({ onClose }) {
 
   const handleScan = useCallback(async () => {
     if (!screenshots.length) return
+    // Paid mode: the screenshots are read on the server after ₹10 is taken
+    if (walletEnabled) {
+      if (!wallet.ready) return
+      if (!wallet.user) { onOpenWallet(`Log in to scan (₹${AUTO_COLLAGE_PRICE} per Auto Collage scan; refunded if no skin is found).`); return }
+      let fresh = null
+      try { fresh = await refreshWallet() } catch { fresh = null }
+      if (!fresh || fresh.balance < AUTO_COLLAGE_PRICE) {
+        onOpenWallet(`You need ₹${AUTO_COLLAGE_PRICE} to scan. Add money below — your screenshots stay selected.`)
+        return
+      }
+    }
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setStep('scanning')
@@ -399,7 +413,8 @@ export default function AutoCollage({ onClose }) {
     setProgress({ percent: 0, message: 'Starting…' })
 
     try {
-      const res = await scanScreenshots(screenshots, getVocab(), {
+      const scan = walletEnabled ? scanScreenshotsOnServer : scanScreenshots
+      const res = await scan(screenshots, getVocab(), {
         signal: ctrl.signal,
         onProgress: p => setProgress({ percent: p.percent, message: p.message }),
       })
@@ -428,12 +443,13 @@ export default function AutoCollage({ onClose }) {
     } catch (err) {
       if (err?.name === 'AbortError') { setStep('ready'); return }
       console.error('[AutoCollage] scan failed', err)
-      setError(scanErrorMessage(err))
+      setError(walletEnabled ? walletError(err) : scanErrorMessage(err))
       setStep('ready')
+      if (walletEnabled && /insufficient_balance|not_logged_in/.test(`${err?.code} ${err?.message}`)) onOpenWallet(walletError(err))
     } finally {
       if (abortRef.current === ctrl) abortRef.current = null
     }
-  }, [screenshots])
+  }, [screenshots, wallet.ready, wallet.user, onOpenWallet])
 
   const handleCancel = useCallback(() => {
     if (abortRef.current) abortRef.current.abort()
@@ -632,7 +648,9 @@ export default function AutoCollage({ onClose }) {
           <div>
             <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#e6e8ec' }}>✨ Auto Collage</p>
             <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#6b717c' }}>
-              Upload MLBB screenshots → skin names are read on your device (free) → builds collage
+              {walletEnabled
+                ? `Upload MLBB screenshots → skin names are read on our server (₹${AUTO_COLLAGE_PRICE}) → builds collage`
+                : 'Upload MLBB screenshots → skin names are read on your device (free) → builds collage'}
             </p>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: '2px 6px' }}>✕</button>
@@ -674,8 +692,9 @@ export default function AutoCollage({ onClose }) {
 
               {screenshots.length === 0 && (
                 <p style={{ margin: '12px 2px 0', color: '#6b717c', fontSize: '11px', lineHeight: 1.5 }}>
-                  Free — no AI key needed, and your screenshots never leave your device.
-                  The first scan downloads a small text reader (about 6 MB) once.
+                  {walletEnabled
+                    ? `₹${AUTO_COLLAGE_PRICE} per scan, refunded automatically if no skin is found. Your screenshots are read on our server and deleted straight away — they are never stored or shared. `
+                    : 'Free — no AI key needed, and your screenshots never leave your device. The first scan downloads a small text reader (about 6 MB) once. '}
                   Screenshots where the skin names are clearly visible work best (up to {MAX_SCREENSHOTS} at a time).
                 </p>
               )}
@@ -711,7 +730,7 @@ export default function AutoCollage({ onClose }) {
                     padding: '14px', cursor: 'pointer',
                   }}
                 >
-                  🔍 Scan Screenshots
+                  🔍 Scan Screenshots{walletEnabled ? ` · ₹${AUTO_COLLAGE_PRICE}` : ''}
                 </button>
               )}
             </>
@@ -727,7 +746,7 @@ export default function AutoCollage({ onClose }) {
                 <div style={{ width: `${progress.percent}%`, height: '100%', background: '#3b82f6', transition: 'width 0.25s' }} />
               </div>
               <p style={{ margin: '8px 0 18px', color: '#6b717c', fontSize: '11px' }}>
-                {progress.percent}% · runs on your device, nothing is uploaded
+                {progress.percent}% · {walletEnabled ? 'read on our server, screenshots are not stored' : 'runs on your device, nothing is uploaded'}
               </p>
               <button
                 onClick={handleCancel}
@@ -804,6 +823,7 @@ export default function AutoCollage({ onClose }) {
               {nothingFound && (
                 <div style={{ background: '#0f1115', border: '1px solid #23262e', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
                   <p style={{ margin: '0 0 4px', color: '#e6e8ec', fontSize: '13px', fontWeight: 700 }}>No skin names recognised</p>
+                  {readInfo?.refunded && <p style={{ margin: '0 0 6px', color: '#22c55e', fontSize: '12px', fontWeight: 600 }}>Your ₹{AUTO_COLLAGE_PRICE} has been refunded to your wallet.</p>}
                   <p style={{ margin: 0, color: '#6b717c', fontSize: '12px', lineHeight: 1.5 }}>
                     {hardlyAnyText
                       ? 'The scanner could hardly read any text in these screenshots. '
