@@ -11,7 +11,9 @@ import AutoCollage from './components/AutoCollage'
 import AdminPanel from './components/AdminPanel'
 import WelcomeScreen, { useWelcome } from './components/WelcomeScreen'
 import ProjectsPanel from './components/ProjectsPanel'
-import { Menu, Undo2, Redo2, Trash2, LayoutGrid, Upload, UserPlus, Plus, Sparkles, Download, X } from 'lucide-react'
+import { Menu, Undo2, Redo2, Trash2, LayoutGrid, Upload, UserPlus, Plus, Sparkles, Download, X, Wallet } from 'lucide-react'
+import WalletPanel from './components/WalletPanel'
+import { useWallet, walletEnabled } from './utils/wallet'
 import { autoSave, loadAutoSave, generateThumbnail } from './utils/projectManager'
 
 const AUTO_HISTORY_KEY   = 'ryuk_autosave_history'
@@ -285,16 +287,14 @@ export default function App() {
   const [sidebarOpen,       setSidebarOpen]        = useState(false)
   const [projectsOpen,      setProjectsOpen]       = useState(false)
   const [adminOpen,         setAdminOpen]          = useState(false)
-  const [showPasswordPrompt,setShowPasswordPrompt] = useState(false)
-  const [passwordInput,     setPasswordInput]      = useState('')
-  const [passwordError,     setPasswordError]      = useState(false)
   const [arrangeOpen,       setArrangeOpen]        = useState(false)
   const [autoCollageOpen,   setAutoCollageOpen]    = useState(false)
   const [heroPickerOpen,    setHeroPickerOpen]     = useState(false)
+  const [walletOpen,        setWalletOpen]         = useState(null)    // null = closed, otherwise { reason }
+  const wallet = useWallet()
 
   const logoClickCount = useRef(0)
   const logoClickTimer = useRef(null)
-  const ADMIN_PASSWORD = 'ryuk2025'
 
   const { show: showWelcome, dismiss: dismissWelcome } = useWelcome()
 
@@ -398,7 +398,6 @@ export default function App() {
       if (arrangeOpen)         { setArrangeOpen(false);         return }
       if (projectsOpen)        { setProjectsOpen(false);        return }
       if (historyOpen)         { setHistoryOpen(false);         return }
-      if (showPasswordPrompt)  { setShowPasswordPrompt(false);  return }
       if (adminOpen)           { setAdminOpen(false);           return }
       if (diamondPopupOpen)    { setDiamondPopupOpen(false);    return }
       if (showWelcome)         { dismissWelcome();              return }
@@ -406,7 +405,7 @@ export default function App() {
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [arrangeOpen, projectsOpen, historyOpen, showPasswordPrompt, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+  }, [arrangeOpen, projectsOpen, historyOpen, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleOpenHeroPicker = useCallback(() => {
@@ -426,6 +425,12 @@ export default function App() {
   const openHistory  = () => { window.history.pushState({ overlay: 'history' }, '');  setHistoryOpen(true) }
   const closeHistory = () => setHistoryOpen(false)
 
+  // Admin area: tap the name 3 times. Only accounts marked as admin in the
+  // database get in (no password in the website code any more).
+  const openAdmin = useCallback(() => {
+    setAdminOpen(true)
+    window.history.pushState({ overlay: 'admin' }, '')
+  }, [])
   const handleLogoClick = useCallback(() => {
     logoClickCount.current += 1
     if (logoClickTimer.current) clearTimeout(logoClickTimer.current)
@@ -433,19 +438,10 @@ export default function App() {
     if (logoClickCount.current >= 3) {
       logoClickCount.current = 0
       clearTimeout(logoClickTimer.current)
-      setShowPasswordPrompt(true); setPasswordInput(''); setPasswordError(false)
-      window.history.pushState({ overlay: 'password' }, '')
+      if (!walletEnabled || wallet.admin) openAdmin()
+      else setWalletOpen({ reason: 'Admin area: log in with the admin account, then tap the name 3 times again.' })
     }
-  }, [])
-
-  const handlePasswordSubmit = () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      setShowPasswordPrompt(false); setAdminOpen(true); setPasswordError(false)
-      window.history.pushState({ overlay: 'admin' }, '')
-    } else {
-      setPasswordError(true); setPasswordInput('')
-    }
-  }
+  }, [wallet.admin, openAdmin])
 
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -533,8 +529,10 @@ export default function App() {
 
       {/* ── Arrange Panel ────────────────────────────────────────────────── */}
       {autoCollageOpen && (
-        <AutoCollage onClose={() => setAutoCollageOpen(false)} />
+        <AutoCollage onClose={() => setAutoCollageOpen(false)} onOpenWallet={reason => setWalletOpen({ reason })} />
       )}
+
+      {walletOpen && <WalletPanel reason={walletOpen.reason} onClose={() => setWalletOpen(null)} />}
 
       {arrangeOpen && (
         <ArrangePanel
@@ -577,28 +575,6 @@ export default function App() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Password Prompt ───────────────────────────────────────────────── */}
-      {showPasswordPrompt && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={e => { if (e.target === e.currentTarget) setShowPasswordPrompt(false) }}>
-          <div style={{ background: '#16181d', border: '1px solid #2a2e37', borderRadius: '16px', padding: '32px 28px', width: '320px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', marginBottom: '12px' }}>🔐</div>
-            <h2 style={{ color: '#e6e8ec', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Admin Access</h2>
-            <p style={{ color: '#6b717c', fontSize: '13px', marginBottom: '20px' }}>Enter password to continue</p>
-            <input autoFocus type="password" value={passwordInput}
-              onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
-              onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
-              placeholder="Password"
-              style={{ width: '100%', background: '#1c1f26', border: `1px solid ${passwordError ? '#ef4444' : '#2a2e37'}`, borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }} />
-            {passwordError && <p style={{ color: '#ef4444', fontSize: '12px', marginBottom: '8px' }}>Incorrect password</p>}
-            <button onClick={handlePasswordSubmit}
-              style={{ width: '100%', background: '#3b82f6', border: 'none', borderRadius: '10px', padding: '11px', color: '#fff', fontWeight: 700, fontSize: '14px', cursor: 'pointer', marginTop: '4px' }}>
-              Enter
-            </button>
           </div>
         </div>
       )}
@@ -649,6 +625,8 @@ export default function App() {
           {[
             { icon: '🗂', label: 'Projects', sub: 'Manage saved collages', action: () => { setSidebarOpen(false); openProjects() } },
             { icon: '📁', label: 'Export History', sub: 'View past exports', action: () => { setSidebarOpen(false); openHistory() } },
+            ...(walletEnabled ? [{ icon: '💳', label: 'Wallet', sub: wallet.user ? `Balance ₹${wallet.balance ?? '…'}` : 'Log in or create an account', action: () => { setSidebarOpen(false); setWalletOpen({}) } }] : []),
+            ...(wallet.admin ? [{ icon: '🛠', label: 'Admin panel', sub: 'Skin tiers', action: () => { setSidebarOpen(false); openAdmin() } }] : []),
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', borderRadius: '10px', padding: '11px 12px', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
@@ -698,12 +676,20 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
             <button style={btnIcon} onClick={() => setSidebarOpen(o => !o)} aria-label="Menu" title="Menu"><Menu size={17} /></button>
-            <span style={{ fontWeight: 700, fontSize: '16px', color: C.text, letterSpacing: '-0.01em', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            <span style={{ fontWeight: 700, fontSize: '16px', color: C.text, letterSpacing: '-0.01em', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
               onClick={handleLogoClick}>
               Ryuk Creates
             </span>
           </div>
-          <button style={btnPrimary} onClick={handleExport}><Download size={16} /> Export PNG</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            {walletEnabled && (
+              <button style={btnGhost} onClick={() => setWalletOpen({})} aria-label="Wallet" title="Wallet">
+                <Wallet size={16} />
+                {wallet.user ? (wallet.balance == null ? '…' : `₹${wallet.balance.toLocaleString('en-IN')}`) : 'Log in'}
+              </button>
+            )}
+            <button style={btnPrimary} onClick={handleExport}><Download size={16} /> Export PNG</button>
+          </div>
         </div>
 
         {/* Row 2: everything for building the collage (wraps onto a second line on small phones) */}
