@@ -1,25 +1,37 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Wallet — phone + password accounts, ₹ balance, manual UPI top-ups.
+// Wallet — phone + password accounts, ₹ balance. Customers pay you by UPI and
+// message you on WhatsApp; you add the money from the admin panel.
 //
-// Runs on Supabase (free). Set these in Vercel → Project → Settings →
-// Environment Variables, then redeploy:
-//   VITE_SUPABASE_URL       https://xxxx.supabase.co
-//   VITE_SUPABASE_ANON_KEY  the "anon public" key
-//   VITE_UPI_ID             your UPI ID, e.g. ryuk@okaxis
-//   VITE_UPI_NAME           the name shown in the UPI app, e.g. Ryuk Creates
+// The browser only ever gets PUBLIC settings (Vercel → Settings → Environment
+// Variables):
+//   VITE_SUPABASE_URL        https://xxxx.supabase.co
+//   VITE_SUPABASE_ANON_KEY   the "anon public" key (safe to be public)
+//   VITE_UPI_ID              your UPI ID, e.g. ryuk@okaxis
+//   VITE_UPI_NAME            the name shown in UPI apps, e.g. Ryuk Creates
+//   VITE_WHATSAPP_NUMBER     your WhatsApp number with country code, e.g. 918453899194
+// Everything secret (Supabase service key, GitHub token) lives
+// only on the server, in the /api functions. Money only changes on the server.
 //
-// Until VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set, the wallet is
-// switched off and Auto Collage stays free, so nothing breaks before setup.
-// The database side (prices, balances, approvals) is in supabase/wallet_setup.sql.
+// Until the two settings above exist, the wallet is switched off and Auto
+// Collage stays free (and reads screenshots on the device), so nothing breaks.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react'
 
-const URL_  = import.meta.env.VITE_SUPABASE_URL
-const KEY   = import.meta.env.VITE_SUPABASE_ANON_KEY
-export const UPI_ID   = import.meta.env.VITE_UPI_ID || ''
-export const UPI_NAME = import.meta.env.VITE_UPI_NAME || 'Ryuk Creates'
+const URL_ = import.meta.env.VITE_SUPABASE_URL
+const KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const AUTO_COLLAGE_PRICE = 10            // shown in the app; the real price is in the database
 export const walletEnabled = !!(URL_ && KEY)
+export const UPI_ID = import.meta.env.VITE_UPI_ID || ''
+export const UPI_NAME = import.meta.env.VITE_UPI_NAME || 'Ryuk Creates'
+export const WHATSAPP_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || '918453899194').replace(/\D/g, '')
+
+// Opens Google Pay / PhonePe / Paytm with the payment filled in (amount optional).
+export function upiLink(amount) {
+  const p = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, cu: 'INR', tn: 'Ryuk Creates wallet' })
+  if (amount > 0) p.set('am', String(amount))
+  return `upi://pay?${p.toString()}`
+}
+export const whatsappLink = text => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
 
 // Phone numbers become a private login name; no email or SMS is ever sent.
 const EMAIL_DOMAIN = 'phone.ryukcreates.app'
@@ -51,6 +63,7 @@ function setState(patch) {
   state = { ...state, ...patch }
   listeners.forEach(fn => fn(state))
 }
+export const walletState = () => state
 
 export function useWallet() {
   const [s, set] = useState(state)
@@ -73,7 +86,7 @@ function initWallet() {
         setState({ user: data.session?.user || null })
         if (data.session?.user) await refreshWallet()
       } catch (err) {
-        console.warn('[wallet] could not start', err)
+        console.warn('[wallet] could not start', err?.message)
       } finally {
         setState({ ready: true })
       }
@@ -96,21 +109,29 @@ export async function refreshWallet() {
 const MESSAGES = {
   not_logged_in:        'Please log in first.',
   insufficient_balance: `Not enough balance. Auto Collage costs ₹${AUTO_COLLAGE_PRICE} — add money to your wallet.`,
-  utr_already_used:     'This UPI reference number has already been used.',
-  invalid_request:      'Please check the amount (₹10–₹10,000) and the UPI reference number (6–30 letters/numbers).',
-  too_many_pending:     'You already have 5 top-ups waiting for approval. Please wait for them to be checked.',
+  too_many_scans:       'Too many scans in the last hour. Please try again later.',
+  invalid_request:      'Something in the request was not valid. Please try again.',
+  scan_closed:          'This scan has ended. Please start a new scan.',
+  scan_used_up:         'This scan has no screenshots left.',
+  unknown_scan:         'This scan could not be found. Please start a new scan.',
+  too_large:            'That screenshot is too large.',
+  bad_image:            'That file is not a screenshot we can read (use PNG or JPG).',
+  busy:                 'The server is busy. Please try again in a moment.',
+  scan_busy:            'Your screenshots are still being read. Please wait a moment.',
   not_admin:            'Only the admin can do this.',
-  not_pending:          'This top-up was already approved or rejected.',
+  not_configured:       'This feature is not switched on yet.',
   no_such_user:         'No account with that phone number.',
+  server_error:         'Something went wrong on the server. Please try again.',
 }
 export function walletError(err) {
-  const msg = String(err?.message || err || '')
-  for (const [code, text] of Object.entries(MESSAGES)) if (msg.includes(code)) return text
+  const msg = `${err?.code || ''} ${err?.message || (typeof err === 'string' ? err : '')}`
+  for (const [code, text] of Object.entries(MESSAGES)) if (new RegExp(`\\b${code}\\b`).test(msg)) return text
   if (/invalid login credentials/i.test(msg)) return 'Wrong phone number or password.'
   if (/already registered|already been registered|user already exists/i.test(msg)) return 'This phone number already has an account. Log in instead.'
   if (/password should be at least|weak password/i.test(msg)) return 'Password must be at least 6 characters.'
-  if (/failed to fetch|network/i.test(msg)) return 'Could not reach the wallet server. Check your internet and try again.'
-  return msg || 'Something went wrong. Please try again.'
+  if (/failed to fetch|network|load failed/i.test(msg)) return 'Could not reach the server. Check your internet and try again.'
+  if (/rate limit|too many requests/i.test(msg)) return 'Too many attempts. Please wait a few minutes and try again.'
+  return 'Something went wrong. Please try again.'
 }
 
 // ── Accounts ─────────────────────────────────────────────────────────────────
@@ -123,7 +144,7 @@ export async function signUp(phone, password) {
   })
   if (error) throw error
   if (!data.session) {
-    throw new Error('Account created, but Supabase is asking for email confirmation. Turn off "Confirm email" in Supabase (see setup steps), then log in.')
+    throw new Error('Account created, but sign-in is waiting for email confirmation. Turn off "Confirm email" in Supabase (see setup steps), then log in.')
   }
   await refreshWallet()
 }
@@ -142,60 +163,68 @@ export async function logOut() {
   setState({ user: null, phone: '', balance: null, admin: false })
 }
 
+async function accessToken() {
+  const sb = await client()
+  const { data } = await sb.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) { const e = new Error('not_logged_in'); e.code = 'not_logged_in'; throw e }
+  return token
+}
+
+// Calls one of our own /api functions as the logged-in person.
+async function api(path, { json, body, headers = {}, signal } = {}) {
+  const token = await accessToken()
+  const r = await fetch(`/api/${path}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, ...(json ? { 'Content-Type': 'application/json' } : {}), ...headers },
+    body: json ? JSON.stringify(json) : body,
+    signal,
+  })
+  const data = await r.json().catch(() => ({}))
+  if (!r.ok) {
+    const e = new Error(data?.error || `http_${r.status}`)
+    e.code = data?.error || (r.status === 413 ? 'too_large' : 'server_error')
+    throw e
+  }
+  return data
+}
+
 // ── Money ────────────────────────────────────────────────────────────────────
-// Takes ₹10 for one Auto Collage. Throws (insufficient_balance…) if it can't.
-export async function chargeAutoCollage() {
-  const sb = await client()
-  const { data, error } = await sb.rpc('charge_auto_collage')
-  if (error) throw error
-  setState({ balance: data })
-  return data
-}
-
-export async function requestTopup(amount, utr) {
-  const sb = await client()
-  const { data, error } = await sb.rpc('request_topup', { p_amount: Math.round(Number(amount)), p_utr: utr })
-  if (error) throw error
-  return data
-}
-
-// The latest wallet activity: money in/out plus top-ups still waiting.
 export async function walletHistory() {
   const sb = await client()
-  const [tx, req] = await Promise.all([
-    sb.from('wallet_transactions').select('id, amount, kind, note, created_at').order('created_at', { ascending: false }).limit(30),
-    sb.from('topup_requests').select('id, amount, utr, status, created_at').neq('status', 'approved').order('created_at', { ascending: false }).limit(10),
-  ])
-  if (tx.error) throw tx.error
-  if (req.error) throw req.error
-  return { transactions: tx.data || [], requests: req.data || [] }
-}
-
-// A link that opens Google Pay / PhonePe / Paytm with the payment filled in.
-export function upiLink(amount) {
-  const p = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: String(amount), cu: 'INR', tn: 'Ryuk Creates wallet' })
-  return `upi://pay?${p.toString()}`
-}
-
-// ── Admin ────────────────────────────────────────────────────────────────────
-export async function adminPendingTopups() {
-  const sb = await client()
-  const { data, error } = await sb.rpc('admin_pending_topups')
+  const { data, error } = await sb.from('wallet_transactions')
+    .select('id, amount, kind, note, created_at').order('created_at', { ascending: false }).limit(30)
   if (error) throw error
   return data || []
 }
 
-export async function adminDecideTopup(id, approve) {
-  const sb = await client()
-  const { data, error } = await sb.rpc('admin_decide_topup', { p_id: id, p_approve: approve })
-  if (error) throw error
-  return data
+// ── Paid scanning (the screenshots are read on the server) ───────────────────
+export async function startScan(pages) {
+  const out = await api('scan-start', { json: { pages } })
+  setState({ balance: out.balance })
+  return out.scan_id
+}
+export async function scanPage(scanId, blob, signal) {
+  return api('scan-page', { body: blob, headers: { 'Content-Type': blob.type, 'X-Scan-Id': scanId }, signal })
+}
+export async function finishScan(scanId) {
+  const out = await api('scan-finish', { json: { scan_id: scanId } })
+  if (out.balance != null) setState({ balance: out.balance })
+  return out
 }
 
-export async function adminAdjustBalance(phone, amount, note) {
+// ── Admin ────────────────────────────────────────────────────────────────────
+async function rpc(fn, args) {
   const sb = await client()
-  const { data, error } = await sb.rpc('admin_adjust_balance', { p_phone: cleanPhone(phone), p_amount: Math.round(Number(amount)), p_note: note || null })
+  const { data, error } = await sb.rpc(fn, args)
   if (error) throw error
-  if (cleanPhone(phone) === state.phone) setState({ balance: data })
   return data
 }
+export async function adminAdjustBalance(phone, amount, note) {
+  const bal = await rpc('admin_adjust_balance', { p_phone: cleanPhone(phone), p_amount: Math.round(Number(amount)), p_note: note || null })
+  if (cleanPhone(phone) === state.phone) setState({ balance: bal })
+  return bal
+}
+export const adminFindWallet = async phone => ((await rpc('admin_find_wallet', { p_phone: cleanPhone(phone) })) || [])[0] || null
+export const adminRecentAdjustments = async () => (await rpc('admin_recent_adjustments', {})) || []
+export const adminSaveTiers = tiers => api('admin-save-tiers', { json: { tiers } })
