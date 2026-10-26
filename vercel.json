@@ -1,21 +1,27 @@
 {
+  "functions": {
+    "api/scan-page.js": {
+      "maxDuration": 60,
+      "memory": 1769,
+      "includeFiles": "{skins.json,node_modules/tesseract.js/**,node_modules/tesseract.js-core/**,node_modules/@tesseract.js-data/eng/4.0.0_best_int/**}"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" }
       ]
     },
     {
-      "source": "/(.*)\\.js",
+      "source": "/api/(.*)",
       "headers": [
-        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/(.*)\\.css",
-      "headers": [
-        { "key": "Content-Type", "value": "text/css; charset=utf-8" }
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]
