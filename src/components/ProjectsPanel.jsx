@@ -22,14 +22,14 @@ function Confirm({ message, onConfirm, onCancel }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{
-        background: '#1a1a26', border: '1px solid #333',
+        background: '#16181d', border: '1px solid #2a2e37',
         borderRadius: '14px', padding: '28px 24px', width: 'min(90vw,320px)',
         textAlign: 'center',
       }}>
-        <p style={{ color: '#c8c8e8', fontSize: '14px', marginBottom: '20px' }}>{message}</p>
+        <p style={{ color: '#e6e8ec', fontSize: '14px', marginBottom: '20px' }}>{message}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button onClick={onCancel} style={{
-            background: 'none', border: '1px solid #333', color: '#888',
+            background: 'none', border: '1px solid #2a2e37', color: '#a1a7b3',
             padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px',
           }}>Cancel</button>
           <button onClick={onConfirm} style={{
@@ -56,7 +56,7 @@ function SaveDialog({ defaultName, onSave, onCancel, saving }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{
-        background: '#1a1a26', border: '1px solid #6c63ff',
+        background: '#16181d', border: '1px solid #2a2e37',
         borderRadius: '16px', padding: '28px 24px', width: 'min(90vw, 340px)',
       }}>
         <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>
@@ -70,21 +70,21 @@ function SaveDialog({ defaultName, onSave, onCancel, saving }) {
           placeholder="Project name…"
           maxLength={60}
           style={{
-            width: '100%', background: '#12121a', border: '1px solid #333',
+            width: '100%', background: '#1c1f26', border: '1px solid #2a2e37',
             borderRadius: '8px', padding: '10px 12px', color: '#fff',
             fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px',
           }}
         />
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={onCancel} style={{
-            flex: 1, background: 'none', border: '1px solid #333', color: '#888',
+            flex: 1, background: 'none', border: '1px solid #2a2e37', color: '#a1a7b3',
             padding: '10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px',
           }}>Cancel</button>
           <button
             onClick={() => onSave(name)}
             disabled={!name.trim() || saving}
             style={{
-              flex: 2, background: 'linear-gradient(135deg,#6c63ff,#a855f7)',
+              flex: 2, background: '#3b82f6',
               border: 'none', color: '#fff', fontWeight: 700, fontSize: '14px',
               padding: '10px', borderRadius: '8px',
               cursor: name.trim() && !saving ? 'pointer' : 'not-allowed',
@@ -131,19 +131,19 @@ function ProjectCard({ project, onLoad, onDelete, onRename }) {
       )}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px',
-        background: '#12121a', border: '1px solid #222',
+        background: '#1c1f26', border: '1px solid #2a2e37',
         borderRadius: '12px', padding: '10px 12px',
         transition: 'border-color 0.15s',
       }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = '#6c63ff44'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = '#222'}
+        onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f644'}
+        onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2e37'}
       >
         {/* thumbnail */}
         <div
           onClick={() => onLoad(project)}
           style={{
             width: '60px', height: '40px', borderRadius: '7px',
-            overflow: 'hidden', background: '#0d0d14', flexShrink: 0,
+            overflow: 'hidden', background: '#0f1115', flexShrink: 0,
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -165,20 +165,20 @@ function ProjectCard({ project, onLoad, onDelete, onRename }) {
               onClick={e => e.stopPropagation()}
               maxLength={60}
               style={{
-                width: '100%', background: '#1a1a2e', border: '1px solid #6c63ff',
+                width: '100%', background: '#1c1f26', border: '1px solid #2a2e37',
                 borderRadius: '6px', padding: '3px 8px', color: '#fff',
                 fontSize: '13px', outline: 'none', boxSizing: 'border-box',
               }}
             />
           ) : (
             <div style={{
-              color: '#c8c8e8', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+              color: '#e6e8ec', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {project.name}
             </div>
           )}
-          <div style={{ color: '#555', fontSize: '11px', marginTop: '2px' }}>
+          <div style={{ color: '#6b717c', fontSize: '11px', marginTop: '2px' }}>
             {timeAgo(project.savedAt)} · {project.imageCount} image{project.imageCount !== 1 ? 's' : ''}
           </div>
         </div>
@@ -188,7 +188,7 @@ function ProjectCard({ project, onLoad, onDelete, onRename }) {
           <button
             onClick={e => { e.stopPropagation(); setMenuOpen(v => !v) }}
             style={{
-              background: 'none', border: 'none', color: '#555',
+              background: 'none', border: 'none', color: '#6b717c',
               fontSize: '18px', cursor: 'pointer', padding: '4px 6px', lineHeight: 1,
               borderRadius: '6px',
             }}
@@ -197,7 +197,7 @@ function ProjectCard({ project, onLoad, onDelete, onRename }) {
           {menuOpen && (
             <div style={{
               position: 'absolute', right: 0, top: '28px', zIndex: 10,
-              background: '#1a1a26', border: '1px solid #333', borderRadius: '10px',
+              background: '#16181d', border: '1px solid #2a2e37', borderRadius: '10px',
               minWidth: '130px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
               overflow: 'hidden',
             }}>
@@ -211,11 +211,11 @@ function ProjectCard({ project, onLoad, onDelete, onRename }) {
                   onClick={item.action}
                   style={{
                     width: '100%', background: 'none', border: 'none',
-                    color: item.danger ? '#f87171' : '#c8c8e8',
+                    color: item.danger ? '#f87171' : '#e6e8ec',
                     fontSize: '13px', padding: '10px 14px', textAlign: 'left',
                     cursor: 'pointer',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#252535'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#2a2e37'}
                   onMouseLeave={e => e.currentTarget.style.background = 'none'}
                 >
                   {item.label}
@@ -314,7 +314,7 @@ export default function ProjectsPanel({
         onClick={e => { if (e.target === e.currentTarget) onClose() }}
       >
         <div style={{
-          background: '#1a1a26', border: '1px solid #6c63ff55',
+          background: '#16181d', border: '1px solid #2a2e37',
           borderRadius: '18px', width: 'min(94vw, 520px)',
           maxHeight: '82vh', display: 'flex', flexDirection: 'column',
         }}>
@@ -324,7 +324,7 @@ export default function ProjectsPanel({
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '20px 22px 0', flexShrink: 0,
           }}>
-            <h2 style={{ color: '#c8c8e8', fontSize: '17px', fontWeight: 700, margin: 0 }}>
+            <h2 style={{ color: '#e6e8ec', fontSize: '17px', fontWeight: 700, margin: 0 }}>
               🗂 Projects
             </h2>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -332,7 +332,7 @@ export default function ProjectsPanel({
                 <button
                   onClick={() => setShowSave(true)}
                   style={{
-                    background: 'linear-gradient(135deg,#6c63ff,#a855f7)',
+                    background: '#3b82f6',
                     border: 'none', color: '#fff', fontWeight: 700,
                     fontSize: '13px', padding: '7px 14px',
                     borderRadius: '8px', cursor: 'pointer',
@@ -340,7 +340,7 @@ export default function ProjectsPanel({
                 >💾 Save current</button>
               )}
               <button onClick={onClose} style={{
-                background: 'none', border: 'none', color: '#666',
+                background: 'none', border: 'none', color: '#6b717c',
                 fontSize: '20px', cursor: 'pointer', lineHeight: 1,
               }}>✕</button>
             </div>
@@ -358,9 +358,9 @@ export default function ProjectsPanel({
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 style={{
-                  background: tab === t.id ? '#252535' : 'none',
-                  border: `1px solid ${tab === t.id ? '#6c63ff55' : 'transparent'}`,
-                  color: tab === t.id ? '#c8c8e8' : '#666',
+                  background: tab === t.id ? '#2a2e37' : 'none',
+                  border: `1px solid ${tab === t.id ? '#3b82f655' : 'transparent'}`,
+                  color: tab === t.id ? '#e6e8ec' : '#6b717c',
                   fontSize: '13px', fontWeight: tab === t.id ? 600 : 400,
                   padding: '7px 14px', borderRadius: '8px', cursor: 'pointer',
                 }}
@@ -376,10 +376,10 @@ export default function ProjectsPanel({
           }}>
             {tab === 'projects' && (
               projects.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '50px 0', color: '#555' }}>
+                <div style={{ textAlign: 'center', padding: '50px 0', color: '#6b717c' }}>
                   <div style={{ fontSize: '36px', marginBottom: '12px' }}>📂</div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#666', marginBottom: '6px' }}>No saved projects yet</p>
-                  <p style={{ fontSize: '12px' }}>Hit <strong style={{ color: '#6c63ff' }}>Save current</strong> to save your collage.</p>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#6b717c', marginBottom: '6px' }}>No saved projects yet</p>
+                  <p style={{ fontSize: '12px' }}>Hit <strong style={{ color: '#3b82f6' }}>Save current</strong> to save your collage.</p>
                 </div>
               ) : (
                 projects.map(p => (
@@ -396,9 +396,9 @@ export default function ProjectsPanel({
 
             {tab === 'autosaves' && (
               autoSaves.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '50px 0', color: '#555' }}>
+                <div style={{ textAlign: 'center', padding: '50px 0', color: '#6b717c' }}>
                   <div style={{ fontSize: '36px', marginBottom: '12px' }}>🕐</div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#666', marginBottom: '6px' }}>No auto-saves yet</p>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#6b717c', marginBottom: '6px' }}>No auto-saves yet</p>
                   <p style={{ fontSize: '12px' }}>Auto-saves appear here as you work.</p>
                 </div>
               ) : (
@@ -408,26 +408,26 @@ export default function ProjectsPanel({
                     onClick={() => { onLoadProject(snap.snapshot); onClose() }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '12px',
-                      background: '#12121a', border: '1px solid #222',
+                      background: '#1c1f26', border: '1px solid #2a2e37',
                       borderRadius: '12px', padding: '10px 12px',
                       cursor: 'pointer', transition: 'border-color 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#6c63ff44'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = '#222'}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f644'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2e37'}
                   >
                     {snap.thumbnail
                       ? <img src={snap.thumbnail} alt="" style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '7px', flexShrink: 0 }} />
-                      : <div style={{ width: '60px', height: '40px', borderRadius: '7px', background: '#0d0d14', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '20px' }}>🖼️</span></div>
+                      : <div style={{ width: '60px', height: '40px', borderRadius: '7px', background: '#0f1115', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '20px' }}>🖼️</span></div>
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: '#c8c8e8', fontSize: '13px', fontWeight: 600 }}>
+                      <div style={{ color: '#e6e8ec', fontSize: '13px', fontWeight: 600 }}>
                         Auto-save #{autoSaves.length - i}
                       </div>
-                      <div style={{ color: '#555', fontSize: '11px', marginTop: '2px' }}>
+                      <div style={{ color: '#6b717c', fontSize: '11px', marginTop: '2px' }}>
                         {timeAgo(snap.savedAt)} · {snap.imageCount} image{snap.imageCount !== 1 ? 's' : ''}
                       </div>
                     </div>
-                    <span style={{ color: '#6c63ff', fontSize: '13px', flexShrink: 0 }}>Restore →</span>
+                    <span style={{ color: '#3b82f6', fontSize: '13px', flexShrink: 0 }}>Restore →</span>
                   </div>
                 ))
               )
@@ -440,9 +440,9 @@ export default function ProjectsPanel({
       {toast && (
         <div style={{
           position: 'fixed', bottom: '60px', left: '50%', transform: 'translateX(-50%)',
-          background: '#1a1a26', border: '1px solid #6c63ff55',
+          background: '#16181d', border: '1px solid #2a2e37',
           borderRadius: '10px', padding: '10px 18px',
-          color: '#c8c8e8', fontSize: '13px', fontWeight: 600,
+          color: '#e6e8ec', fontSize: '13px', fontWeight: 600,
           zIndex: 500, pointerEvents: 'none',
           boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
         }}>
