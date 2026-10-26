@@ -55,10 +55,7 @@
 @layer utilities {
   .no-select { user-select: none; -webkit-user-select: none; }
   .text-gradient {
-    background: linear-gradient(135deg, #6c63ff, #f5c842);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #e6e8ec;
   }
   .bg-grid {
     background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
@@ -66,7 +63,7 @@
     background-size: 24px 24px;
   }
   .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: #252535; border-radius: 2px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a2e37; border-radius: 2px; }
 }
 
 /* Konva canvas cursor overrides */
@@ -74,9 +71,9 @@
 
 /* Tooltip override */
 .react-tooltip {
-  background: #1a1a26 !important;
-  color: #c8c8e8 !important;
-  border: 1px solid #252535 !important;
+  background: #1c1f26 !important;
+  color: #e6e8ec !important;
+  border: 1px solid #2a2e37 !important;
   font-size: 12px !important;
   padding: 4px 8px !important;
   border-radius: 6px !important;
