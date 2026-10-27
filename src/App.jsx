@@ -14,7 +14,8 @@ import HomeGlass from './components/HomeGlass'
 import ProjectsPanel from './components/ProjectsPanel'
 import { Menu, Undo2, Redo2, Trash2, LayoutGrid, Upload, UserPlus, Plus, Sparkles, Download, X, Wallet } from 'lucide-react'
 import WalletPanel from './components/WalletPanel'
-import { useWallet, walletEnabled, AUTO_COLLAGE_PRICE } from './utils/wallet'
+import { useWallet, walletEnabled, AUTO_COLLAGE_PRICE, walletError } from './utils/wallet'
+import { PRO_EXPORT_PRICE, makeEditingExport } from './utils/proExport'
 import { autoSave, loadAutoSave, generateThumbnail } from './utils/projectManager'
 
 const AUTO_HISTORY_KEY   = 'ryuk_autosave_history'
@@ -292,6 +293,7 @@ export default function App() {
   const [autoCollageOpen,   setAutoCollageOpen]    = useState(false)
   const [heroPickerOpen,    setHeroPickerOpen]     = useState(false)
   const [pickerMode,        setPickerMode]         = useState(null)
+  const [exportMenuOpen,    setExportMenuOpen]     = useState(false)
   const [walletOpen,        setWalletOpen]         = useState(null)    // null = closed, otherwise { reason }
   const wallet = useWallet()
 
@@ -487,23 +489,40 @@ export default function App() {
   }
 
   // ── Export ──────────────────────────────────────────────────────────────────
-  const handleExport = async () => {
+  const handleExport = async (mode = 'normal') => {
     if (!images.length) return
+    const paid = mode === 'editor'
+    if (paid) {
+      // locked behind the wallet: log in and have ₹50 first
+      if (!wallet.user) { setWalletOpen({ reason: `Export for editing costs ₹${PRO_EXPORT_PRICE}. Log in or create an account first.` }); return }
+      if ((wallet.balance ?? 0) < PRO_EXPORT_PRICE) { setWalletOpen({ reason: `Export for editing costs ₹${PRO_EXPORT_PRICE}. Add money to your wallet first.` }); return }
+    }
     const toast    = (await import('react-hot-toast')).default
     const id       = toast.loading('Exporting collage...')
     let blob       = null
-    const filename = `ryukcreates-${Date.now()}.png`
+    const filename = `ryukcreates-${paid ? 'for-editing-' : ''}${Date.now()}.png`
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
       const sortedImages = [...images].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
       blob = await exportCollage(sortedImages, backgroundColor, profileImage || null, {
-        onProgress: (p) => toast.loading(`Exporting… ${Math.round(p * 100)}%`, { id }),
+        maxCell: paid ? 1000 : 0,
+        onProgress: (p) => toast.loading(`Exporting… ${Math.round(p * (paid ? 40 : 100))}%`, { id }),
       })
+      if (paid) {
+        const failedImgs = blob.failedImages
+        try {
+          blob = await makeEditingExport(blob, { onProgress: p => toast.loading(`Preparing for editing… ${Math.round(40 + p * 60)}%`, { id }) })
+        } catch (err) {
+          toast.error(walletError(err) + (err?.refunded ? ` Your ₹${PRO_EXPORT_PRICE} was refunded.` : ''), { id, duration: 7000 })
+          return
+        }
+        blob.failedImages = failedImgs
+      }
       downloadBlob(blob, filename)
       if (blob.failedImages && blob.failedImages.length) {
         toast.error(`Exported, but ${blob.failedImages.length} skin(s) couldn't load and are blank. Try exporting again.`, { id, duration: 6000 })
       } else {
-        toast.success('Exported! Check your downloads.', { id })
+        toast.success(paid ? `Exported for editing (₹${PRO_EXPORT_PRICE}). Check your downloads.` : 'Exported! Check your downloads.', { id })
       }
     } catch (e) {
       toast.error('Export failed: ' + e.message, { id }); return
@@ -705,7 +724,28 @@ export default function App() {
                 {wallet.user ? (wallet.balance == null ? '…' : `₹${wallet.balance.toLocaleString('en-IN')}`) : 'Log in'}
               </button>
             )}
-            <button style={btnPrimary} onClick={handleExport}><Download size={16} /> Export PNG</button>
+            <div style={{ position: 'relative' }}>
+              <button style={btnPrimary} onClick={() => setExportMenuOpen(o => !o)} aria-haspopup="menu" aria-expanded={exportMenuOpen}>
+                <Download size={16} /> Export
+              </button>
+              {exportMenuOpen && (
+                <>
+                  <div onClick={() => setExportMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />
+                  <div role="menu" style={{ position: 'absolute', right: 0, top: '40px', zIndex: 160, width: '240px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '6px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                    {[
+                      { mode: 'normal', title: 'Export PNG', sub: 'Full quality, free' },
+                      ...(walletEnabled ? [{ mode: 'editor', title: `🔒 Export for editing · ₹${PRO_EXPORT_PRICE}`, sub: 'Editor colours + bigger series tags. Paid from your wallet' }] : []),
+                    ].map(o => (
+                      <button key={o.mode} role="menuitem" onClick={() => { setExportMenuOpen(false); handleExport(o.mode) }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: '8px', padding: '10px 12px', color: C.text, cursor: 'pointer' }}>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: 700 }}>{o.title}</span>
+                        <span style={{ display: 'block', fontSize: '12px', color: C.text3, marginTop: '2px' }}>{o.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
