@@ -119,19 +119,19 @@ function useScrollIntoView() {
 function ModeSelect({ onSelectMode }) {
   return (
     <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <p style={{ color: '#a1a7b3', fontSize: '12px', textAlign: 'center', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Choose selection mode</p>
+      <p style={{ color: '#c7c7cc', fontSize: '12px', textAlign: 'center', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Choose selection mode</p>
       {[
-        { mode: 'hero', icon: '🦸', title: 'Hero', desc: 'Browse skins by hero', color: '#3b82f6' },
-        { mode: 'collection', icon: '💎', title: 'Collection', desc: 'Browse by tier — Legend, Grand, Exquisite and more', color: '#3b82f6' },
+        { mode: 'hero', icon: '🦸', title: 'Hero', desc: 'Browse skins by hero', color: '#ff3d77' },
+        { mode: 'collection', icon: '💎', title: 'Collection', desc: 'Browse by tier — Legend, Grand, Exquisite and more', color: '#ff3d77' },
       ].map(({ mode, icon, title, desc, color }) => (
         <button key={mode} onClick={() => onSelectMode(mode)}
-          style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#1c1f26', border: '1px solid #2a2e37', borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.2s' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = color}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2e37'}>
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#2c2c2e'}>
           <span style={{ fontSize: '32px' }}>{icon}</span>
           <div>
             <p style={{ color: '#fff', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>{title}</p>
-            <p style={{ color: '#a1a7b3', fontSize: '12px', margin: 0 }}>{desc}</p>
+            <p style={{ color: '#c7c7cc', fontSize: '12px', margin: 0 }}>{desc}</p>
           </div>
           <span style={{ marginLeft: 'auto', color, fontSize: '18px' }}>›</span>
         </button>
@@ -226,14 +226,14 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
       {/* Tier tabs */}
-      <div style={{ display:'flex', gap:'6px', padding:'10px 12px', overflowX:'auto', flexShrink:0, borderBottom:'1px solid #23262e' }}>
+      <div style={{ display:'flex', gap:'6px', padding:'10px 12px', overflowX:'auto', flexShrink:0, borderBottom:'1px solid #232326' }}>
         {TIERS.map(tier => {
           const s = TIER_STYLES[tier]||TIER_STYLES['Basic'], isActive = activeTier===tier, count = tierCounts[tier]||0
           return (
             <button key={tier} onClick={() => { setActiveTier(tier); setSearch(''); setCollapsed({}) }}
-              style={{ flexShrink:0, background:isActive?s.bg:'#1c1f26', border:`1px solid ${isActive?s.border:'#2a2e37'}`, borderRadius:'8px', padding:'6px 12px', color:isActive?s.text:'#6b717c', fontSize:'12px', fontWeight:isActive?700:400, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:'5px' }}>
+              style={{ flexShrink:0, background:isActive?s.bg:'#1c1c1e', border:`1px solid ${isActive?s.border:'#2c2c2e'}`, borderRadius:'8px', padding:'6px 12px', color:isActive?s.text:'#8e8e93', fontSize:'12px', fontWeight:isActive?700:400, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:'5px' }}>
               <span>{s.icon}</span><span>{tier}</span>
-              {count>0 && <span style={{ background:isActive?s.border+'33':'#23262e', color:isActive?s.text:'#6b717c', fontSize:'10px', padding:'1px 5px', borderRadius:'4px' }}>{count}</span>}
+              {count>0 && <span style={{ background:isActive?s.border+'33':'#232326', color:isActive?s.text:'#8e8e93', fontSize:'10px', padding:'1px 5px', borderRadius:'4px' }}>{count}</span>}
             </button>
           )
         })}
@@ -243,7 +243,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
       <div style={{ padding:'10px 12px', flexShrink:0 }}>
         <input ref={searchRef} type="text" placeholder={`🔍 Search in ${activeTier}...`} value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width:'100%', background:'#1c1f26', border:'1px solid #2a2e37', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+          style={{ width:'100%', background:'#1c1c1e', border:'1px solid #2c2c2e', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
       </div>
 
       {/* Grouped list */}
@@ -251,10 +251,10 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
         {filtered.length===0 ? (
           <div style={{ textAlign:'center', padding:'40px 20px' }}>
             <p style={{ fontSize:'32px', marginBottom:'12px' }}>{tierCounts[activeTier]?'🔍':'📭'}</p>
-            <p style={{ color:'#a1a7b3', fontSize:'14px', fontWeight:600, marginBottom:'6px' }}>
+            <p style={{ color:'#c7c7cc', fontSize:'14px', fontWeight:600, marginBottom:'6px' }}>
               {search?'No results found':`No ${activeTier} skins yet`}
             </p>
-            <p style={{ color:'#6b717c', fontSize:'12px' }}>
+            <p style={{ color:'#8e8e93', fontSize:'12px' }}>
               {search?'Try a different search term':'Use Admin Panel to assign skins'}
             </p>
           </div>
@@ -263,17 +263,17 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
           return (
             <div key={series} style={{ marginBottom:'16px' }}>
               <button onClick={() => setCollapsed(p => ({ ...p, [series]: !p[series] }))}
-                style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:isOther?'#1c1f26':ts.bg, border:`1px solid ${isOther?'#2a2e37':ts.border+'66'}`, borderRadius:'10px', padding:'8px 12px', marginBottom:isCollapsed?0:'8px', cursor:'pointer' }}>
+                style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:isOther?'#1c1c1e':ts.bg, border:`1px solid ${isOther?'#2c2c2e':ts.border+'66'}`, borderRadius:'10px', padding:'8px 12px', marginBottom:isCollapsed?0:'8px', cursor:'pointer' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                   <span style={{ fontSize:'14px' }}>{isOther?'🎮':ts.icon}</span>
-                  <span style={{ color:isOther?'#8b919c':ts.text, fontSize:'12px', fontWeight:700 }}>
+                  <span style={{ color:isOther?'#aeaeb2':ts.text, fontSize:'12px', fontWeight:700 }}>
                     {isOther?'Other':`${series} Series`}
                   </span>
-                  <span style={{ background:isOther?'#23262e':ts.border+'33', color:isOther?'#6b717c':ts.text, fontSize:'10px', padding:'1px 6px', borderRadius:'4px', fontWeight:600 }}>
+                  <span style={{ background:isOther?'#232326':ts.border+'33', color:isOther?'#8e8e93':ts.text, fontSize:'10px', padding:'1px 6px', borderRadius:'4px', fontWeight:600 }}>
                     {skins.length}
                   </span>
                 </div>
-                <span style={{ color:isOther?'#6b717c':ts.text, fontSize:'14px', transform:isCollapsed?'rotate(-90deg)':'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
+                <span style={{ color:isOther?'#8e8e93':ts.text, fontSize:'14px', transform:isCollapsed?'rotate(-90deg)':'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
               </button>
 
               {!isCollapsed && (
@@ -286,11 +286,11 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
                     const bs = TIER_STYLES[skin.skinTier]||TIER_STYLES_DEFAULT
                     return (
                       <button key={i} onClick={() => toggleSkin(skin, url)}
-                        style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?ts.border:hasImg?'#2a2e37':'#23262e'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1f26', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
+                        style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?ts.border:hasImg?'#2c2c2e':'#232326'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1c1e', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
                         <div style={{ position:'relative', width:'100%' }}>
                           <img src={hasImg?url:PLACEHOLDER} alt={skin.name}
                             crossOrigin="anonymous"
-                            style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1f26' }}
+                            style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1c1e' }}
                             onError={e => { e.target.src=PLACEHOLDER }} />
                           {isSel && (
                             <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:ts.border, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -304,13 +304,13 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
                           )}
                           {!hasImg && (
                             <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                              <span style={{ color:'#6b717c', fontSize:'9px' }}>No Image</span>
+                              <span style={{ color:'#8e8e93', fontSize:'9px' }}>No Image</span>
                             </div>
                           )}
                         </div>
-                        <div style={{ padding:'4px 4px 5px', background:'#1c1f26', borderTop:'1px solid #23262e' }}>
-                          <p style={{ color:'#e6e8ec', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
-                          <p style={{ color:'#6b717c', fontSize:'7px', margin:'1px 0 0', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.heroName}</p>
+                        <div style={{ padding:'4px 4px 5px', background:'#1c1c1e', borderTop:'1px solid #232326' }}>
+                          <p style={{ color:'#ffffff', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
+                          <p style={{ color:'#8e8e93', fontSize:'7px', margin:'1px 0 0', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.heroName}</p>
                         </div>
                       </button>
                     )
@@ -325,7 +325,7 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
   )
 }
 
-export default function HeroPicker({ open, onClose }) {
+export default function HeroPicker({ open, onClose, initialMode = null }) {
   const [isOpen,         setIsOpen]         = useState(false)
   const [mode,           setMode]           = useState(null)
   const [selectedHero,   setSelectedHero]   = useState(null)
@@ -337,7 +337,7 @@ export default function HeroPicker({ open, onClose }) {
   const [isAdding,       setIsAdding]       = useState(false)
   const [keyboardHeight, setKeyboardHeight] = useState(0)
 
-  useEffect(() => { if (open) setIsOpen(true) }, [open])
+  useEffect(() => { if (open) { setIsOpen(true); if (initialMode) setMode(initialMode) } }, [open, initialMode])
 
   const heroSearchRef = useScrollIntoView()
   const vvHeight      = useVisualViewportHeight()
@@ -478,22 +478,22 @@ export default function HeroPicker({ open, onClose }) {
       {isOpen && (
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.7)' }}
           onClick={e => { if (e.target===e.currentTarget) handleClose() }}>
-          <div style={{ width:'100%', maxWidth:'480px', maxHeight:`min(${vvHeight*0.85}px, 85dvh)`, marginBottom:`${keyboardHeight}px`, background:'#16181d', border:'1px solid #2a2e37', borderRadius:'20px 20px 0 0', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 -8px 40px rgba(0,0,0,0.7)', paddingBottom:keyboardHeight>0?'0px':'env(safe-area-inset-bottom, 0px)', transition:'margin-bottom 0.2s ease' }}>
+          <div style={{ width:'100%', maxWidth:'480px', maxHeight:`min(${vvHeight*0.85}px, 85dvh)`, marginBottom:`${keyboardHeight}px`, background:'#111113', border:'1px solid #2c2c2e', borderRadius:'20px 20px 0 0', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 -8px 40px rgba(0,0,0,0.7)', paddingBottom:keyboardHeight>0?'0px':'env(safe-area-inset-bottom, 0px)', transition:'margin-bottom 0.2s ease' }}>
 
             {/* Header */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px 10px', borderBottom:'1px solid #23262e', flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px 10px', borderBottom:'1px solid #232326', flexShrink:0 }}>
               <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                {(mode||selectedHero) && <button onClick={handleBack} style={{ background:'none', border:'none', color:'#3b82f6', fontSize:'20px', cursor:'pointer', padding:'0 4px', lineHeight:1 }}>‹</button>}
+                {(mode||selectedHero) && <button onClick={handleBack} style={{ background:'none', border:'none', color:'#ff3d77', fontSize:'20px', cursor:'pointer', padding:'0 4px', lineHeight:1 }}>‹</button>}
                 <span style={{ color:'#fff', fontSize:'16px', fontWeight:700 }}>{headerTitle()}</span>
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                 {selectedSkins.length>0 && (
                   <button onClick={handleAddToCanvas} disabled={isAdding}
-                    style={{ background:'#3b82f6', border:'none', borderRadius:'8px', padding:'7px 14px', color:'#fff', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity:isAdding?0.6:1 }}>
+                    style={{ background:'#ff3d77', border:'none', borderRadius:'8px', padding:'7px 14px', color:'#fff', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity:isAdding?0.6:1 }}>
                     {isAdding?'Adding…':`Add ${selectedSkins.length}`}
                   </button>
                 )}
-                <button onClick={handleClose} style={{ background:'none', border:'none', color:'#6b717c', fontSize:'20px', cursor:'pointer', lineHeight:1, padding:'2px 4px' }}>✕</button>
+                <button onClick={handleClose} style={{ background:'none', border:'none', color:'#8e8e93', fontSize:'20px', cursor:'pointer', lineHeight:1, padding:'2px 4px' }}>✕</button>
               </div>
             </div>
 
@@ -510,19 +510,19 @@ export default function HeroPicker({ open, onClose }) {
                 <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
                   <div style={{ padding:'10px 12px', flexShrink:0 }}>
                     <input ref={heroSearchRef} type="text" placeholder="🔍 Search hero..." value={search} onChange={e => setSearch(e.target.value)}
-                      style={{ width:'100%', background:'#1c1f26', border:'1px solid #2a2e37', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+                      style={{ width:'100%', background:'#1c1c1e', border:'1px solid #2c2c2e', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
                   </div>
                   <div style={{ flex:1, overflowY:'auto', padding:'0 12px 12px' }}>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'8px' }}>
                       {filteredHeroes.map(hero => (
                         <button key={hero.id} onClick={() => { setSelectedHero(hero); setSearch('') }}
-                          style={{ background:'#1c1f26', border:'1px solid #2a2e37', borderRadius:'12px', overflow:'hidden', cursor:'pointer', padding:0, textAlign:'left', transition:'border-color 0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor='#3b82f6'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor='#2a2e37'}>
+                          style={{ background:'#1c1c1e', border:'1px solid #2c2c2e', borderRadius:'12px', overflow:'hidden', cursor:'pointer', padding:0, textAlign:'left', transition:'border-color 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor='#ff3d77'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor='#2c2c2e'}>
                           <img src={getHeroImage(hero)} alt={hero.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block' }} onError={e => { e.target.src=HERO_PLACEHOLDER }} />
                           <div style={{ padding:'6px 8px' }}>
                             <p style={{ color:'#fff', fontSize:'11px', fontWeight:600, margin:'0 0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{hero.name}</p>
-                            <p style={{ color:'#6b717c', fontSize:'10px', margin:0 }}>{hero.skins.length} skins</p>
+                            <p style={{ color:'#8e8e93', fontSize:'10px', margin:0 }}>{hero.skins.length} skins</p>
                           </div>
                         </button>
                       ))}
@@ -535,7 +535,7 @@ export default function HeroPicker({ open, onClose }) {
                 <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
                   <div style={{ padding:'10px 12px', flexShrink:0 }}>
                     <input type="text" placeholder="🔍 Search skin..." value={search} onChange={e => setSearch(e.target.value)}
-                      style={{ width:'100%', background:'#1c1f26', border:'1px solid #2a2e37', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
+                      style={{ width:'100%', background:'#1c1c1e', border:'1px solid #2c2c2e', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
                   </div>
                   <div style={{ flex:1, overflowY:'auto', padding:'0 10px 12px' }}>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'6px' }}>
@@ -544,18 +544,18 @@ export default function HeroPicker({ open, onClose }) {
                         const isSel=selectedSkins.find(s => s.name===skin.name)
                         return (
                           <button key={i} onClick={() => toggleSkin(skin, url)}
-                            style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?'#3b82f6':hasImg?'#2a2e37':'#23262e'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1f26', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
+                            style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?'#ff3d77':hasImg?'#2c2c2e':'#232326'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1c1e', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
                             <div style={{ position:'relative', width:'100%' }}>
-                              <img src={hasImg?url:PLACEHOLDER} alt={skin.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1f26' }} onError={e => { e.target.src=PLACEHOLDER }} />
+                              <img src={hasImg?url:PLACEHOLDER} alt={skin.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1c1e' }} onError={e => { e.target.src=PLACEHOLDER }} />
                               {isSel && (
-                                <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:'#3b82f6', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:'#ff3d77', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
                                   <span style={{ color:'#fff', fontSize:'9px', fontWeight:800 }}>✓</span>
                                 </div>
                               )}
-                              {!hasImg && <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ color:'#6b717c', fontSize:'9px' }}>No Image</span></div>}
+                              {!hasImg && <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ color:'#8e8e93', fontSize:'9px' }}>No Image</span></div>}
                             </div>
-                            <div style={{ padding:'4px 4px 5px', background:'#1c1f26', borderTop:'1px solid #23262e' }}>
-                              <p style={{ color:'#e6e8ec', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
+                            <div style={{ padding:'4px 4px 5px', background:'#1c1c1e', borderTop:'1px solid #232326' }}>
+                              <p style={{ color:'#ffffff', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
                             </div>
                           </button>
                         )
