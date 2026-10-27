@@ -21,6 +21,35 @@ const TIER_STYLES = {
 const PLACEHOLDER      = 'https://placehold.co/200x300/1a1a2e/6c63ff?text=No+Image'
 const HERO_PLACEHOLDER = 'https://placehold.co/80x80/1a1a2e/6c63ff?text=?'
 
+
+// One skin in the picker: square picture, glow + tick when chosen, names underneath.
+const ACCENT = '#ff3d77'
+const SKIN_GRID = { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(64px, 1fr))', gap:'14px 8px' }
+function SkinTile({ url, title, sub, selected, onClick, badge }) {
+  const hasImg = !!url
+  return (
+    <button onClick={onClick} disabled={!hasImg}
+      style={{ background:'none', border:'none', padding:0, cursor:hasImg?'pointer':'not-allowed', opacity:hasImg?1:0.35, display:'flex', flexDirection:'column', alignItems:'center', minWidth:0 }}>
+      <div style={{ position:'relative', width:'100%', aspectRatio:'1 / 1', borderRadius:'16px', overflow:'hidden',
+        border:`2px solid ${selected?ACCENT:'#2c2c2e'}`,
+        boxShadow: selected ? `0 0 0 1px ${ACCENT}, 0 0 14px ${ACCENT}99` : 'none',
+        transition:'box-shadow 0.15s, border-color 0.15s', background:'#1c1c1e' }}>
+        <img src={hasImg?url:PLACEHOLDER} alt={title} crossOrigin="anonymous" loading="lazy"
+          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
+          onError={e => { e.target.src=PLACEHOLDER }} />
+        {selected && (
+          <div style={{ position:'absolute', top:'4px', right:'4px', width:'20px', height:'20px', background:ACCENT, borderRadius:'50%', display:'grid', placeItems:'center', boxShadow:'0 1px 4px rgba(0,0,0,0.5)' }}>
+            <span style={{ color:'#fff', fontSize:'11px', fontWeight:900, lineHeight:1 }}>✓</span>
+          </div>
+        )}
+        {badge}
+      </div>
+      <p style={{ color:'#fff', fontSize:'11.5px', fontWeight:700, margin:'6px 0 0', width:'100%', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{title}</p>
+      {sub && <p style={{ color:'#8e8e93', fontSize:'10px', margin:'1px 0 0', width:'100%', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{sub}</p>}
+    </button>
+  )
+}
+
 function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
 }
@@ -277,42 +306,21 @@ function CollectionMode({ repoFiles, imageCache, setImageCache, selectedSkins, s
               </button>
 
               {!isCollapsed && (
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'6px' }}>
+                <div style={SKIN_GRID}>
                   {skins.map((skin, i) => {
-                    const url = getSkinImg(skin.heroId, skin.name), hasImg = !!url
+                    const url = getSkinImg(skin.heroId, skin.name)
                     const k = `${skin.heroId}__${skin.name}`
-                    const isSel = selectedSkins.find(s => `${s.heroId}__${s.name}`===k)
+                    const isSel = !!selectedSkins.find(s => `${s.heroId}__${s.name}`===k)
                     const showBadge = skin.skinTier && skin.skinTier!==activeTier
                     const bs = TIER_STYLES[skin.skinTier]||TIER_STYLES_DEFAULT
                     return (
-                      <button key={i} onClick={() => toggleSkin(skin, url)}
-                        style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?ts.border:hasImg?'#2c2c2e':'#232326'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1c1e', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
-                        <div style={{ position:'relative', width:'100%' }}>
-                          <img src={hasImg?url:PLACEHOLDER} alt={skin.name}
-                            crossOrigin="anonymous"
-                            style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1c1e' }}
-                            onError={e => { e.target.src=PLACEHOLDER }} />
-                          {isSel && (
-                            <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:ts.border, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                              <span style={{ color:'#000', fontSize:'9px', fontWeight:800 }}>✓</span>
-                            </div>
-                          )}
-                          {showBadge && (
-                            <div style={{ position:'absolute', top:'3px', left:'3px', background:bs.bg, border:`1px solid ${bs.border}`, borderRadius:'4px', padding:'1px 3px' }}>
-                              <span style={{ color:bs.text, fontSize:'7px', fontWeight:700 }}>{skin.skinTier}</span>
-                            </div>
-                          )}
-                          {!hasImg && (
-                            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                              <span style={{ color:'#8e8e93', fontSize:'9px' }}>No Image</span>
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ padding:'4px 4px 5px', background:'#1c1c1e', borderTop:'1px solid #232326' }}>
-                          <p style={{ color:'#ffffff', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
-                          <p style={{ color:'#8e8e93', fontSize:'7px', margin:'1px 0 0', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.heroName}</p>
-                        </div>
-                      </button>
+                      <SkinTile key={i} url={url} title={skin.heroName} sub={skin.name} selected={isSel}
+                        onClick={() => toggleSkin(skin, url)}
+                        badge={showBadge && (
+                          <div style={{ position:'absolute', bottom:'3px', left:'3px', background:bs.bg, border:`1px solid ${bs.border}`, borderRadius:'4px', padding:'1px 3px' }}>
+                            <span style={{ color:bs.text, fontSize:'7px', fontWeight:700 }}>{skin.skinTier}</span>
+                          </div>
+                        )} />
                     )
                   })}
                 </div>
@@ -455,9 +463,7 @@ export default function HeroPicker({ open, onClose, initialMode = null }) {
 
   addImages(newImages)
   setIsAdding(false)
-  setIsOpen(false)
-  setSelectedHero(null)
-  setSelectedSkins([])
+  handleClose()   // also tells the app the picker closed, so "Add Skins" opens it again
   }
 
   const headerTitle = () => {
@@ -538,27 +544,11 @@ export default function HeroPicker({ open, onClose, initialMode = null }) {
                       style={{ width:'100%', background:'#1c1c1e', border:'1px solid #2c2c2e', borderRadius:'8px', padding:'8px 12px', color:'#fff', fontSize:'13px', outline:'none', boxSizing:'border-box' }} />
                   </div>
                   <div style={{ flex:1, overflowY:'auto', padding:'0 10px 12px' }}>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'6px' }}>
+                    <div style={SKIN_GRID}>
                       {selectedHero.skins.filter(s => fuzzyMatch(s.name, search)).map((skin, i) => {
-                        const url=getSkinImage(selectedHero, skin), hasImg=!!url
-                        const isSel=selectedSkins.find(s => s.name===skin.name)
-                        return (
-                          <button key={i} onClick={() => toggleSkin(skin, url)}
-                            style={{ position:'relative', borderRadius:'10px', overflow:'hidden', border:`2px solid ${isSel?'#ff3d77':hasImg?'#2c2c2e':'#232326'}`, opacity:hasImg?1:0.4, cursor:hasImg?'pointer':'not-allowed', transform:isSel?'scale(0.95)':'scale(1)', transition:'all 0.15s', background:'#1c1c1e', padding:0, textAlign:'center', display:'flex', flexDirection:'column' }}>
-                            <div style={{ position:'relative', width:'100%' }}>
-                              <img src={hasImg?url:PLACEHOLDER} alt={skin.name} crossOrigin="anonymous" style={{ width:'100%', height:'80px', objectFit:'cover', display:'block', background:'#1c1c1e' }} onError={e => { e.target.src=PLACEHOLDER }} />
-                              {isSel && (
-                                <div style={{ position:'absolute', top:'3px', right:'3px', width:'16px', height:'16px', background:'#ff3d77', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                  <span style={{ color:'#fff', fontSize:'9px', fontWeight:800 }}>✓</span>
-                                </div>
-                              )}
-                              {!hasImg && <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ color:'#8e8e93', fontSize:'9px' }}>No Image</span></div>}
-                            </div>
-                            <div style={{ padding:'4px 4px 5px', background:'#1c1c1e', borderTop:'1px solid #232326' }}>
-                              <p style={{ color:'#ffffff', fontSize:'8px', fontWeight:700, margin:0, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{skin.name}</p>
-                            </div>
-                          </button>
-                        )
+                        const url=getSkinImage(selectedHero, skin)
+                        const isSel=!!selectedSkins.find(s => s.name===skin.name)
+                        return <SkinTile key={i} url={url} title={skin.name} selected={isSel} onClick={() => toggleSkin(skin, url)} />
                       })}
                     </div>
                   </div>
