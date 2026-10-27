@@ -10,10 +10,11 @@ import HeroPicker from './components/HeroPicker'
 import AutoCollage from './components/AutoCollage'
 import AdminPanel from './components/AdminPanel'
 import WelcomeScreen, { useWelcome } from './components/WelcomeScreen'
+import HomeGlass from './components/HomeGlass'
 import ProjectsPanel from './components/ProjectsPanel'
 import { Menu, Undo2, Redo2, Trash2, LayoutGrid, Upload, UserPlus, Plus, Sparkles, Download, X, Wallet } from 'lucide-react'
 import WalletPanel from './components/WalletPanel'
-import { useWallet, walletEnabled } from './utils/wallet'
+import { useWallet, walletEnabled, AUTO_COLLAGE_PRICE } from './utils/wallet'
 import { autoSave, loadAutoSave, generateThumbnail } from './utils/projectManager'
 
 const AUTO_HISTORY_KEY   = 'ryuk_autosave_history'
@@ -22,8 +23,8 @@ const AUTO_HISTORY_LIMIT = 10
 // ── Theme + toolbar button styles ────────────────────────────────────────────
 // One calm palette for the whole app: graphite surfaces, one blue accent.
 const C = {
-  bg: '#0f1115', surface: '#16181d', raised: '#1c1f26', border: '#2a2e37', divider: '#23262e',
-  text: '#e6e8ec', text2: '#a1a7b3', text3: '#6b717c', accent: '#3b82f6', danger: '#ef4444',
+  bg: '#000000', surface: '#111113', raised: '#1c1c1e', border: '#2c2c2e', divider: '#232326',
+  text: '#ffffff', text2: '#c7c7cc', text3: '#8e8e93', accent: '#ff3d77', danger: '#ef4444',
 }
 const btnBase = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -44,7 +45,7 @@ function CanvasImage({ img, isSelected, onSelect }) {
   const handleClick = useCallback(() => {
     onSelectRef.current(img.id)
   }, [img.id])
-  const borderColor = isSelected ? '#3b82f6' : null
+  const borderColor = isSelected ? '#ff3d77' : null
 
   // Build crop props only when crop data exists on the image
   const cropProps = (img.cropW && img.cropH) ? {
@@ -138,28 +139,28 @@ function ArrangePanel({ images, onClose, onReorder }) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#16181d', borderRadius: '20px 20px 0 0',
-        border: '1px solid #2a2e37', borderBottom: 'none',
+        background: '#111113', borderRadius: '20px 20px 0 0',
+        border: '1px solid #2c2c2e', borderBottom: 'none',
         width: '100%', maxWidth: '520px',
         maxHeight: '88vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 -4px 16px rgba(0,0,0,0.35)',
       }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: '1px solid #23262e', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: '1px solid #232326', flexShrink: 0 }}>
           <div>
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#e6e8ec' }}>⠿ Arrange Order</p>
-            <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#6b717c' }}>
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>⠿ Arrange Order</p>
+            <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#8e8e93' }}>
               Tap to select · tap another to swap · {order.length} skins
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={handleApply}
-              style={{ background: '#3b82f6', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: 700, padding: '7px 18px', cursor: 'pointer' }}>
+              style={{ background: '#ff3d77', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: 700, padding: '7px 18px', cursor: 'pointer' }}>
               Apply
             </button>
             <button onClick={onClose}
-              style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: '2px 6px' }}>✕</button>
+              style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: '2px 6px' }}>✕</button>
           </div>
         </div>
 
@@ -171,34 +172,34 @@ function ArrangePanel({ images, onClose, onReorder }) {
             placeholder={`Search by name or number (1–${order.length})…`}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#1c1f26', border: '1px solid #2a2e37',
+              background: '#1c1c1e', border: '1px solid #2c2c2e',
               borderRadius: '8px', padding: '8px 12px',
-              color: '#e6e8ec', fontSize: '13px', outline: 'none',
+              color: '#ffffff', fontSize: '13px', outline: 'none',
             }}
           />
         </div>
 
         {/* Selected item info bar */}
         {selectedIdx !== null && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 14px', background: 'rgba(59,130,246,0.08)', borderTop: '1px solid rgba(59,130,246,0.2)', flexShrink: 0 }}>
-            <img src={order[selectedIdx]?.src} alt="" style={{ width: '28px', height: '28px', borderRadius: '5px', objectFit: 'cover', border: '1px solid #2a2e37' }} />
-            <span style={{ flex: 1, fontSize: '12px', color: '#3b82f6', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 14px', background: 'rgba(255,61,119,0.08)', borderTop: '1px solid rgba(255,61,119,0.2)', flexShrink: 0 }}>
+            <img src={order[selectedIdx]?.src} alt="" style={{ width: '28px', height: '28px', borderRadius: '5px', objectFit: 'cover', border: '1px solid #2c2c2e' }} />
+            <span style={{ flex: 1, fontSize: '12px', color: '#ff3d77', fontWeight: 600 }}>
               #{selectedIdx + 1} selected — tap another to swap, or tap it again to cancel
             </span>
             <button
               onClick={() => moveToFirst(selectedIdx)}
-              style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)', borderRadius: '6px', color: '#60a5fa', fontSize: '11px', fontWeight: 700, padding: '4px 8px', cursor: 'pointer' }}>
+              style={{ background: 'rgba(255,61,119,0.2)', border: '1px solid rgba(255,61,119,0.4)', borderRadius: '6px', color: '#ff6b96', fontSize: '11px', fontWeight: 700, padding: '4px 8px', cursor: 'pointer' }}>
               → #1
             </button>
             <button onClick={() => setSelectedIdx(null)}
-              style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '16px', cursor: 'pointer', padding: '2px' }}>✕</button>
+              style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '16px', cursor: 'pointer', padding: '2px' }}>✕</button>
           </div>
         )}
 
         {/* Grid */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '10px 12px 24px' }}>
           {order.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#6b717c', fontSize: '13px', marginTop: '40px' }}>No images on canvas yet.</p>
+            <p style={{ textAlign: 'center', color: '#8e8e93', fontSize: '13px', marginTop: '40px' }}>No images on canvas yet.</p>
           )}
           <div style={{
             display: 'grid',
@@ -209,8 +210,8 @@ function ArrangePanel({ images, onClose, onReorder }) {
               const isSelected = selectedIdx === i
               const isFirst = i === 0
               const isLast  = i === order.length - 1
-              const badgeColor = isFirst ? '#22c55e' : isLast ? '#3b82f6' : '#4b505a'
-              const badgeBg    = isFirst ? 'rgba(34,197,94,0.18)' : isLast ? 'rgba(59,130,246,0.18)' : 'rgba(0,0,0,0.55)'
+              const badgeColor = isFirst ? '#22c55e' : isLast ? '#ff3d77' : '#636366'
+              const badgeBg    = isFirst ? 'rgba(34,197,94,0.18)' : isLast ? 'rgba(255,61,119,0.18)' : 'rgba(0,0,0,0.55)'
               const label      = isFirst ? '1st' : isLast ? 'Last' : `#${i + 1}`
               return (
                 <div
@@ -224,11 +225,11 @@ function ArrangePanel({ images, onClose, onReorder }) {
                     overflow: 'hidden',
                     cursor: 'pointer',
                     border: isSelected
-                      ? '2.5px solid #3b82f6'
-                      : '2px solid #2a2e37',
-                    boxShadow: isSelected ? '0 0 0 3px rgba(59,130,246,0.25)' : 'none',
+                      ? '2.5px solid #ff3d77'
+                      : '2px solid #2c2c2e',
+                    boxShadow: isSelected ? '0 0 0 3px rgba(255,61,119,0.25)' : 'none',
                     transition: 'border 0.12s, box-shadow 0.12s',
-                    background: '#0f1115',
+                    background: '#000000',
                     flexShrink: 0,
                   }}
                 >
@@ -246,7 +247,7 @@ function ArrangePanel({ images, onClose, onReorder }) {
                   {isSelected && (
                     <div style={{
                       position: 'absolute', inset: 0,
-                      background: 'rgba(59,130,246,0.15)',
+                      background: 'rgba(255,61,119,0.15)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       <span style={{ fontSize: '22px' }}>✔</span>
@@ -290,6 +291,7 @@ export default function App() {
   const [arrangeOpen,       setArrangeOpen]        = useState(false)
   const [autoCollageOpen,   setAutoCollageOpen]    = useState(false)
   const [heroPickerOpen,    setHeroPickerOpen]     = useState(false)
+  const [pickerMode,        setPickerMode]         = useState(null)
   const [walletOpen,        setWalletOpen]         = useState(null)    // null = closed, otherwise { reason }
   const wallet = useWallet()
 
@@ -387,7 +389,7 @@ export default function App() {
     import('react-hot-toast').then(({ default: toast }) => {
       toast(`✨ Restored ${saved.images.length} image${saved.images.length !== 1 ? 's' : ''} from your last session`, {
         duration: 3500,
-        style: { background: '#16181d', color: '#e6e8ec', border: '1px solid #2a2e37' },
+        style: { background: '#111113', color: '#ffffff', border: '1px solid #2c2c2e' },
       })
     })
   }, [])
@@ -521,7 +523,22 @@ export default function App() {
   // ────────────────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: C.bg, color: C.text, overflow: 'hidden' }}>
-      <Toaster position="bottom-right" toastOptions={{ style: { background: '#16181d', color: '#e6e8ec', border: '1px solid #2a2e37' } }} />
+      {!images.length && (
+        <HomeGlass
+          onAuto={() => setAutoCollageOpen(true)}
+          onPick={() => { setPickerMode(null); setHeroPickerOpen(true) }}
+          onTier={() => { setPickerMode('collection'); setHeroPickerOpen(true) }}
+          onUpload={() => fileInputRef.current?.click()}
+          onProjects={() => setProjectsOpen(true)}
+          onWallet={walletEnabled ? () => setWalletOpen({}) : null}
+          onMenu={() => setSidebarOpen(true)}
+          onLogo={handleLogoClick}
+          user={wallet.user}
+          balance={wallet.balance}
+          price={walletEnabled ? AUTO_COLLAGE_PRICE : null}
+        />
+      )}
+      <Toaster position="bottom-right" toastOptions={{ style: { background: '#111113', color: '#ffffff', border: '1px solid #2c2c2e' } }} />
 
       {showWelcome  && <WelcomeScreen onDismiss={dismissWelcome} />}
       {adminOpen    && <AdminPanel onClose={() => setAdminOpen(false)} />}
@@ -546,32 +563,32 @@ export default function App() {
       {historyOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={e => { if (e.target === e.currentTarget) closeHistory() }}>
-          <div style={{ background: '#16181d', border: '1px solid #2a2e37', borderRadius: '18px', padding: '28px 24px', width: 'min(94vw,520px)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ background: '#111113', border: '1px solid #2c2c2e', borderRadius: '18px', padding: '28px 24px', width: 'min(94vw,520px)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ color: '#e6e8ec', fontSize: '17px', fontWeight: 700, margin: 0 }}>📁 Export History</h2>
+              <h2 style={{ color: '#ffffff', fontSize: '17px', fontWeight: 700, margin: 0 }}>📁 Export History</h2>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {exportHistory.length > 0 && (
                   <button onClick={() => { if (window.confirm('Clear all export history?')) clearExportHistoryStore() }}
-                    style={{ background: 'none', border: '1px solid #2a2e37', color: '#a1a7b3', fontSize: '12px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer' }}>Clear all</button>
+                    style={{ background: 'none', border: '1px solid #2c2c2e', color: '#c7c7cc', fontSize: '12px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer' }}>Clear all</button>
                 )}
-                <button onClick={closeHistory} style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                <button onClick={closeHistory} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
               </div>
             </div>
             <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {exportHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b717c', fontSize: '14px' }}>
-                  No exports yet. Hit <strong style={{ color: '#3b82f6' }}>Export PNG</strong> to save your first collage.
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#8e8e93', fontSize: '14px' }}>
+                  No exports yet. Hit <strong style={{ color: '#ff3d77' }}>Export PNG</strong> to save your first collage.
                 </div>
               ) : exportHistory.map(entry => (
-                <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#1c1f26', borderRadius: '10px', padding: '10px 12px', border: '1px solid #2a2e37' }}>
-                  <div style={{ width: '54px', height: '36px', borderRadius: '6px', overflow: 'hidden', background: '#0f1115', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#1c1c1e', borderRadius: '10px', padding: '10px 12px', border: '1px solid #2c2c2e' }}>
+                  <div style={{ width: '54px', height: '36px', borderRadius: '6px', overflow: 'hidden', background: '#000000', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {entry.thumbnail ? <img src={entry.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '18px' }}>🖼️</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#e6e8ec', fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.filename}</div>
-                    <div style={{ color: '#6b717c', fontSize: '11px', marginTop: '2px' }}>{new Date(entry.timestamp).toLocaleString()} · {entry.imageCount} image{entry.imageCount !== 1 ? 's' : ''}</div>
+                    <div style={{ color: '#ffffff', fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.filename}</div>
+                    <div style={{ color: '#8e8e93', fontSize: '11px', marginTop: '2px' }}>{new Date(entry.timestamp).toLocaleString()} · {entry.imageCount} image{entry.imageCount !== 1 ? 's' : ''}</div>
                   </div>
-                  <button onClick={() => removeExportHistoryEntry(entry.id)} style={{ background: 'none', border: 'none', color: '#4b505a', fontSize: '16px', cursor: 'pointer', flexShrink: 0, padding: '4px' }} title="Remove">🗑</button>
+                  <button onClick={() => removeExportHistoryEntry(entry.id)} style={{ background: 'none', border: 'none', color: '#636366', fontSize: '16px', cursor: 'pointer', flexShrink: 0, padding: '4px' }} title="Remove">🗑</button>
                 </div>
               ))}
             </div>
@@ -592,17 +609,17 @@ export default function App() {
       {diamondPopupOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={e => { if (e.target === e.currentTarget) setDiamondPopupOpen(false) }}>
-          <div style={{ background: '#16181d', border: '1px solid #2a2e37', borderRadius: '16px', padding: '32px 28px', width: '340px', textAlign: 'center', position: 'relative' }}>
-            <button onClick={() => setDiamondPopupOpen(false)} style={{ position: 'absolute', top: '12px', right: '14px', background: 'none', border: 'none', color: '#a1a7b3', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+          <div style={{ background: '#111113', border: '1px solid #2c2c2e', borderRadius: '16px', padding: '32px 28px', width: '340px', textAlign: 'center', position: 'relative' }}>
+            <button onClick={() => setDiamondPopupOpen(false)} style={{ position: 'absolute', top: '12px', right: '14px', background: 'none', border: 'none', color: '#c7c7cc', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>💎</div>
-            <h2 style={{ color: '#e6e8ec', fontSize: '20px', fontWeight: 700, margin: '0 0 8px' }}>Recharge Diamonds</h2>
-            <p style={{ color: '#a1a7b3', fontSize: '14px', margin: '0 0 24px' }}>Get diamonds to unlock premium collage features.</p>
+            <h2 style={{ color: '#ffffff', fontSize: '20px', fontWeight: 700, margin: '0 0 8px' }}>Recharge Diamonds</h2>
+            <p style={{ color: '#c7c7cc', fontSize: '14px', margin: '0 0 24px' }}>Get diamonds to unlock premium collage features.</p>
             <a href="https://ryukofficial.in" target="_blank" rel="noopener noreferrer"
-              style={{ display: 'block', background: '#3b82f6', color: '#fff', fontWeight: 700, fontSize: '15px', padding: '12px 0', borderRadius: '10px', textDecoration: 'none', marginBottom: '10px' }}>
+              style={{ display: 'block', background: '#ff3d77', color: '#fff', fontWeight: 700, fontSize: '15px', padding: '12px 0', borderRadius: '10px', textDecoration: 'none', marginBottom: '10px' }}>
               Recharge Now →
             </a>
             <button onClick={() => setDiamondPopupOpen(false)}
-              style={{ background: 'none', border: '1px solid #2a2e37', color: '#a1a7b3', fontSize: '13px', padding: '8px 0', width: '100%', borderRadius: '8px', cursor: 'pointer' }}>
+              style={{ background: 'none', border: '1px solid #2c2c2e', color: '#c7c7cc', fontSize: '13px', padding: '8px 0', width: '100%', borderRadius: '8px', cursor: 'pointer' }}>
               Maybe later
             </button>
           </div>
@@ -616,10 +633,10 @@ export default function App() {
       {sidebarOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 180, background: 'rgba(0,0,0,0.45)' }} onClick={() => setSidebarOpen(false)} />}
 
       {/* ── Sidebar ───────────────────────────────────────────────────────── */}
-      <div style={{ position: 'fixed', top: 0, left: sidebarOpen ? 0 : '-260px', width: '240px', height: '100vh', zIndex: 190, background: '#16181d', borderRight: '1px solid #2a2e37', display: 'flex', flexDirection: 'column', transition: 'left 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px 14px', borderBottom: '1px solid #23262e' }}>
+      <div style={{ position: 'fixed', top: 0, left: sidebarOpen ? 0 : '-260px', width: '240px', height: '100vh', zIndex: 190, background: '#111113', borderRight: '1px solid #2c2c2e', display: 'flex', flexDirection: 'column', transition: 'left 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px 14px', borderBottom: '1px solid #232326' }}>
           <span style={{ fontWeight: 700, fontSize: '16px', color: C.text }}>Ryuk Creates</span>
-          <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+          <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '18px', cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
           {[
@@ -630,40 +647,40 @@ export default function App() {
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', borderRadius: '10px', padding: '11px 12px', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#1c1f26'}
+              onMouseEnter={e => e.currentTarget.style.background = '#1c1c1e'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}>
               <span style={{ fontSize: '20px' }}>{item.icon}</span>
               <div>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e6e8ec' }}>{item.label}</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#6b717c' }}>{item.sub}</p>
+                <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{item.label}</p>
+                <p style={{ margin: 0, fontSize: '11px', color: '#8e8e93' }}>{item.sub}</p>
               </div>
             </button>
           ))}
-          <div style={{ height: '1px', background: '#23262e', margin: '6px 4px' }} />
+          <div style={{ height: '1px', background: '#232326', margin: '6px 4px' }} />
           <a href="https://wa.me/+918453899194" target="_blank" rel="noopener noreferrer"
             style={{ display: 'flex', alignItems: 'center', gap: '12px', borderRadius: '10px', padding: '11px 12px', textDecoration: 'none', transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1c1f26'}
+            onMouseEnter={e => e.currentTarget.style.background = '#1c1c1e'}
             onMouseLeave={e => e.currentTarget.style.background = 'none'}>
             <span style={{ fontSize: '20px' }}>💬</span>
             <div>
-              <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e6e8ec' }}>Contact Developer</p>
-              <p style={{ margin: 0, fontSize: '11px', color: '#6b717c' }}>Chat on WhatsApp</p>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>Contact Developer</p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#8e8e93' }}>Chat on WhatsApp</p>
             </div>
           </a>
-          <div style={{ height: '1px', background: '#23262e', margin: '6px 4px' }} />
+          <div style={{ height: '1px', background: '#232326', margin: '6px 4px' }} />
           <a href="https://www.whatsapp.com/channel/0029Vb7BZhZ7oQhVBdxFo73a" target="_blank" rel="noopener noreferrer"
             style={{ display: 'flex', alignItems: 'center', gap: '12px', borderRadius: '10px', padding: '11px 12px', textDecoration: 'none', transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1c1f26'}
+            onMouseEnter={e => e.currentTarget.style.background = '#1c1c1e'}
             onMouseLeave={e => e.currentTarget.style.background = 'none'}>
             <span style={{ fontSize: '20px' }}>🎮</span>
             <div>
-              <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e6e8ec' }}>Buy MLBB Accounts</p>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>Buy MLBB Accounts</p>
               <p style={{ margin: 0, fontSize: '11px', color: '#25D366' }}>Browse on WhatsApp Channel</p>
             </div>
           </a>
         </div>
-        <div style={{ padding: '14px 18px', borderTop: '1px solid #23262e' }}>
-          <p style={{ margin: 0, fontSize: '11px', color: '#2a2e37', textAlign: 'center' }}>Ryuk Creates © 2025</p>
+        <div style={{ padding: '14px 18px', borderTop: '1px solid #232326' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: '#2c2c2e', textAlign: 'center' }}>Ryuk Creates © 2025</p>
         </div>
       </div>
 
@@ -694,18 +711,13 @@ export default function App() {
 
         {/* Row 2: everything for building the collage (wraps onto a second line on small phones) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px 10px', flexWrap: 'wrap' }}>
-          <button style={btnGhost} onClick={() => setHeroPickerOpen(true)}>
-            <Plus size={16} /> {images.length ? 'Add Skins' : 'Create'}
-          </button>
-          <HeroPicker open={heroPickerOpen} onClose={() => setHeroPickerOpen(false)} />
-          <button style={btnGhost} onClick={() => setAutoCollageOpen(true)}><Sparkles size={15} /> Auto</button>
-
-          {/* Upload */}
-          <label style={btnGhost}>
-            <Upload size={15} /> Upload
-            <input ref={fileInputRef} type="file" multiple accept="image/*" style={{ display: 'none' }}
-              onChange={e => { if (e.target.files?.length) { handleFiles(e.target.files); e.target.value = '' } }} />
-          </label>
+          <HeroPicker open={heroPickerOpen} initialMode={pickerMode} onClose={() => { setHeroPickerOpen(false); setPickerMode(null) }} />
+          {/* Add / Auto / Upload live on the home screen while the canvas is empty */}
+          {images.length > 0 && (<>
+            <button style={btnGhost} onClick={() => setHeroPickerOpen(true)}><Plus size={16} /> Add Skins</button>
+            <button style={btnGhost} onClick={() => setAutoCollageOpen(true)}><Sparkles size={15} /> Auto</button>
+            <button style={btnGhost} onClick={() => fileInputRef.current?.click()}><Upload size={15} /> Upload</button>
+          </>)}
 
           {/* Profile */}
           {!profileImage ? (
@@ -721,16 +733,15 @@ export default function App() {
           )}
 
           {/* Arrange */}
-          <button
-            style={images.length ? btnArrangeOn : { ...btnGhost, opacity: 0.4, cursor: 'not-allowed' }}
-            onClick={handleOpenArrange}
-          >
-            <LayoutGrid size={15} /> Arrange
-          </button>
+          {images.length > 0 && (
+            <button style={btnArrangeOn} onClick={handleOpenArrange}>
+              <LayoutGrid size={15} /> Arrange
+            </button>
+          )}
 
           <button style={btnIcon} onClick={undo} aria-label="Undo" title="Undo"><Undo2 size={16} /></button>
           <button style={btnIcon} onClick={redo} aria-label="Redo" title="Redo"><Redo2 size={16} /></button>
-          <button style={{ ...btnIcon, color: C.danger }} onClick={clearAll} aria-label="Clear canvas" title="Clear canvas"><Trash2 size={16} /></button>
+          {images.length > 0 && <button style={{ ...btnIcon, color: C.danger }} onClick={clearAll} aria-label="Clear canvas" title="Clear canvas"><Trash2 size={16} /></button>}
         </div>
       </header>
 
@@ -741,29 +752,19 @@ export default function App() {
         onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
 
         {isDragging && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,130,246,0.1)', border: '2px dashed #3b82f6' }}>
-            <p style={{ color: '#3b82f6', fontSize: '20px', fontWeight: 600 }}>Drop images here</p>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,61,119,0.1)', border: '2px dashed #ff3d77' }}>
+            <p style={{ color: '#ff3d77', fontSize: '20px', fontWeight: 600 }}>Drop images here</p>
           </div>
         )}
 
-        {/* Empty state */}
-        {!images.length && !isDragging && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px', pointerEvents: 'none' }}>
-            <div style={{ width: '72px', height: '72px', borderRadius: '20px', background: C.raised, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>🎨</div>
-            <p style={{ color: '#e6e8ec', fontSize: '17px', fontWeight: 700, opacity: 0.4, margin: 0 }}>Your canvas is empty</p>
-            <p style={{ color: '#6b717c', fontSize: '12px', margin: 0, textAlign: 'center', lineHeight: 1.6, maxWidth: '220px' }}>
-              Tap <span style={{ color: '#3b82f6', fontWeight: 600 }}>+ Create</span> to add skins, or <span style={{ color: '#3b82f6', fontWeight: 600 }}>Upload</span> your own images
-            </p>
-          </div>
-        )}
 
         {/* Selection toolbar */}
         {hasSelection && (
-          <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px', background: '#16181d', border: '1px solid #2a2e37', borderRadius: '10px', padding: '6px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
-            <span style={{ fontSize: '12px', color: '#a1a7b3' }}>{selectedIds.length} selected</span>
-            <div style={{ width: '1px', height: '16px', background: '#2a2e37' }} />
+          <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px', background: '#111113', border: '1px solid #2c2c2e', borderRadius: '10px', padding: '6px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '12px', color: '#c7c7cc' }}>{selectedIds.length} selected</span>
+            <div style={{ width: '1px', height: '16px', background: '#2c2c2e' }} />
             <button onClick={removeSelected} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171', fontSize: '13px', fontWeight: 600, padding: '4px 10px', borderRadius: '7px', cursor: 'pointer' }}>🗑 Delete</button>
-            <button onClick={clearSelection} style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '16px', cursor: 'pointer', lineHeight: 1, padding: '2px 4px' }}>✕</button>
+            <button onClick={clearSelection} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '16px', cursor: 'pointer', lineHeight: 1, padding: '2px 4px' }}>✕</button>
           </div>
         )}
 
