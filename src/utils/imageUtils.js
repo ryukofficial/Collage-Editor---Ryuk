@@ -131,7 +131,7 @@ async function mapWithConcurrency(items, limit, iteratee) {
 }
 
 export async function exportCollage(images, backgroundColor, profileImageSrc = null, options = {}) {
-  const { onProgress, onImageError, concurrency = 6 } = options
+  const { onProgress, onImageError, concurrency = 6, maxCell = 0 } = options
   if (!images.length) return null
 
   const cols = Math.ceil(Math.sqrt(images.length))
@@ -147,12 +147,14 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
 
   if (profEl) {
     collageW = profEl.naturalWidth
+    if (maxCell && collageW / cols > maxCell) collageW = maxCell * cols
     cellSize = Math.floor(collageW / cols)
     collageW = cols * cellSize
     bannerH  = Math.round(profEl.naturalHeight * (collageW / profEl.naturalWidth))
   } else {
     const maxDim = images.reduce((m, i) => Math.max(m, i.naturalWidth, i.naturalHeight), 0)
     cellSize = maxDim || 300
+    if (maxCell && cellSize > maxCell) cellSize = maxCell
     collageW = cols * cellSize
   }
 
@@ -226,6 +228,8 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   // Attach failure info to the blob so callers can surface it without
   // changing the function's return type (still just a Blob).
   blob.failedImages = failed
+  // where each cell is, for "Export for editing" (skins carry a series tag)
+  blob.layout = { width: collageW, height: totalH, bannerH, cols, rows, cellSize, skins: images.map(im => !!(im.cropW && im.cropH)) }
   return blob
 }
 

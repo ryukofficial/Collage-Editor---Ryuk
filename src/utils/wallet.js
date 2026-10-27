@@ -108,7 +108,7 @@ export async function refreshWallet() {
 // ── Friendly error messages ──────────────────────────────────────────────────
 const MESSAGES = {
   not_logged_in:        'Please log in first.',
-  insufficient_balance: `Not enough balance. Auto Collage costs ₹${AUTO_COLLAGE_PRICE} — add money to your wallet.`,
+  insufficient_balance: 'Not enough balance in your wallet. Add money to continue.',
   too_many_scans:       'Too many scans in the last hour. Please try again later.',
   invalid_request:      'Something in the request was not valid. Please try again.',
   scan_closed:          'This scan has ended. Please start a new scan.',
@@ -123,6 +123,10 @@ const MESSAGES = {
   not_configured:       'This feature is not switched on yet.',
   no_such_user:         'No account with that phone number.',
   server_error:         'Something went wrong on the server. Please try again.',
+  too_many_exports:     'Too many exports in the last hour. Please try again later.',
+  export_closed:        'This export has ended. Please export again.',
+  export_used_up:       'This export is already complete.',
+  unknown_export:       'This export could not be found. Please export again.',
 }
 export function walletError(err) {
   const msg = `${err?.code || ''} ${err?.message || (typeof err === 'string' ? err : '')}`
@@ -210,6 +214,33 @@ export async function scanPage(scanId, blob, signal) {
 }
 export async function finishScan(scanId) {
   const out = await api('scan-finish', { json: { scan_id: scanId } })
+  if (out.balance != null) setState({ balance: out.balance })
+  return out
+}
+
+// ── Paid "Export for editing" (₹50) ─────────────────────────────────────────
+export async function proExportStart(pieces) {
+  const out = await api('pro-export-start', { json: { pieces } })
+  setState({ balance: out.balance })
+  return out.export_id
+}
+export async function proExportPiece(exportId, blob, cells) {
+  const token = await accessToken()
+  const r = await fetch('/api/pro-export-piece', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'image/png', 'X-Export-Id': exportId, 'X-Cells': JSON.stringify(cells) },
+    body: blob,
+  })
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}))
+    const e = new Error(data?.error || `http_${r.status}`)
+    e.code = data?.error || (r.status === 413 ? 'too_large' : 'server_error')
+    throw e
+  }
+  return r.blob()
+}
+export async function proExportFinish(exportId, failed) {
+  const out = await api('pro-export-finish', { json: { export_id: exportId, failed } })
   if (out.balance != null) setState({ balance: out.balance })
   return out
 }
