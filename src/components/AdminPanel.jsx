@@ -14,11 +14,15 @@ const TIER_COLORS = {
   '':          { bg: '#12121a', border: '#252535', text: '#555' },
 }
 
+// Starts from the tiers already published in skins.json, then applies any
+// unpublished changes saved on this device.
 function loadSaved() {
+  const base = {}
+  for (const hero of skinsData) for (const skin of hero.skins) if (skin.tier) base[`${hero.id}__${skin.name}`] = skin.tier
   try {
     const raw = localStorage.getItem('mlbb_tiers')
-    return raw ? JSON.parse(raw) : {}
-  } catch { return {} }
+    return { ...base, ...(raw ? JSON.parse(raw) : {}) }
+  } catch { return base }
 }
 
 export default function AdminPanel({ onClose }) {
@@ -117,7 +121,9 @@ export default function AdminPanel({ onClose }) {
     try {
       const tiers = {}
       for (const hero of skinsData) for (const skin of hero.skins) {
-        tiers[`${hero.id}__${skin.name}`] = assignments[`${hero.id}__${skin.name}`] || ''
+        const k = `${hero.id}__${skin.name}`
+        // keep the tier already in skins.json unless you changed it here
+        tiers[k] = Object.prototype.hasOwnProperty.call(assignments, k) ? assignments[k] : (skin.tier || '')
       }
       await adminSaveTiers(tiers)
       setPublishStatus('success')
