@@ -38,6 +38,10 @@ export default handler(['POST'], async (req, res) => {
       return Object.prototype.hasOwnProperty.call(tiers, k) ? { ...skin, tier: tiers[k] } : skin
     }),
   }))
+  // safety net: never let one publish wipe out most of the tiers
+  const count = list => list.reduce((n, h) => n + (h.skins || []).filter(s => s.tier).length, 0)
+  const before = count(heroes), after = count(updated)
+  if (before > 20 && after < before * 0.5) throw httpError(400, 'too_many_cleared')
   const put = await gh('PUT', {
     message: 'Update skin tiers from admin panel',
     content: Buffer.from(JSON.stringify(updated, null, 2)).toString('base64'),
