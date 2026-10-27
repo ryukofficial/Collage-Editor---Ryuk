@@ -145,31 +145,31 @@ export default function AdminPanel({ onClose }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 500,
-      background: '#0f1115', display: 'flex', flexDirection: 'column',
+      background: '#000000', display: 'flex', flexDirection: 'column',
       fontFamily: "'DM Sans', sans-serif",
     }}>
 
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px', borderBottom: '1px solid #2a2e37',
-        background: '#0f1115', flexShrink: 0, gap: '10px',
+        padding: '12px 16px', borderBottom: '1px solid #2c2c2e',
+        background: '#000000', flexShrink: 0, gap: '10px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '18px' }}>⚙️</span>
           <div>
             <h1 style={{ color: '#fff', fontSize: '16px', fontWeight: 700, margin: 0 }}>Admin Panel</h1>
-            <p style={{ color: '#6b717c', fontSize: '11px', margin: 0 }}>{allSkins.length} skins total</p>
+            <p style={{ color: '#8e8e93', fontSize: '11px', margin: 0 }}>{allSkins.length} skins total</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             onClick={() => { setBulkMode(b => !b); clearSelection() }}
             style={{
-              background: bulkMode ? '#1c1f26' : '#1c1f26',
-              border: `1px solid ${bulkMode ? '#3b82f6' : '#2a2e37'}`,
+              background: bulkMode ? '#1c1c1e' : '#1c1c1e',
+              border: `1px solid ${bulkMode ? '#ff3d77' : '#2c2c2e'}`,
               borderRadius: '8px', padding: '7px 12px',
-              color: bulkMode ? '#3b82f6' : '#a1a7b3',
+              color: bulkMode ? '#ff3d77' : '#c7c7cc',
               fontWeight: 700, fontSize: '12px', cursor: 'pointer',
             }}
           >
@@ -180,10 +180,10 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={handleExport}
             style={{
-              background: saved ? '#065f46' : '#1c1f26',
-              border: `1px solid ${saved ? '#34d399' : '#2a2e37'}`,
+              background: saved ? '#065f46' : '#1c1c1e',
+              border: `1px solid ${saved ? '#34d399' : '#2c2c2e'}`,
               borderRadius: '8px', padding: '7px 14px',
-              color: saved ? '#34d399' : '#a1a7b3',
+              color: saved ? '#34d399' : '#c7c7cc',
               fontWeight: 700, fontSize: '12px', cursor: 'pointer',
             }}
           >
@@ -197,7 +197,7 @@ export default function AdminPanel({ onClose }) {
             style={{
               background: publishStatus === 'success' ? '#065f46'
                 : publishStatus === 'error' ? '#3a0a0a'
-                : '#3b82f6',
+                : '#ff3d77',
               border: `1px solid ${publishStatus === 'success' ? '#34d399' : publishStatus === 'error' ? '#ef4444' : 'transparent'}`,
               borderRadius: '8px', padding: '7px 14px',
               color: '#fff', fontWeight: 700, fontSize: '12px',
@@ -214,8 +214,8 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={onClose}
             style={{
-              background: '#1c1f26', border: '1px solid #2a2e37', borderRadius: '8px',
-              padding: '7px 12px', color: '#a1a7b3', fontSize: '12px', cursor: 'pointer',
+              background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '8px',
+              padding: '7px 12px', color: '#c7c7cc', fontSize: '12px', cursor: 'pointer',
             }}
           >✕</button>
         </div>
@@ -224,7 +224,7 @@ export default function AdminPanel({ onClose }) {
       {/* Stats / tier filter bar */}
       <div style={{
         display: 'flex', gap: '6px', padding: '8px 16px', flexShrink: 0,
-        borderBottom: '1px solid #1c1f26', overflowX: 'auto',
+        borderBottom: '1px solid #1c1c1e', overflowX: 'auto',
       }}>
         {[{ label: 'All', key: 'All' }, ...TIERS.map(t => ({ label: t, key: t })), { label: 'Unassigned', key: 'Unassigned' }].map(({ label, key }) => {
           const c = TIER_COLORS[key === 'All' || key === 'Unassigned' ? '' : key]
@@ -235,10 +235,10 @@ export default function AdminPanel({ onClose }) {
               onClick={() => setFilterTier(isActive ? 'All' : key)}
               style={{
                 flexShrink: 0,
-                background: isActive ? (c?.bg || '#1c1f26') : '#1c1f26',
-                border: `1px solid ${isActive ? (c?.border || '#3b82f6') : '#2a2e37'}`,
+                background: isActive ? (c?.bg || '#1c1c1e') : '#1c1c1e',
+                border: `1px solid ${isActive ? (c?.border || '#ff3d77') : '#2c2c2e'}`,
                 borderRadius: '7px', padding: '4px 10px',
-                color: isActive ? (c?.text || '#3b82f6') : '#6b717c',
+                color: isActive ? (c?.text || '#ff3d77') : '#8e8e93',
                 fontSize: '11px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
             >
@@ -251,21 +251,21 @@ export default function AdminPanel({ onClose }) {
       {/* Search + hero filter */}
       <div style={{
         display: 'flex', gap: '8px', padding: '8px 16px',
-        flexShrink: 0, borderBottom: '1px solid #1c1f26',
+        flexShrink: 0, borderBottom: '1px solid #1c1c1e',
       }}>
         <input
           type="text" placeholder="🔍 Search hero or skin..."
           value={search} onChange={e => setSearch(e.target.value)}
           style={{
-            flex: 1, background: '#1c1f26', border: '1px solid #2a2e37',
+            flex: 1, background: '#1c1c1e', border: '1px solid #2c2c2e',
             borderRadius: '8px', padding: '7px 12px', color: '#fff',
             fontSize: '13px', outline: 'none',
           }}
         />
         <select value={filterHero} onChange={e => setFilterHero(e.target.value)}
           style={{
-            background: '#1c1f26', border: '1px solid #2a2e37', borderRadius: '8px',
-            padding: '7px 10px', color: filterHero ? '#fff' : '#6b717c',
+            background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '8px',
+            padding: '7px 10px', color: filterHero ? '#fff' : '#8e8e93',
             fontSize: '12px', outline: 'none', minWidth: '120px',
           }}
         >
@@ -277,28 +277,28 @@ export default function AdminPanel({ onClose }) {
       {/* Bulk mode toolbar */}
       {bulkMode && (
         <div style={{
-          padding: '8px 16px', background: '#0f1115',
-          borderBottom: '1px solid #2a2e37', flexShrink: 0,
+          padding: '8px 16px', background: '#000000',
+          borderBottom: '1px solid #2c2c2e', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ color: '#a1a7b3', fontSize: '12px' }}>
+            <span style={{ color: '#c7c7cc', fontSize: '12px' }}>
               {selected.size > 0 ? `${selected.size} selected` : 'Tap checkbox to select'}
             </span>
             <button onClick={selectAll} style={{
-              background: 'none', border: '1px solid #2a2e37', borderRadius: '6px',
+              background: 'none', border: '1px solid #2c2c2e', borderRadius: '6px',
               padding: '3px 8px', color: '#aaa', fontSize: '11px', cursor: 'pointer',
             }}>Select all ({filtered.length})</button>
             {selected.size > 0 && (
               <button onClick={clearSelection} style={{
-                background: 'none', border: '1px solid #2a2e37', borderRadius: '6px',
-                padding: '3px 8px', color: '#a1a7b3', fontSize: '11px', cursor: 'pointer',
+                background: 'none', border: '1px solid #2c2c2e', borderRadius: '6px',
+                padding: '3px 8px', color: '#c7c7cc', fontSize: '11px', cursor: 'pointer',
               }}>Clear</button>
             )}
           </div>
 
           {selected.size > 0 && (
             <div>
-              <p style={{ color: '#6b717c', fontSize: '11px', margin: '0 0 6px' }}>Assign {selected.size} skin{selected.size > 1 ? 's' : ''} to:</p>
+              <p style={{ color: '#8e8e93', fontSize: '11px', margin: '0 0 6px' }}>Assign {selected.size} skin{selected.size > 1 ? 's' : ''} to:</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {TIERS.map(tier => {
                   const tc = TIER_COLORS[tier]
@@ -314,9 +314,9 @@ export default function AdminPanel({ onClose }) {
                   )
                 })}
                 <button onClick={() => bulkAssign('')} style={{
-                  background: '#1a1a1a', border: '1px solid #2a2e37',
+                  background: '#1a1a1a', border: '1px solid #2c2c2e',
                   borderRadius: '8px', padding: '6px 14px',
-                  color: '#6b717c', fontSize: '12px', cursor: 'pointer',
+                  color: '#8e8e93', fontSize: '12px', cursor: 'pointer',
                 }}>
                   Clear tier
                 </button>
@@ -328,7 +328,7 @@ export default function AdminPanel({ onClose }) {
 
       {/* Count row */}
       <div style={{ padding: '5px 16px', flexShrink: 0 }}>
-        <span style={{ color: '#6b717c', fontSize: '11px' }}>
+        <span style={{ color: '#8e8e93', fontSize: '11px' }}>
           Showing {filtered.length} skin{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -346,8 +346,8 @@ export default function AdminPanel({ onClose }) {
               <div key={key}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  background: isSelected ? '#1c1f26' : '#0f1115',
-                  border: `1px solid ${isSelected ? '#3b82f6' : currentTier ? colors.border + '55' : '#1c1f26'}`,
+                  background: isSelected ? '#1c1c1e' : '#000000',
+                  border: `1px solid ${isSelected ? '#ff3d77' : currentTier ? colors.border + '55' : '#1c1c1e'}`,
                   borderRadius: '10px', padding: '10px 12px',
                   transition: 'all 0.15s',
                   cursor: 'default',
@@ -363,8 +363,8 @@ export default function AdminPanel({ onClose }) {
                     }}
                     style={{
                       width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                      border: `2px solid ${isSelected ? '#3b82f6' : '#6b717c'}`,
-                      background: isSelected ? '#3b82f6' : 'transparent',
+                      border: `2px solid ${isSelected ? '#ff3d77' : '#8e8e93'}`,
+                      background: isSelected ? '#ff3d77' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer',
                     }}
@@ -378,7 +378,7 @@ export default function AdminPanel({ onClose }) {
                   <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {skinName}
                   </p>
-                  <p style={{ color: '#6b717c', fontSize: '11px', margin: 0 }}>{heroName}</p>
+                  <p style={{ color: '#8e8e93', fontSize: '11px', margin: 0 }}>{heroName}</p>
                 </div>
 
                 {/* Current tier badge */}
@@ -403,14 +403,14 @@ export default function AdminPanel({ onClose }) {
                           onClick={() => setTier(heroId, skinName, isActive ? '' : tier)}
                           style={{
                             background: isActive ? tc.bg : 'transparent',
-                            border: `1px solid ${isActive ? tc.border : '#2a2e37'}`,
-                            color: isActive ? tc.text : '#6b717c',
+                            border: `1px solid ${isActive ? tc.border : '#2c2c2e'}`,
+                            color: isActive ? tc.text : '#8e8e93',
                             fontSize: '10px', fontWeight: isActive ? 700 : 400,
                             padding: '3px 7px', borderRadius: '6px',
                             cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
                           }}
                           onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = tc.border; e.currentTarget.style.color = tc.text } }}
-                          onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = '#2a2e37'; e.currentTarget.style.color = '#6b717c' } }}
+                          onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = '#2c2c2e'; e.currentTarget.style.color = '#8e8e93' } }}
                         >
                           {tier}
                         </button>

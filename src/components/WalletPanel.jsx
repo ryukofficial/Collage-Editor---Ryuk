@@ -9,8 +9,8 @@ import {
 
 // ── Look (same palette as the rest of the app) ───────────────────────────────
 const C = {
-  bg: '#0f1115', surface: '#16181d', raised: '#1c1f26', border: '#2a2e37', divider: '#23262e',
-  text: '#e6e8ec', text2: '#a1a7b3', text3: '#6b717c', accent: '#3b82f6',
+  bg: '#000000', surface: '#111113', raised: '#1c1c1e', border: '#2c2c2e', divider: '#232326',
+  text: '#ffffff', text2: '#c7c7cc', text3: '#8e8e93', accent: '#ff3d77',
   green: '#22c55e', amber: '#f59e0b', red: '#f87171',
 }
 const input = {

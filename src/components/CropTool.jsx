@@ -138,7 +138,7 @@ export default function CropTool() {
           display: 'flex',
           flexDirection: 'column',
           fontFamily: 'DM Sans, sans-serif',
-          color: '#e6e8ec',
+          color: '#ffffff',
         }}>
           {/* Top bar */}
           <div style={{
@@ -146,8 +146,8 @@ export default function CropTool() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '12px 16px',
-            borderBottom: '1px solid #2a2e37',
-            background: '#16181d',
+            borderBottom: '1px solid #2c2c2e',
+            background: '#111113',
             shrink: 0,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -155,7 +155,7 @@ export default function CropTool() {
                 Crop Skins
               </span>
               {status === 'loaded' && (
-                <span style={{ fontSize: '12px', color: '#3b82f6' }}>
+                <span style={{ fontSize: '12px', color: '#ff3d77' }}>
                   Tap each skin to crop it
                 </span>
               )}
@@ -166,7 +166,7 @@ export default function CropTool() {
                 <>
                   {/* Crop size slider */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '11px', color: '#6b717c' }}>Size</span>
+                    <span style={{ fontSize: '11px', color: '#8e8e93' }}>Size</span>
                     <input
                       type="range"
                       min={Math.floor(imgNaturalW * 0.08)}
@@ -175,7 +175,7 @@ export default function CropTool() {
                       onChange={e => setCropSize(Number(e.target.value))}
                       style={{ width: '80px' }}
                     />
-                    <span style={{ fontSize: '11px', color: '#6b717c', minWidth: '36px' }}>
+                    <span style={{ fontSize: '11px', color: '#8e8e93', minWidth: '36px' }}>
                       {cropSize}px
                     </span>
                   </div>
@@ -193,7 +193,7 @@ export default function CropTool() {
                 onClick={() => { setShowPanel(false); reset() }}
                 style={{
                   background: 'none', border: 'none',
-                  color: '#6b717c', cursor: 'pointer',
+                  color: '#8e8e93', cursor: 'pointer',
                   fontSize: '20px', lineHeight: 1, padding: '0 4px',
                 }}
               >
@@ -219,7 +219,7 @@ export default function CropTool() {
             >
               {status === 'idle' && (
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ color: '#6b717c', marginBottom: '16px', fontSize: '14px' }}>
+                  <p style={{ color: '#8e8e93', marginBottom: '16px', fontSize: '14px' }}>
                     Upload your ML shop screenshot
                   </p>
                   <input
@@ -265,9 +265,9 @@ export default function CropTool() {
                       top: preview.y,
                       width: preview.size,
                       height: preview.size,
-                      border: '2px solid #3b82f6',
+                      border: '2px solid #ff3d77',
                       borderRadius: '4px',
-                      background: 'rgba(59,130,246,0.1)',
+                      background: 'rgba(255,61,119,0.1)',
                       pointerEvents: 'none',
                       boxSizing: 'border-box',
                     }} />
@@ -284,7 +284,7 @@ export default function CropTool() {
                         width: 20,
                         height: 20,
                         borderRadius: '50%',
-                        background: '#3b82f6',
+                        background: '#ff3d77',
                         border: '2px solid #fff',
                         display: 'flex',
                         alignItems: 'center',
@@ -307,8 +307,8 @@ export default function CropTool() {
             {crops.length > 0 && (
               <div style={{
                 width: '160px',
-                borderLeft: '1px solid #2a2e37',
-                background: '#1c1f26',
+                borderLeft: '1px solid #2c2c2e',
+                background: '#1c1c1e',
                 overflowY: 'auto',
                 padding: '10px',
                 display: 'flex',
@@ -316,7 +316,7 @@ export default function CropTool() {
                 gap: '8px',
                 flexShrink: 0,
               }}>
-                <p style={{ fontSize: '11px', color: '#6b717c', margin: '0 0 4px' }}>
+                <p style={{ fontSize: '11px', color: '#8e8e93', margin: '0 0 4px' }}>
                   {crops.length} crop{crops.length > 1 ? 's' : ''}
                 </p>
                 {crops.map((c, i) => (
@@ -329,7 +329,7 @@ export default function CropTool() {
                         aspectRatio: '1',
                         objectFit: 'cover',
                         borderRadius: '6px',
-                        border: '1px solid #2a2e37',
+                        border: '1px solid #2c2c2e',
                         display: 'block',
                         cursor: 'pointer',
                       }}

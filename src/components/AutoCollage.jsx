@@ -175,7 +175,7 @@ function scanErrorMessage(err) {
 
 // ── Small pieces ─────────────────────────────────────────────────────────────
 
-const ACCENT = { sure: '#22c55e', maybe: '#f59e0b', pick: '#3b82f6' }
+const ACCENT = { sure: '#22c55e', maybe: '#f59e0b', pick: '#ff3d77' }
 
 function Art({ url }) {
   const [broken, setBroken] = useState(false)
@@ -192,7 +192,7 @@ function Art({ url }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      textAlign: 'center', padding: '4px', color: '#4b505a', fontSize: '10px', fontWeight: 700,
+      textAlign: 'center', padding: '4px', color: '#636366', fontSize: '10px', fontWeight: 700,
     }}>
       {url === undefined ? '…' : 'No image'}
     </div>
@@ -207,11 +207,11 @@ function SkinCard({ rec, url, on, tone, onToggle }) {
       title={`${rec.heroName} — ${rec.skinName}`}
       style={{
         padding: 0, textAlign: 'left', cursor: 'pointer', borderRadius: '9px', overflow: 'hidden',
-        background: '#0f1115', border: `2px solid ${on ? accent : '#2a2e37'}`,
+        background: '#000000', border: `2px solid ${on ? accent : '#2c2c2e'}`,
         opacity: on ? 1 : 0.55, transition: 'opacity 0.12s, border-color 0.12s',
       }}
     >
-      <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', background: '#1c1f26' }}>
+      <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', background: '#1c1c1e' }}>
         <Art url={url} />
         {on && (
           <span style={{
@@ -222,8 +222,8 @@ function SkinCard({ rec, url, on, tone, onToggle }) {
         )}
       </div>
       <div style={{ padding: '4px 5px 5px' }}>
-        <p style={{ margin: 0, fontSize: '10px', color: '#60a5fa', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.heroName}</p>
-        <p style={{ margin: 0, fontSize: '9px', color: '#8b919c', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.skinName}</p>
+        <p style={{ margin: 0, fontSize: '10px', color: '#ff6b96', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.heroName}</p>
+        <p style={{ margin: 0, fontSize: '9px', color: '#aeaeb2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.skinName}</p>
       </div>
     </button>
   )
@@ -231,7 +231,7 @@ function SkinCard({ rec, url, on, tone, onToggle }) {
 
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: '8px', marginBottom: '18px' }
 const sectionTitle = (color) => ({ margin: '0 0 3px', fontSize: '12px', fontWeight: 700, color })
-const sectionHint  = { margin: '0 0 8px', fontSize: '11px', color: '#6b717c' }
+const sectionHint  = { margin: '0 0 8px', fontSize: '11px', color: '#8e8e93' }
 const errorBox = { marginBottom: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px 14px' }
 
 // Full-screen view of one screenshot with a box around every skin name the scan
@@ -243,14 +243,14 @@ function ShotViewer({ url, shot, picked, thumbs, title, onClose, onPrev, onNext 
     ...shot.sure.map(m => ({ ...m, tone: 'sure' })),
     ...shot.maybe.map(m => ({ ...m, tone: 'maybe' })),
   ].filter(m => m.box)
-  const navBtn = { background: 'rgba(255,255,255,0.08)', border: '1px solid #2a2e37', borderRadius: '10px', color: '#e6e8ec', fontSize: '13px', fontWeight: 600, padding: '9px 14px', cursor: 'pointer' }
+  const navBtn = { background: 'rgba(255,255,255,0.08)', border: '1px solid #2c2c2e', borderRadius: '10px', color: '#ffffff', fontSize: '13px', fontWeight: 600, padding: '9px 14px', cursor: 'pointer' }
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: '#0b0d10', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px' }}>
-        <p style={{ margin: 0, color: '#e6e8ec', fontSize: '13px', fontWeight: 700 }}>{title}</p>
+        <p style={{ margin: 0, color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>{title}</p>
         <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
       </div>
-      <p style={{ margin: '0 14px 8px', color: '#8b919c', fontSize: '11px', lineHeight: 1.5 }}>
+      <p style={{ margin: '0 14px 8px', color: '#aeaeb2', fontSize: '11px', lineHeight: 1.5 }}>
         <span style={{ color: '#22c55e' }}>Green box</span> = found and going in the collage,{' '}
         <span style={{ color: '#f87171' }}>red</span> = found but left out (no picture or unticked),{' '}
         <span style={{ color: '#f59e0b' }}>amber</span> = maybe. A skin name with no box was missed:
@@ -285,11 +285,11 @@ function ShotViewer({ url, shot, picked, thumbs, title, onClose, onPrev, onNext 
           const noPic = thumbs[m.key] === null
           const left = !isMaybe && !picked.has(m.key)
           return (
-            <p key={i} style={{ margin: '0 0 3px', fontSize: '12px', color: isMaybe ? '#f59e0b' : left || noPic ? '#f87171' : '#e6e8ec' }}>
-              {isMaybe ? '? ' : '✓ '}{m.skinName} <span style={{ color: '#8b919c' }}>— {m.heroName}</span>
+            <p key={i} style={{ margin: '0 0 3px', fontSize: '12px', color: isMaybe ? '#f59e0b' : left || noPic ? '#f87171' : '#ffffff' }}>
+              {isMaybe ? '? ' : '✓ '}{m.skinName} <span style={{ color: '#aeaeb2' }}>— {m.heroName}</span>
               {noPic && <span style={{ color: '#f87171' }}> · no picture in your repos</span>}
               {left && !noPic && <span style={{ color: '#f87171' }}> · unticked</span>}
-              {isMaybe && <span style={{ color: '#8b919c' }}> · maybe (not ticked)</span>}
+              {isMaybe && <span style={{ color: '#aeaeb2' }}> · maybe (not ticked)</span>}
             </p>
           )
         })}
@@ -600,24 +600,24 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
     <div style={{ margin: '4px 0 16px' }}>
       <button
         type="button" onClick={() => setDetailsOpen(o => !o)} aria-expanded={detailsOpen}
-        style={{ background: 'none', border: 'none', color: '#8b919c', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '4px 0' }}
+        style={{ background: 'none', border: 'none', color: '#aeaeb2', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '4px 0' }}
       >
         {detailsOpen ? '▾' : '▸'} Scan details
       </button>
       {detailsOpen && (
         <div style={{ marginTop: '6px' }}>
-          <p style={{ margin: '0 0 8px', color: '#6b717c', fontSize: '11px', lineHeight: 1.5 }}>
+          <p style={{ margin: '0 0 8px', color: '#8e8e93', fontSize: '11px', lineHeight: 1.5 }}>
             What the scanner saw, in case something went wrong. It includes a sample of the text it read from your
             screenshots (that can include your in-game name), so only share it if you’re happy to.
           </p>
           <pre style={{
-            margin: 0, maxHeight: '220px', overflow: 'auto', background: '#0f1115', border: '1px solid #23262e',
-            borderRadius: '8px', padding: '10px', color: '#a1a7b3', fontSize: '10.5px', lineHeight: 1.45,
+            margin: 0, maxHeight: '220px', overflow: 'auto', background: '#000000', border: '1px solid #232326',
+            borderRadius: '8px', padding: '10px', color: '#c7c7cc', fontSize: '10.5px', lineHeight: 1.45,
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', userSelect: 'text',
           }}>{report}</pre>
           <button
             type="button" onClick={copyReport}
-            style={{ marginTop: '8px', background: 'none', border: '1px solid #2a2e37', borderRadius: '8px', color: copied ? '#22c55e' : '#60a5fa', fontSize: '12px', fontWeight: 600, padding: '8px 14px', cursor: 'pointer' }}
+            style={{ marginTop: '8px', background: 'none', border: '1px solid #2c2c2e', borderRadius: '8px', color: copied ? '#22c55e' : '#ff6b96', fontSize: '12px', fontWeight: 600, padding: '8px 14px', cursor: 'pointer' }}
           >
             {copied ? 'Copied ✓' : 'Copy report'}
           </button>
@@ -636,24 +636,24 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
       onClick={e => { if (e.target === e.currentTarget && !busy) onClose() }}
     >
       <div style={{
-        background: '#16181d', borderRadius: '20px 20px 0 0',
-        border: '1px solid #2a2e37', borderBottom: 'none',
+        background: '#111113', borderRadius: '20px 20px 0 0',
+        border: '1px solid #2c2c2e', borderBottom: 'none',
         width: '100%', maxWidth: '520px',
         maxHeight: '88vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 -8px 40px rgba(0,0,0,0.8)',
       }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px 12px', borderBottom: '1px solid #23262e', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px 12px', borderBottom: '1px solid #232326', flexShrink: 0 }}>
           <div>
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#e6e8ec' }}>✨ Auto Collage</p>
-            <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#6b717c' }}>
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>✨ Auto Collage</p>
+            <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#8e8e93' }}>
               {walletEnabled
                 ? `Upload MLBB screenshots → skin names are read on our server (₹${AUTO_COLLAGE_PRICE}) → builds collage`
                 : 'Upload MLBB screenshots → skin names are read on your device (free) → builds collage'}
             </p>
           </div>
-          <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: '#6b717c', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: '2px 6px' }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: '2px 6px' }}>✕</button>
         </div>
 
         {/* Body */}
@@ -665,19 +665,19 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               <div
                 onClick={() => fileRef.current?.click()}
                 style={{
-                  border: '2px dashed #2a2e37', borderRadius: '14px',
+                  border: '2px dashed #2c2c2e', borderRadius: '14px',
                   padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
-                  background: screenshots.length ? 'rgba(59,130,246,0.06)' : 'transparent',
+                  background: screenshots.length ? 'rgba(255,61,119,0.06)' : 'transparent',
                   transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2e37'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#ff3d77'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#2c2c2e'}
               >
                 <div style={{ fontSize: '36px', marginBottom: '10px' }}>📸</div>
-                <p style={{ margin: '0 0 4px', color: '#e6e8ec', fontWeight: 700, fontSize: '15px' }}>
+                <p style={{ margin: '0 0 4px', color: '#ffffff', fontWeight: 700, fontSize: '15px' }}>
                   {screenshots.length ? `${screenshots.length} screenshot${screenshots.length > 1 ? 's' : ''} selected` : 'Tap to upload screenshots'}
                 </p>
-                <p style={{ margin: 0, color: '#6b717c', fontSize: '12px' }}>
+                <p style={{ margin: 0, color: '#8e8e93', fontSize: '12px' }}>
                   {screenshots.length ? 'Tap here to add more' : 'MLBB skin showcase / collection / inventory screens'}
                 </p>
                 <input
@@ -691,7 +691,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               </div>
 
               {screenshots.length === 0 && (
-                <p style={{ margin: '12px 2px 0', color: '#6b717c', fontSize: '11px', lineHeight: 1.5 }}>
+                <p style={{ margin: '12px 2px 0', color: '#8e8e93', fontSize: '11px', lineHeight: 1.5 }}>
                   {walletEnabled
                     ? `₹${AUTO_COLLAGE_PRICE} per scan, refunded automatically if no skin is found. Your screenshots are read on our server and deleted straight away — they are never stored or shared. `
                     : 'Free — no AI key needed, and your screenshots never leave your device. The first scan downloads a small text reader (about 6 MB) once. '}
@@ -702,7 +702,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               {screenshots.length > 0 && (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                   {screenshots.map((f, i) => (
-                    <div key={fileId(f)} style={{ position: 'relative', width: '72px', height: '72px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2e37' }}>
+                    <div key={fileId(f)} style={{ position: 'relative', width: '72px', height: '72px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2c2c2e' }}>
                       <img src={previewOf(f)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <button
                         onClick={() => removeScreenshot(i)} aria-label="Remove screenshot"
@@ -724,7 +724,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                   onClick={handleScan}
                   style={{
                     marginTop: '16px', width: '100%',
-                    background: '#3b82f6',
+                    background: '#ff3d77',
                     border: 'none', borderRadius: '12px',
                     color: '#fff', fontSize: '15px', fontWeight: 700,
                     padding: '14px', cursor: 'pointer',
@@ -740,17 +740,17 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
           {step === 'scanning' && (
             <div style={{ textAlign: 'center', padding: '30px 12px 10px' }}>
               <div style={{ fontSize: '40px', marginBottom: '14px' }}>🔍</div>
-              <p style={{ margin: '0 0 8px', color: '#e6e8ec', fontWeight: 700, fontSize: '16px' }}>Reading skin names…</p>
-              <p style={{ margin: '0 0 14px', color: '#3b82f6', fontSize: '13px', minHeight: '18px' }}>{progress.message}</p>
-              <div style={{ height: '8px', background: '#23262e', borderRadius: '99px', overflow: 'hidden' }}>
-                <div style={{ width: `${progress.percent}%`, height: '100%', background: '#3b82f6', transition: 'width 0.25s' }} />
+              <p style={{ margin: '0 0 8px', color: '#ffffff', fontWeight: 700, fontSize: '16px' }}>Reading skin names…</p>
+              <p style={{ margin: '0 0 14px', color: '#ff3d77', fontSize: '13px', minHeight: '18px' }}>{progress.message}</p>
+              <div style={{ height: '8px', background: '#232326', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{ width: `${progress.percent}%`, height: '100%', background: '#ff3d77', transition: 'width 0.25s' }} />
               </div>
-              <p style={{ margin: '8px 0 18px', color: '#6b717c', fontSize: '11px' }}>
+              <p style={{ margin: '8px 0 18px', color: '#8e8e93', fontSize: '11px' }}>
                 {progress.percent}% · {walletEnabled ? 'read on our server, screenshots are not stored' : 'runs on your device, nothing is uploaded'}
               </p>
               <button
                 onClick={handleCancel}
-                style={{ background: 'none', border: '1px solid #2a2e37', borderRadius: '10px', color: '#a1a7b3', fontSize: '13px', fontWeight: 600, padding: '10px 22px', cursor: 'pointer' }}
+                style={{ background: 'none', border: '1px solid #2c2c2e', borderRadius: '10px', color: '#c7c7cc', fontSize: '13px', fontWeight: 600, padding: '10px 22px', cursor: 'pointer' }}
               >
                 Cancel
               </button>
@@ -763,12 +763,12 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
                 <div style={{ flex: 1, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#22c55e' }}>{sure.length}</p>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#6b717c' }}>Found</p>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#8e8e93' }}>Found</p>
                 </div>
                 {(maybe.length > 0 || shared.length > 0) && (
                   <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
                     <p style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#f59e0b' }}>{maybe.length + shared.length}</p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#6b717c' }}>Need a look</p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#8e8e93' }}>Need a look</p>
                   </div>
                 )}
               </div>
@@ -784,15 +784,15 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                 const total = shots.reduce((n, sh) => n + sh.sure.length, 0)
                 const repeats = total - sure.length
                 return (
-                  <div style={{ marginBottom: '16px', background: '#0f1115', border: '1px solid #23262e', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div style={{ marginBottom: '16px', background: '#000000', border: '1px solid #232326', borderRadius: '10px', padding: '10px 12px' }}>
                     <button
                       type="button" onClick={() => setShotsOpen(o => !o)} aria-expanded={shotsOpen}
-                      style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: '#e6e8ec', fontSize: '13px', fontWeight: 700, cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                      style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', color: '#ffffff', fontSize: '13px', fontWeight: 700, cursor: 'pointer', padding: 0, textAlign: 'left' }}
                     >
                       <span>🔍 Check each screenshot</span>
-                      <span style={{ color: '#8b919c', fontSize: '12px' }}>{shotsOpen ? '▾' : '▸'}</span>
+                      <span style={{ color: '#aeaeb2', fontSize: '12px' }}>{shotsOpen ? '▾' : '▸'}</span>
                     </button>
-                    <p style={{ margin: '4px 0 0', color: '#6b717c', fontSize: '11px', lineHeight: 1.5 }}>
+                    <p style={{ margin: '4px 0 0', color: '#8e8e93', fontSize: '11px', lineHeight: 1.5 }}>
                       {total} name{total === 1 ? '' : 's'} read across {shots.length} screenshot{shots.length === 1 ? '' : 's'}
                       {repeats > 0 ? ` · ${repeats} appeared in more than one screenshot, so they're counted once` : ''}.
                       Open a screenshot to see a box on every skin found; one without a box was missed.
@@ -804,10 +804,10 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                           return (
                             <button
                               key={i} type="button" onClick={() => setViewShot(i)}
-                              style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#16181d', border: '1px solid #2a2e37', borderRadius: '9px', padding: '6px', cursor: 'pointer', textAlign: 'left' }}
+                              style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#111113', border: '1px solid #2c2c2e', borderRadius: '9px', padding: '6px', cursor: 'pointer', textAlign: 'left' }}
                             >
                               {file && <img src={previewOf(file)} alt="" style={{ width: '72px', height: '40px', objectFit: 'cover', borderRadius: '5px', flexShrink: 0 }} />}
-                              <span style={{ color: '#e6e8ec', fontSize: '12px', lineHeight: 1.4 }}>
+                              <span style={{ color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}>
                                 Screenshot {sh.file + 1} · <b style={{ color: sh.failed ? '#f87171' : '#22c55e' }}>{sh.failed ? 'could not open' : `${sh.sure.length} found`}</b>
                                 {sh.maybe.length > 0 && <span style={{ color: '#f59e0b' }}> · {sh.maybe.length} maybe</span>}
                               </span>
@@ -821,10 +821,10 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               })()}
 
               {nothingFound && (
-                <div style={{ background: '#0f1115', border: '1px solid #23262e', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
-                  <p style={{ margin: '0 0 4px', color: '#e6e8ec', fontSize: '13px', fontWeight: 700 }}>No skin names recognised</p>
+                <div style={{ background: '#000000', border: '1px solid #232326', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+                  <p style={{ margin: '0 0 4px', color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>No skin names recognised</p>
                   {readInfo?.refunded && <p style={{ margin: '0 0 6px', color: '#22c55e', fontSize: '12px', fontWeight: 600 }}>Your ₹{AUTO_COLLAGE_PRICE} has been refunded to your wallet.</p>}
-                  <p style={{ margin: 0, color: '#6b717c', fontSize: '12px', lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, color: '#8e8e93', fontSize: '12px', lineHeight: 1.5 }}>
                     {hardlyAnyText
                       ? 'The scanner could hardly read any text in these screenshots. '
                       : 'The scanner read text from your screenshots, but none of it matched a skin name. '}
@@ -840,7 +840,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               {!addOpen ? (
                 <button
                   type="button" onClick={() => { setFocusSearch(true); setAddOpen(true) }}
-                  style={{ width: '100%', background: 'none', border: '1px dashed #2a2e37', borderRadius: '10px', color: '#60a5fa', fontSize: '13px', fontWeight: 600, padding: '10px', cursor: 'pointer', marginBottom: '18px' }}
+                  style={{ width: '100%', background: 'none', border: '1px dashed #2c2c2e', borderRadius: '10px', color: '#ff6b96', fontSize: '13px', fontWeight: 600, padding: '10px', cursor: 'pointer', marginBottom: '18px' }}
                 >
                   🔎 Missing a skin? Add it by name
                 </button>
@@ -851,32 +851,32 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                       autoFocus={focusSearch} value={query} onChange={e => setQuery(e.target.value)}
                       placeholder="Hero or skin name, e.g. fanny galactic"
                       autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                      style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', background: '#0f1115', border: '1px solid #2a2e37', borderRadius: '10px', color: '#e6e8ec', fontSize: '14px', padding: '10px 12px', outline: 'none' }}
+                      style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', background: '#000000', border: '1px solid #2c2c2e', borderRadius: '10px', color: '#ffffff', fontSize: '14px', padding: '10px 12px', outline: 'none' }}
                     />
                     <button
                       type="button" onClick={() => { setQuery(''); setAddOpen(false) }}
-                      style={{ background: 'none', border: '1px solid #2a2e37', borderRadius: '10px', color: '#a1a7b3', fontSize: '13px', fontWeight: 600, padding: '0 14px', cursor: 'pointer' }}
+                      style={{ background: 'none', border: '1px solid #2c2c2e', borderRadius: '10px', color: '#c7c7cc', fontSize: '13px', fontWeight: 600, padding: '0 14px', cursor: 'pointer' }}
                     >
                       Done
                     </button>
                   </div>
                   {query.trim() !== '' && (
-                    <div style={{ marginTop: '8px', background: '#0f1115', border: '1px solid #23262e', borderRadius: '10px', overflow: 'hidden' }}>
-                      {matches.length === 0 && <p style={{ margin: 0, padding: '10px 12px', color: '#6b717c', fontSize: '12px' }}>No skin matches “{query.trim()}”.</p>}
+                    <div style={{ marginTop: '8px', background: '#000000', border: '1px solid #232326', borderRadius: '10px', overflow: 'hidden' }}>
+                      {matches.length === 0 && <p style={{ margin: 0, padding: '10px 12px', color: '#8e8e93', fontSize: '12px' }}>No skin matches “{query.trim()}”.</p>}
                       {matches.map(s => {
                         const on = picked.has(s.key)
                         return (
                           <button
                             key={s.key} type="button" onClick={() => (on ? toggle(s.key) : addManual(s))}
-                            style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: 'none', border: 'none', borderBottom: '1px solid #23262e', color: '#e6e8ec', textAlign: 'left', padding: '11px 12px', cursor: 'pointer', fontSize: '13px' }}
+                            style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: 'none', border: 'none', borderBottom: '1px solid #232326', color: '#ffffff', textAlign: 'left', padding: '11px 12px', cursor: 'pointer', fontSize: '13px' }}
                           >
-                            <span><b style={{ color: '#60a5fa' }}>{s.heroName}</b> — {s.skinName}</span>
-                            <span style={{ color: on ? '#22c55e' : '#8b919c', fontSize: '12px', flexShrink: 0 }}>{on ? '✓ added' : '+ add'}</span>
+                            <span><b style={{ color: '#ff6b96' }}>{s.heroName}</b> — {s.skinName}</span>
+                            <span style={{ color: on ? '#22c55e' : '#aeaeb2', fontSize: '12px', flexShrink: 0 }}>{on ? '✓ added' : '+ add'}</span>
                           </button>
                         )
                       })}
                       {found7.length > matches.length && (
-                        <p style={{ margin: 0, padding: '8px 12px', color: '#6b717c', fontSize: '11px' }}>More matches — keep typing to narrow it down.</p>
+                        <p style={{ margin: 0, padding: '8px 12px', color: '#8e8e93', fontSize: '11px' }}>More matches — keep typing to narrow it down.</p>
                       )}
                     </div>
                   )}
@@ -885,7 +885,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
 
               {mine.length > 0 && (
                 <>
-                  <p style={sectionTitle('#60a5fa')}>➕ ADDED BY YOU</p>
+                  <p style={sectionTitle('#ff6b96')}>➕ ADDED BY YOU</p>
                   <div style={{ ...gridStyle, marginTop: '8px' }}>
                     {mine.map(c => <SkinCard key={c.key} rec={c} url={thumbs[c.key]} tone="pick" on={picked.has(c.key)} onToggle={() => toggle(c.key)} />)}
                   </div>
@@ -914,7 +914,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
 
               {shared.map(s => (
                 <div key={s.options.map(o => o.key).join('|')}>
-                  <p style={sectionTitle('#60a5fa')}>👥 “{s.name}” — which hero?</p>
+                  <p style={sectionTitle('#ff6b96')}>👥 “{s.name}” — which hero?</p>
                   <p style={sectionHint}>Several heroes have a skin with this name. Tap the one(s) you own.</p>
                   <div style={gridStyle}>
                     {s.options.map(o => <SkinCard key={o.key} rec={o} url={thumbs[o.key]} tone="pick" on={picked.has(o.key)} onToggle={() => toggle(o.key)} />)}
@@ -923,7 +923,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               ))}
 
               {skipped.length > 0 && (
-                <p style={{ margin: '14px 0 0', color: '#6b717c', fontSize: '11px' }}>
+                <p style={{ margin: '14px 0 0', color: '#8e8e93', fontSize: '11px' }}>
                   Couldn’t open: {skipped.join(', ')}
                 </p>
               )}
@@ -942,9 +942,9 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
           {step === 'adding' && (
             <div style={{ textAlign: 'center', padding: '30px 12px 10px' }}>
               <div style={{ fontSize: '40px', marginBottom: '14px' }}>⬇️</div>
-              <p style={{ margin: '0 0 8px', color: '#e6e8ec', fontWeight: 700, fontSize: '16px' }}>Adding skins to canvas…</p>
-              <p style={{ margin: '0 0 14px', color: '#3b82f6', fontSize: '13px', minHeight: '18px' }}>{progress.message}</p>
-              <div style={{ height: '8px', background: '#23262e', borderRadius: '99px', overflow: 'hidden' }}>
+              <p style={{ margin: '0 0 8px', color: '#ffffff', fontWeight: 700, fontSize: '16px' }}>Adding skins to canvas…</p>
+              <p style={{ margin: '0 0 14px', color: '#ff3d77', fontSize: '13px', minHeight: '18px' }}>{progress.message}</p>
+              <div style={{ height: '8px', background: '#232326', borderRadius: '99px', overflow: 'hidden' }}>
                 <div style={{ width: `${progress.percent}%`, height: '100%', background: '#16a34a', transition: 'width 0.25s' }} />
               </div>
             </div>
@@ -954,10 +954,10 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
 
         {/* Footer (results only) — stays in view however long the list is */}
         {step === 'results' && (
-          <div style={{ display: 'flex', gap: '8px', padding: '12px 16px 18px', borderTop: '1px solid #23262e', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '8px', padding: '12px 16px 18px', borderTop: '1px solid #232326', flexShrink: 0 }}>
             <button
               onClick={startOver}
-              style={{ flex: 1, background: 'none', border: '1px solid #2a2e37', borderRadius: '10px', color: '#a1a7b3', fontSize: '13px', fontWeight: 600, padding: '12px', cursor: 'pointer' }}
+              style={{ flex: 1, background: 'none', border: '1px solid #2c2c2e', borderRadius: '10px', color: '#c7c7cc', fontSize: '13px', fontWeight: 600, padding: '12px', cursor: 'pointer' }}
             >
               ↩ Start over
             </button>
@@ -966,7 +966,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
               disabled={addable === 0}
               style={{
                 flex: 2, border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: 700, padding: '12px',
-                background: addable ? '#16a34a' : '#2a2e37',
+                background: addable ? '#16a34a' : '#2c2c2e',
                 cursor: addable ? 'pointer' : 'default', opacity: addable ? 1 : 0.6,
               }}
             >
