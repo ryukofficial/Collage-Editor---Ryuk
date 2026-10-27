@@ -119,6 +119,7 @@ const MESSAGES = {
   busy:                 'The server is busy. Please try again in a moment.',
   scan_busy:            'Your screenshots are still being read. Please wait a moment.',
   not_admin:            'Only the admin can do this.',
+  too_many_cleared:     'Publish stopped: it would have removed most skin tiers.',
   not_configured:       'This feature is not switched on yet.',
   no_such_user:         'No account with that phone number.',
   server_error:         'Something went wrong on the server. Please try again.',
