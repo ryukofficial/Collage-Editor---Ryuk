@@ -7,7 +7,7 @@
 import { proExportStart, proExportPiece, proExportFinish } from './wallet'
 
 export const PRO_EXPORT_PRICE = 50
-const MAX_PX = 1_000_000          // pixels per part (keeps every upload under 4 MB)
+const MAX_PX = 900_000            // pixels per part (keeps every upload under 4 MB)
 const PARALLEL = 3
 
 // Splits the collage into parts that never cut through a skin cell.
@@ -40,6 +40,15 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
   if (!layout) throw new Error('invalid_request')
   const parts = planParts(layout)
   const bmp = await createImageBitmap(blob)
+  // a small preview of the skins (not the profile banner): the server measures it
+  // once so every part of this collage gets exactly the same colour correction
+  const gridH = layout.height - layout.bannerH
+  const ps = Math.min(1, 640 / Math.max(layout.width, gridH))
+  const pc = document.createElement('canvas'); pc.width = Math.max(1, Math.round(layout.width * ps)); pc.height = Math.max(1, Math.round(gridH * ps))
+  const pctx = pc.getContext('2d', { alpha: false }); pctx.imageSmoothingQuality = 'high'
+  pctx.drawImage(bmp, 0, layout.bannerH, layout.width, gridH, 0, 0, pc.width, pc.height)
+  const preview = await new Promise(r => pc.toBlob(r, 'image/jpeg', 0.95))
+  pc.width = pc.height = 1
   const exportId = await proExportStart(parts.length)       // ₹50 is taken here
   const out = document.createElement('canvas')
   out.width = layout.width; out.height = layout.height
@@ -54,7 +63,7 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
         cv.getContext('2d', { alpha: false }).drawImage(bmp, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h)
         const png = await new Promise(r => cv.toBlob(r, 'image/png'))
         cv.width = cv.height = 1
-        const res = await proExportPiece(exportId, png, p.cells)
+        const res = await proExportPiece(exportId, preview, png, p.cells)
         const back = await createImageBitmap(res)
         octx.drawImage(back, p.x, p.y); back.close?.()
       } catch (err) {

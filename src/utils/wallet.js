@@ -224,12 +224,14 @@ export async function proExportStart(pieces) {
   setState({ balance: out.balance })
   return out.export_id
 }
-export async function proExportPiece(exportId, blob, cells) {
+// body = [4-byte length of preview][preview JPEG][part PNG]
+export async function proExportPiece(exportId, preview, blob, cells) {
   const token = await accessToken()
+  const len = new Uint8Array(4); new DataView(len.buffer).setUint32(0, preview.size)
   const r = await fetch('/api/pro-export-piece', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'image/png', 'X-Export-Id': exportId, 'X-Cells': JSON.stringify(cells) },
-    body: blob,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId, 'X-Cells': JSON.stringify(cells) },
+    body: new Blob([len, preview, blob]),
   })
   if (!r.ok) {
     const data = await r.json().catch(() => ({}))
