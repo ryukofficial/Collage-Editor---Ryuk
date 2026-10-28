@@ -6,8 +6,7 @@
 //      (measured on a small preview of the skins, so every part of one collage
 //      gets exactly the same correction)
 //   3. strongest colours −9 %, all colours × 0.975, midtones a touch brighter
-//   4. final look matched to the editor's reference collage: colour about as
-//      strong as matched, less yellow and pink, darks a touch lighter, highlights softer
+//   4. final look: colour +12 %, a little warmer, slightly less pink
 //   5. very light sharpening
 import sharp from 'sharp'
 import { REF_L, REF_C } from './_pro_ref.js'
@@ -16,21 +15,20 @@ import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
-// final look, matched to the editor's reference collage (same skins, side by side)
-const FINAL_CHROMA = 1.116 * 0.898 * 1.05 * 1.04  // colour strength (matched to the editor's reference, 28 Oct)
-const FINAL_B = 1.8 - 3.0                  // warmth matched to the editor's reference (28 Oct)
-const FINAL_A = -0.54 * 0.898 - 1.25 + 1.0 // pink/magenta matched to the reference
+// final look = the approved Ryuk effect (28 Oct)
+const FINAL_CHROMA = 1.116                 // final look: colour up (tuned on the approved Ryuk effect collages)
+const FINAL_B = 2.37                      // a little warmer (towards yellow)
+const FINAL_A = -0.54                     // slightly less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
 const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
-const TONE_Y = [0, 1, 2.4, 2.6, 2.0, 0.8, -0.7, -1.8, -3.0, -2.5]
-// last step, measured on the editor's 2-Legend collage (same skins, pixel by pixel):
-// softer, darker highlights, lifted shadows, a bit more colour
-const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-const MATCH_Y = [2.48, 10.02, 15.96, 20.48, 25.17, 29.77, 34.25, 38.6, 42.79, 46.81, 50.76, 54.59, 58.18, 61.67, 65.23, 68.95, 72.79, 76.9, 81.66, 89.54, 89.54]
-const MATCH_CHROMA = 1.108 * 1.035
-const MATCH_A = -0.26
-const MATCH_B = 1.14
-const SHARPEN = 0                          // no extra sharpening (the HD upscale already adds crispness)
+const TONE_Y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]   // off (back to the approved Ryuk effect)
+// last step: switched off (the 2-Legend match looked wrong on the site) — no change here
+const MATCH_X = [0, 100]
+const MATCH_Y = [0, 100]
+const MATCH_CHROMA = 1
+const MATCH_A = 0
+const MATCH_B = 0
+const SHARPEN = 0.1
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
