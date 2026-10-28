@@ -3,7 +3,7 @@
 // Only for a paid, open export that belongs to the caller. Returns the processed PNG.
 import { handler, readBody, send, bearer, httpError } from './_http.js'
 import { userFromToken, rpcService, supabaseConfigured } from './_supabase.js'
-import { processPiece } from './_pro.js'
+import { processPiece, paramsFromPreview } from './_pro.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_BYTES = 4 * 1024 * 1024
@@ -26,16 +26,20 @@ export default handler(['POST'], async (req, res) => {
   const uid = await userFromToken(bearer(req))
   const exportId = String(req.headers['x-export-id'] || '')
   if (!UUID.test(exportId)) throw httpError(400, 'invalid_request')
-  if (!/^image\/png$/i.test(String(req.headers['content-type'] || ''))) throw httpError(400, 'bad_image')
+  if (!/^application\/octet-stream$/i.test(String(req.headers['content-type'] || ''))) throw httpError(400, 'bad_image')
   const cells = parseCells(String(req.headers['x-cells'] || ''))
   if (busy >= 3) throw httpError(503, 'busy')
   busy++
   try {
-    const image = await readBody(req, MAX_BYTES)
-    if (image.length < 60) throw httpError(400, 'bad_image')
+    const body = await readBody(req, MAX_BYTES)
+    // [4-byte length][preview of the whole collage's skins][this part as PNG]
+    if (body.length < 70) throw httpError(400, 'bad_image')
+    const plen = body.readUInt32BE(0)
+    if (plen < 60 || plen > 1_500_000 || 4 + plen + 60 > body.length) throw httpError(400, 'bad_image')
+    const preview = body.subarray(4, 4 + plen), image = body.subarray(4 + plen)
     await rpcService('svc_use_pro_piece', { p_export: exportId, p_user: uid })   // counts against the paid export
     let out
-    try { out = await processPiece(image, cells) } catch { throw httpError(400, 'bad_image') }
+    try { out = await processPiece(image, cells, await paramsFromPreview(preview)) } catch { throw httpError(400, 'bad_image') }
     await rpcService('svc_pro_piece_done', { p_export: exportId, p_user: uid })   // fails if already refunded
     res.statusCode = 200
     res.setHeader('Content-Type', 'image/png')
