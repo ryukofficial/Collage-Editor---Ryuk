@@ -18,6 +18,7 @@ const MODEL_URL = '/models/realesrgan-fast.onnx'
 const MAX_OUT_PIXELS = 16_000_000
 const TILE = 400            // AI input tile (pixels) — a whole skin fits in one
 const OVERLAP = 12          // overlap between tiles, hides tile edges
+const AI_MIX = 0.65         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
 const MAX_MINUTES = 20      // if the device would take longer than this, stop and export without HD
 
 let cancelled = false
@@ -109,7 +110,9 @@ async function upscaleRect(S, src, rx, ry, rw, rh, dst, k, clock) {
       const sx = (tx - ax) * 4, sy = (ty - ay) * 4
       const X0 = Math.round((rx + tx) * k), Y0 = Math.round((ry + ty) * k)
       const X1 = Math.round((rx + tx + tw) * k), Y1 = Math.round((ry + ty + th) * k)
+      dst.globalAlpha = AI_MIX                      // blended over the smooth enlarge already drawn there
       dst.drawImage(upC, sx, sy, tw * 4, th * 4, X0, Y0, X1 - X0, Y1 - Y0)
+      dst.globalAlpha = 1
       upC.width = upC.height = 1
       await new Promise(r => setTimeout(r, 0))      // keep the page responsive
     }
