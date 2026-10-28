@@ -23,6 +23,13 @@ const FINAL_A = -0.54 * 0.898 - 1.25 + 1.0 // pink/magenta matched to the refere
 // brightness: darks and midtones a little lighter, highlights a little softer
 const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
 const TONE_Y = [0, 1, 2.4, 2.6, 2.0, 0.8, -0.7, -1.8, -3.0, -2.5]
+// last step, measured on the editor's 2-Legend collage (same skins, pixel by pixel):
+// softer, darker highlights, lifted shadows, a bit more colour
+const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+const MATCH_Y = [2.48, 10.02, 15.96, 20.48, 25.17, 29.77, 34.25, 38.6, 42.79, 46.81, 50.76, 54.59, 58.18, 61.67, 65.23, 68.95, 72.79, 76.9, 81.66, 89.54, 89.54]
+const MATCH_CHROMA = 1.108 * 1.035
+const MATCH_A = -0.26
+const MATCH_B = 1.14
 const SHARPEN = 0                          // no extra sharpening (the HD upscale already adds crispness)
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
@@ -99,7 +106,8 @@ function ryukColour(d, ch, P) {
     }
     L += MIDTONE * Math.sin(Math.PI * Math.min(Math.max(L, 0), 100) / 100)
     L += interp(Math.min(Math.max(L, 0), 100), TONE_X, TONE_Y)
-    labToRgb(L, a + FINAL_A, b + FINAL_B, d, p)
+    L = interp(Math.min(Math.max(L, 0), 100), MATCH_X, MATCH_Y)
+    labToRgb(L, (a + FINAL_A) * MATCH_CHROMA + MATCH_A, (b + FINAL_B) * MATCH_CHROMA + MATCH_B, d, p)
   }
 }
 
