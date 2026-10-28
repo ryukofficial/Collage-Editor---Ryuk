@@ -12,7 +12,8 @@ import { sortByPosition } from './skinScanner'
 import { startScan, retryScan, scanPage, finishScan, walletError } from './wallet'
 
 const MAX_UPLOAD = 3.8 * 1024 * 1024         // the server accepts up to 4 MB per screenshot
-const PARALLEL = 3                           // screenshots read at the same time
+const PARALLEL = 2                           // screenshots read at the same time (the server reads 2 at once)
+const TRIES = 4                              // a screenshot that fails for a passing reason is sent again
 
 const abortError = () => new DOMException('Scan cancelled', 'AbortError')
 
@@ -38,6 +39,32 @@ async function uploadable(file) {
   } finally {
     bmp.close?.()
   }
+}
+
+// Busy server, a dropped connection or a slow read: wait a moment and send the
+// screenshot again (free — if the failed try already used up its place in the
+// paid scan, a free re-read is opened for it first).
+const PASSING = /\b(busy|server_error|http_5\d\d|scan_busy)\b|failed to fetch|network|load failed|timeout/i
+async function readWithRetry(scanId, blob, signal) {
+  let lastErr = null
+  for (let t = 0; t < TRIES; t++) {
+    if (signal?.aborted) throw abortError()
+    try {
+      return await scanPage(scanId, blob, signal)
+    } catch (err) {
+      if (err?.name === 'AbortError' || signal?.aborted) throw err
+      lastErr = err
+      const msg = `${err?.code || ''} ${err?.message || ''}`
+      if (/\bscan_used_up\b/.test(msg) && t > 0) {
+        // an earlier try reached the server but its answer was lost: re-open one place
+        try { await retryScan(scanId, 1) } catch { /* fall through to the next try */ }
+      } else if (!PASSING.test(msg)) {
+        throw err
+      }
+      await new Promise(r => setTimeout(r, 1500 * (t + 1)))
+    }
+  }
+  throw lastErr
 }
 
 export async function scanScreenshotsOnServer(files, vocab, options = {}) {
@@ -69,7 +96,7 @@ export async function scanScreenshotsOnServer(files, vocab, options = {}) {
       if (signal?.aborted) return
       try {
         const { blob, width } = await uploadable(files[i])
-        const out = await scanPage(scanId, blob, signal)
+        const out = await readWithRetry(scanId, blob, signal)
         // boxes come back in the uploaded image's pixels: map them to the original
         const f = width && out.width ? width / out.width : 1
         if (f !== 1) {
