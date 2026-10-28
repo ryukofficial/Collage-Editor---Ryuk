@@ -27,7 +27,7 @@ const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 8
 const MATCH_Y = [1.63, 5.79, 11.87, 16.92, 22.18, 27.68, 32.88, 37.99, 42.91, 47.74, 52.48, 57.13, 61.81, 66.52, 71.27, 75.94, 80.47, 84.97, 89.49, 94.35, 98.14]
 const MATCH_CHROMA = 0.972 * 1.035
 const MATCH_A = -0.62
-const MATCH_B = -2.73
+const MATCH_B = -2.73 + 1.2              // matched to target, then a little warmer (by eye, 28 Oct)
 const SHARPEN = 0.7                         // matched to the editor's final collage
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
