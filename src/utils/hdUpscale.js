@@ -1,21 +1,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // HD upscale ×2 in the customer's browser (free — no server, no paid service).
 //
-// Uses the same AI model as the Ryuk effect (Real-ESRGAN, anime/illustration
-// version) through onnxruntime-web: on the graphics chip (WebGPU) when the
-// browser has it, otherwise on the processor (slower).
+// Uses a fast Real-ESRGAN model made for anime/illustrations (about 8× faster
+// than the big one, nearly the same result) through onnxruntime-web on the
+// phone's graphics chip (WebGPU).
 //
-//   • every skin is upscaled on its own, so nothing bleeds across borders;
-//     big skins and the profile banner are done in overlapping tiles
+//   • every skin is upscaled on its own in one go (no wasted overlap), so
+//     nothing bleeds across borders; the profile banner is done in tiles
+//   • if the picture is already as big as a phone can save, nothing is redone
 //   • logos are NOT redrawn by the AI (it can scramble small letters): their
 //     area is enlarged smoothly and sharpened instead, blended in softly
 //   • the final picture is kept under 16 million pixels so phones can save it
 // ─────────────────────────────────────────────────────────────────────────────
 const ORT_VERSION = '1.29.0'
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`
-const MODEL_URL = '/models/realesrgan-anime.onnx'
+const MODEL_URL = '/models/realesrgan-fast.onnx'
 const MAX_OUT_PIXELS = 16_000_000
-const TILE = 128            // AI input tile (pixels) — small, so phones don't run out of memory
+const TILE = 400            // AI input tile (pixels) — a whole skin fits in one
 const OVERLAP = 12          // overlap between tiles, hides tile edges
 const MAX_MINUTES = 20      // if the device would take longer than this, stop and export without HD
 
@@ -158,10 +159,11 @@ function crispLogos(src, dst, logos, k) {
 // Returns a new PNG blob about twice as big.
 export async function hdUpscale(blob, { onProgress = () => {} } = {}) {
   const layout = blob.layout, logos = blob.logos || []
-  const S = await getSession()
   const bmp = await createImageBitmap(blob)
+  const k = Math.min(2, Math.sqrt(MAX_OUT_PIXELS / (bmp.width * bmp.height)))
+  if (k < 1.1) { bmp.close?.(); return blob }           // already as big as it can be — nothing to gain
+  const S = await getSession()
   const src = canvas(bmp.width, bmp.height); src.getContext('2d').drawImage(bmp, 0, 0); bmp.close?.()
-  const k = Math.min(2, Math.sqrt(MAX_OUT_PIXELS / (src.width * src.height)))
   const out = canvas(Math.round(src.width * k), Math.round(src.height * k)), octx = ctx2d(out)
   // smooth ×k first, so anything not covered below is never left empty
   octx.drawImage(src, 0, 0, out.width, out.height)
