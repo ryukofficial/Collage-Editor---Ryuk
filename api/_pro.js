@@ -20,8 +20,8 @@ const FINAL_CHROMA = 1.116                 // final look: colour up (the approve
 const FINAL_B = 2.37                      // a little warmer (towards yellow)
 const FINAL_A = -0.54                     // slightly less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
-const TONE_X = [0, 100]
-const TONE_Y = [0, 0]                     // off
+const TONE_X = [0, 50, 65, 80, 92, 100]
+const TONE_Y = [0, 0, -1.2, -3.2, -4.5, -4.5]   // bright areas toned down (28 Oct)
 // last step: off (default Ryuk effect)
 const MATCH_X = [0, 100]
 const MATCH_Y = [0, 100]
