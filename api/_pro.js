@@ -6,7 +6,8 @@
 //      (measured on a small preview of the skins, so every part of one collage
 //      gets exactly the same correction)
 //   3. strongest colours −9 %, all colours × 0.975, midtones a touch brighter
-//   4. final look: colour +12 %, a little warmer, slightly less pink
+//   4. final look matched to the editor's reference collage: colour about as
+//      strong as matched, less yellow and pink, darks a touch lighter, highlights softer
 //   5. very light sharpening
 import sharp from 'sharp'
 import { REF_L, REF_C } from './_pro_ref.js'
@@ -15,9 +16,13 @@ import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
-const FINAL_CHROMA = 1.116                 // final look: colour up (tuned on the approved collages)
-const FINAL_B = 2.37                      // a little warmer (towards yellow)
-const FINAL_A = -0.54                     // slightly less pink
+// final look, matched to the editor's reference collage (same skins, side by side)
+const FINAL_CHROMA = 1.116 * 0.898         // colour strength
+const FINAL_B = 2.37 * 0.898 - 3.79        // less yellow
+const FINAL_A = -0.54 * 0.898 - 1.25       // less pink
+// brightness: darks and midtones a little lighter, highlights a little softer
+const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
+const TONE_Y = [0, 1, 2.4, 2.6, 2.0, 0.8, -0.7, -1.8, -3.0, -2.5]
 const SHARPEN = 0.1
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
@@ -93,6 +98,7 @@ function ryukColour(d, ch, P) {
       a *= k; b *= k
     }
     L += MIDTONE * Math.sin(Math.PI * Math.min(Math.max(L, 0), 100) / 100)
+    L += interp(Math.min(Math.max(L, 0), 100), TONE_X, TONE_Y)
     labToRgb(L, a + FINAL_A, b + FINAL_B, d, p)
   }
 }
