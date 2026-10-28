@@ -327,6 +327,8 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
   const [viewShot, setViewShot]       = useState(-1)          // index into shots of the one shown full screen
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [copied, setCopied]           = useState(false)
+  const [scanId, setScanId]           = useState(null)        // paid scan the free re-scans belong to
+  const [rescan, setRescan]           = useState(null)        // { files: [index…], message } while re-scanning
   const fileRef  = useRef()
   const abortRef = useRef(null)
 
@@ -439,6 +441,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
       setShotsOpen(false); setViewShot(-1)
       setDetailsOpen(nothing)                              // show the details straight away when nothing was found
       setCopied(false)
+      setScanId(res.info?.scanId || null)
       setStep('results')
     } catch (err) {
       if (err?.name === 'AbortError') { setStep('ready'); return }
@@ -450,6 +453,97 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
       if (abortRef.current === ctrl) abortRef.current = null
     }
   }, [screenshots, wallet.ready, wallet.user, onOpenWallet])
+
+  // Re-scan some screenshots again (the ones that failed or missed skins) and add
+  // what they show to the results. In paid mode this is free: it belongs to the
+  // scan that was already paid for.
+  const handleRescan = useCallback(async (indices) => {
+    const idx = [...new Set(indices)].filter(i => screenshots[i]).sort((a, b) => a - b)
+    if (!idx.length || rescan) return
+    const files = idx.map(i => screenshots[i])
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    setError('')
+    const label = idx.length === 1 ? `screenshot ${idx[0] + 1}` : `${idx.length} screenshots`
+    setRescan({ files: idx, message: `Re-scanning ${label}…` })
+    const onProgress = p => setRescan({ files: idx, message: `${p.message} (${p.percent}%)` })
+    try {
+      let res
+      if (walletEnabled) {
+        try {
+          if (!scanId) throw Object.assign(new Error('unknown_scan'), { code: 'unknown_scan' })
+          res = await scanScreenshotsOnServer(files, getVocab(), { signal: ctrl.signal, onProgress, retryScanId: scanId })
+        } catch (err) {
+          if (err?.name === 'AbortError') throw err
+          if (!/scan_refunded|scan_closed|unknown_scan|too_many_retries/.test(`${err?.code} ${err?.message}`)) throw err
+          // the free re-scan isn't available any more → a new scan (₹10), only if they agree
+          if (!window.confirm(`${walletError(err)}\n\nRe-scan ${label} as a new scan for ₹${AUTO_COLLAGE_PRICE}?`)) { setRescan(null); return }
+          let fresh = null
+          try { fresh = await refreshWallet() } catch { fresh = null }
+          if (!fresh || fresh.balance < AUTO_COLLAGE_PRICE) {
+            setRescan(null)
+            onOpenWallet(`You need ₹${AUTO_COLLAGE_PRICE} to scan. Add money below — your results stay here.`)
+            return
+          }
+          res = await scanScreenshotsOnServer(files, getVocab(), { signal: ctrl.signal, onProgress })
+          if (res.info?.scanId) setScanId(res.info.scanId)
+        }
+      } else {
+        res = await scanScreenshots(files, getVocab(), { signal: ctrl.signal, onProgress })
+      }
+
+      // which screenshot (in the full list) each result came from
+      const okFiles = (res.shots || []).filter(sh => !sh.failed).map(sh => idx[sh.file])
+      const origin = r => okFiles[r.page ?? 0] ?? idx[0]
+      const known = new Set(cands.map(c => c.key))
+      const newSure = res.matches.map(r => ({ ...r, page: origin(r), group: 'sure' }))
+      const sureKeys = new Set(newSure.map(r => r.key))
+      setCands(prev => {
+        const have = new Map(prev.map(c => [c.key, c]))
+        const out = prev.map(c => (sureKeys.has(c.key) && c.group === 'maybe' ? { ...c, group: 'sure' } : c))
+        for (const r of newSure) if (!have.has(r.key)) out.push(r)
+        for (const r of res.possible) if (!have.has(r.key) && !sureKeys.has(r.key)) out.push({ ...r, page: origin(r), group: 'maybe' })
+        return out
+      })
+      setShared(prev => {
+        const names = new Set(prev.map(a => a.name))
+        const add = res.ambiguous
+          .filter(a => !names.has(a.name) && !a.options.some(o => sureKeys.has(`${o.heroId}__${o.skinName}`)))
+          .map(a => ({ ...a, page: origin(a), options: a.options.map(o => ({ ...o, key: `${o.heroId}__${o.skinName}` })) }))
+        return [...prev, ...add]
+      })
+      // newly found sure skins start ticked; nothing you un-ticked gets ticked again
+      setPicked(prev => {
+        const next = new Set(prev)
+        for (const r of newSure) if (!known.has(r.key)) next.add(r.key)
+        return next
+      })
+      setShots(prev => {
+        const out = prev.slice()
+        for (const sh of res.shots || []) {
+          const file = idx[sh.file]
+          const entry = { ...sh, file }
+          const at = out.findIndex(o => o.file === file)
+          if (at >= 0) out[at] = entry; else out.push(entry)
+        }
+        return out.sort((a, b) => a.file - b.file)
+      })
+      const rescanned = new Set(files.map(f => f.name))
+      setSkipped(prev => [...prev.filter(n => !rescanned.has(n)), ...(res.skipped || [])])
+      setReport(prev => `${prev}\n\n── Re-scan of ${label} ──\n${res.report || ''}`)
+      if (!res.matches.length && !res.possible.length && !res.ambiguous.length) {
+        setError(`Re-scan of ${label} found no skin names. Try a clearer screenshot, or add skins by name.`)
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error('[AutoCollage] re-scan failed', err)
+        setError(walletEnabled ? walletError(err) : scanErrorMessage(err))
+      }
+    } finally {
+      if (abortRef.current === ctrl) abortRef.current = null
+      setRescan(null)
+    }
+  }, [screenshots, rescan, scanId, cands, onOpenWallet])
 
   const handleCancel = useCallback(() => {
     if (abortRef.current) abortRef.current.abort()
@@ -563,6 +657,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
     setError(''); setQuery(''); setAddOpen(false); setFocusSearch(false)
     setReport(''); setReadInfo(null); setDetailsOpen(false); setCopied(false)
     setShots([]); setShotsOpen(false); setViewShot(-1)
+    setScanId(null); setRescan(null)
     setStep('upload')
   }, [])
 
@@ -592,7 +687,7 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
   const { ticked, addable } = countPicked(cands, shared, picked, thumbs)
   const found7  = query.trim() ? searchSkins(query, 7) : []
   const matches = found7.slice(0, 6)
-  const busy = step === 'scanning' || step === 'adding'
+  const busy = step === 'scanning' || step === 'adding' || !!rescan
   const hardlyAnyText = !!readInfo && readInfo.words < 15
 
   // "Scan details": what the scanner saw. Handy when a scan finds nothing.
@@ -773,6 +868,47 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                 )}
               </div>
 
+              {/* Screenshots that failed or where nothing was found: re-scan them */}
+              {(() => {
+                const bad = shots.filter(sh => sh.failed || (!sh.sure.length && !sh.maybe.length))
+                if (!bad.length && !rescan) return null
+                const btn = { background: '#ff3d77', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '12px', fontWeight: 700, padding: '7px 12px', cursor: rescan ? 'default' : 'pointer', opacity: rescan ? 0.5 : 1, flexShrink: 0 }
+                return (
+                  <div style={{ marginBottom: '16px', background: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '10px', padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                      <p style={{ margin: 0, color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>
+                        {bad.length ? `${bad.length} screenshot${bad.length === 1 ? '' : 's'} need${bad.length === 1 ? 's' : ''} a re-scan` : 'Re-scanning…'}
+                      </p>
+                      {bad.length > 1 && (
+                        <button type="button" disabled={!!rescan} onClick={() => handleRescan(bad.map(sh => sh.file))} style={btn}>
+                          🔄 Re-scan all
+                        </button>
+                      )}
+                    </div>
+                    <p style={{ margin: '4px 0 8px', color: '#8e8e93', fontSize: '11px', lineHeight: 1.5 }}>
+                      {walletEnabled ? 'Free — part of the scan you already paid for. ' : ''}New skins found are added to the list below.
+                    </p>
+                    {rescan && <p style={{ margin: '0 0 8px', color: '#ff6b96', fontSize: '12px' }}>{rescan.message}</p>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {bad.map(sh => {
+                        const file = screenshots[sh.file]
+                        return (
+                          <div key={sh.file} style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#111113', border: '1px solid #2c2c2e', borderRadius: '9px', padding: '6px' }}>
+                            {file && <img src={previewOf(file)} alt="" style={{ width: '72px', height: '40px', objectFit: 'cover', borderRadius: '5px', flexShrink: 0 }} />}
+                            <span style={{ flex: 1, color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}>
+                              Screenshot {sh.file + 1} · <b style={{ color: '#f87171' }}>{sh.failed ? 'could not be read' : 'no skins found'}</b>
+                            </span>
+                            <button type="button" disabled={!!rescan} onClick={() => handleRescan([sh.file])} style={btn}>
+                              {rescan?.files.includes(sh.file) ? '…' : '🔄 Re-scan'}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+
               {ticked > addable && (
                 <p style={{ margin: '0 0 14px', color: '#f59e0b', fontSize: '12px', lineHeight: 1.5 }}>
                   ⚠️ {ticked - addable} ticked skin{ticked - addable > 1 ? 's have' : ' has'} no picture in your asset repos yet, so
@@ -802,16 +938,24 @@ export default function AutoCollage({ onClose, onOpenWallet = () => {} }) {
                         {shots.map((sh, i) => {
                           const file = screenshots[sh.file]
                           return (
-                            <button
-                              key={i} type="button" onClick={() => setViewShot(i)}
-                              style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#111113', border: '1px solid #2c2c2e', borderRadius: '9px', padding: '6px', cursor: 'pointer', textAlign: 'left' }}
-                            >
-                              {file && <img src={previewOf(file)} alt="" style={{ width: '72px', height: '40px', objectFit: 'cover', borderRadius: '5px', flexShrink: 0 }} />}
-                              <span style={{ color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}>
-                                Screenshot {sh.file + 1} · <b style={{ color: sh.failed ? '#f87171' : '#22c55e' }}>{sh.failed ? 'could not open' : `${sh.sure.length} found`}</b>
-                                {sh.maybe.length > 0 && <span style={{ color: '#f59e0b' }}> · {sh.maybe.length} maybe</span>}
-                              </span>
-                            </button>
+                            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'stretch' }}>
+                              <button
+                                type="button" onClick={() => setViewShot(i)}
+                                style={{ flex: 1, display: 'flex', gap: '10px', alignItems: 'center', background: '#111113', border: '1px solid #2c2c2e', borderRadius: '9px', padding: '6px', cursor: 'pointer', textAlign: 'left' }}
+                              >
+                                {file && <img src={previewOf(file)} alt="" style={{ width: '72px', height: '40px', objectFit: 'cover', borderRadius: '5px', flexShrink: 0 }} />}
+                                <span style={{ color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}>
+                                  Screenshot {sh.file + 1} · <b style={{ color: sh.failed ? '#f87171' : '#22c55e' }}>{sh.failed ? 'could not open' : `${sh.sure.length} found`}</b>
+                                  {sh.maybe.length > 0 && <span style={{ color: '#f59e0b' }}> · {sh.maybe.length} maybe</span>}
+                                </span>
+                              </button>
+                              <button
+                                type="button" disabled={!!rescan} onClick={() => handleRescan([sh.file])} title="Re-scan this screenshot"
+                                style={{ background: '#111113', border: '1px solid #2c2c2e', borderRadius: '9px', color: '#ff6b96', fontSize: '12px', fontWeight: 700, padding: '0 10px', cursor: rescan ? 'default' : 'pointer', opacity: rescan ? 0.5 : 1 }}
+                              >
+                                {rescan?.files.includes(sh.file) ? '…' : '🔄'}
+                              </button>
+                            </div>
                           )
                         })}
                       </div>
