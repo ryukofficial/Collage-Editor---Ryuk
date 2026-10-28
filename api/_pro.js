@@ -16,8 +16,8 @@ import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 // final look = the approved Ryuk effect (28 Oct)
-const FINAL_CHROMA = 1.116                 // final look: colour up (the approved Ryuk effect)
-const FINAL_B = 2.37                      // a little warmer (towards yellow)
+const FINAL_CHROMA = 1.116 * 1.04          // the approved Ryuk effect, +4% colour (28 Oct)
+const FINAL_B = 2.37 - 1.0                // a little less warm than the default (28 Oct)
 const FINAL_A = -0.54                     // slightly less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
 const TONE_X = [0, 50, 65, 80, 92, 100]
