@@ -23,7 +23,7 @@ const FINAL_A = -0.54 * 0.898 - 1.25       // less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
 const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
 const TONE_Y = [0, 1, 2.4, 2.6, 2.0, 0.8, -0.7, -1.8, -3.0, -2.5]
-const SHARPEN = 0.1
+const SHARPEN = 0                          // no extra sharpening (the HD upscale already adds crispness)
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
