@@ -24,10 +24,10 @@ const TONE_X = [0, 5, 12, 28, 48, 70, 93, 100]
 const TONE_Y = [0, -0.8, -1.7, -3.1, -3.6, -1.7, 0, 0]   // darker shadows and midtones, whites kept
 // last step: matched pixel by pixel to the editor's final collage (same 98 skins, 28 Oct)
 const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-const MATCH_Y = [1.63, 5.79, 11.87, 16.92, 22.18, 27.68, 32.88, 37.99, 42.91, 47.74, 52.48, 57.13, 61.81, 66.52, 71.27, 75.94, 80.47, 84.97, 89.49, 94.35, 98.14]
+const MATCH_Y = [1.63, 5.56, 11.41, 16.24, 21.3, 26.62, 31.67, 36.65, 41.48, 46.26, 50.98, 55.65, 60.38, 65.18, 70.06, 74.88, 79.59, 84.29, 89.03, 94.12, 98.14]   // a touch darker (−1.5 in the midtones, by eye 28 Oct)
 const MATCH_CHROMA = 0.972 * 1.035
 const MATCH_A = -0.62
-const MATCH_B = -2.73 + 1.2              // matched to target, then a little warmer (by eye, 28 Oct)
+const MATCH_B = -2.73 + 2.0              // matched to target, then warmer (by eye, 28 Oct)
 const SHARPEN = 0.7                         // matched to the editor's final collage
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
