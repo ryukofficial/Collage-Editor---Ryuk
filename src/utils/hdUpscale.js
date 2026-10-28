@@ -14,12 +14,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const ORT_VERSION = '1.29.0'
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`
-const MODEL_URL = '/models/realesrgan-fast.onnx'
+// two qualities: 'fast' (small model, a few minutes) and 'best' (the big model,
+// slow on phones). Both at 40 % AI: measured on the editor's final collage, that
+// gives the same sharpness (more looks over-processed).
+const MODELS = {
+  fast: { url: '/models/realesrgan-fast.onnx',  mix: 0.4,  tile: 400, maxMinutes: 20 },
+  best: { url: '/models/realesrgan-anime.onnx', mix: 0.4,  tile: 192, maxMinutes: 60 },
+}
 const MAX_OUT_PIXELS = 16_000_000
-const TILE = 400            // AI input tile (pixels) — a whole skin fits in one
+let TILE = 400              // AI input tile (pixels), set per quality
 const OVERLAP = 12          // overlap between tiles, hides tile edges
-const AI_MIX = 0.65         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
-const MAX_MINUTES = 20      // if the device would take longer than this, stop and export without HD
+let AI_MIX = 0.65         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
+let MAX_MINUTES = 20      // if the device would take longer than this, stop and export without HD
 
 let cancelled = false
 export function cancelHdUpscale() { cancelled = true }
@@ -41,10 +47,12 @@ function loadOrt() {
   return ortPromise
 }
 
-let sessionPromise = null
-async function getSession() {
+const sessions = {}
+async function getSession(quality = 'fast') {
+  let sessionPromise = sessions[quality]
   if (!sessionPromise) {
-    sessionPromise = (async () => {
+    const MODEL_URL = MODELS[quality].url
+    sessionPromise = sessions[quality] = (async () => {
       const ort = await loadOrt()
       ort.env.wasm.wasmPaths = ORT_BASE
       ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 1)
@@ -68,7 +76,7 @@ async function getSession() {
       }
       throw lastErr || new Error('upscaler_unavailable')
     })()
-    sessionPromise.catch(() => { sessionPromise = null })
+    sessionPromise.catch(() => { delete sessions[quality] })
   }
   return sessionPromise
 }
@@ -160,12 +168,14 @@ function crispLogos(src, dst, logos, k) {
 
 // blob: the finished "Export for editing" PNG (with .layout and .logos)
 // Returns a new PNG blob about twice as big.
-export async function hdUpscale(blob, { onProgress = () => {} } = {}) {
+export async function hdUpscale(blob, { onProgress = () => {}, quality = 'fast' } = {}) {
+  if (!MODELS[quality]) quality = 'fast'
+  ;({ mix: AI_MIX, tile: TILE, maxMinutes: MAX_MINUTES } = MODELS[quality])
   const layout = blob.layout, logos = blob.logos || []
   const bmp = await createImageBitmap(blob)
   const k = Math.min(2, Math.sqrt(MAX_OUT_PIXELS / (bmp.width * bmp.height)))
   if (k < 1.1) { bmp.close?.(); return blob }           // already as big as it can be — nothing to gain
-  const S = await getSession()
+  const S = await getSession(quality)
   const src = canvas(bmp.width, bmp.height); src.getContext('2d').drawImage(bmp, 0, 0); bmp.close?.()
   const out = canvas(Math.round(src.width * k), Math.round(src.height * k)), octx = ctx2d(out)
   // smooth ×k first, so anything not covered below is never left empty
@@ -206,4 +216,4 @@ export async function hdUpscale(blob, { onProgress = () => {} } = {}) {
 }
 
 // Warm up (download the model) without blocking anything.
-export function preloadHdUpscale() { getSession().catch(() => {}) }
+export function preloadHdUpscale(quality = 'fast') { getSession(quality).catch(() => {}) }
