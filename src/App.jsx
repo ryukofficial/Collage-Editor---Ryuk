@@ -294,6 +294,8 @@ export default function App() {
   const [heroPickerOpen,    setHeroPickerOpen]     = useState(false)
   const [pickerMode,        setPickerMode]         = useState(null)
   const [exportMenuOpen,    setExportMenuOpen]     = useState(false)
+  const [hdUpscaleOn,       setHdUpscaleOn]        = useState(() => { try { return localStorage.getItem('ryuk_hd_upscale') !== '0' } catch { return true } })
+  const setHdUpscale = on => { setHdUpscaleOn(on); try { localStorage.setItem('ryuk_hd_upscale', on ? '1' : '0') } catch {} }
   const [walletOpen,        setWalletOpen]         = useState(null)    // null = closed, otherwise { reason }
   const wallet = useWallet()
 
@@ -501,6 +503,7 @@ export default function App() {
     const id       = toast.loading('Exporting collage...')
     let blob       = null
     const filename = `ryukcreates-${paid ? 'for-editing-' : ''}${Date.now()}.png`
+    let hdNote = null
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
       const sortedImages = [...images].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
@@ -517,10 +520,33 @@ export default function App() {
           return
         }
         blob.failedImages = failedImgs
+        // HD upscale ×2 on this device (free); if the device can't, keep the export as is
+        if (hdUpscaleOn) {
+          const { hdUpscale, cancelHdUpscale } = await import('./utils/hdUpscale')
+          const stopBtn = <button onClick={() => cancelHdUpscale()} style={{ marginLeft: '8px', background: 'none', border: '1px solid #8e8e93', color: 'inherit', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}>Skip</button>
+          try {
+            toast.loading(<span>Enhancing (HD upscale)… starting{stopBtn}</span>, { id })
+            const big = await hdUpscale(blob, {
+              onProgress: (p, minsLeft) => toast.loading(<span>Enhancing (HD upscale)… {Math.round(p * 100)}% · about {minsLeft} min left · keep this page open{stopBtn}</span>, { id }),
+            })
+            big.failedImages = failedImgs
+            blob = big
+          } catch (err) {
+            const why = {
+              no_webgpu: "This browser can't run HD upscale (it needs Chrome with WebGPU on a newer phone or computer).",
+              too_slow: 'HD upscale would take too long on this device.',
+              cancelled: 'HD upscale skipped.',
+            }[err?.code] || "HD upscale couldn't run on this device."
+            console.warn('[hd upscale]', err?.code || err?.message)
+            hdNote = `${why} Your export (Ryuk effect + bigger logos) is downloading without it.`
+          }
+        }
       }
       downloadBlob(blob, filename)
       if (blob.failedImages && blob.failedImages.length) {
         toast.error(`Exported, but ${blob.failedImages.length} skin(s) couldn't load and are blank. Try exporting again.`, { id, duration: 6000 })
+      } else if (hdNote) {
+        toast.success(hdNote, { id, duration: 8000 })
       } else {
         toast.success(paid ? `Exported for editing (₹${PRO_EXPORT_PRICE}). Check your downloads.` : 'Exported! Check your downloads.', { id })
       }
@@ -734,7 +760,7 @@ export default function App() {
                   <div role="menu" style={{ position: 'absolute', right: 0, top: '40px', zIndex: 160, width: '240px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '6px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                     {[
                       { mode: 'normal', title: 'Export PNG', sub: 'Full quality, free' },
-                      ...(walletEnabled ? [{ mode: 'editor', title: `🔒 Export for editing · ₹${PRO_EXPORT_PRICE}`, sub: 'Editor colours + bigger series tags. Paid from your wallet' }] : []),
+                      ...(walletEnabled ? [{ mode: 'editor', title: `🔒 Export for editing · ₹${PRO_EXPORT_PRICE}`, sub: hdUpscaleOn ? 'Ryuk effect + bigger logos + HD upscale ×2. Paid from your wallet' : 'Ryuk effect + bigger logos. Paid from your wallet' }] : []),
                     ].map(o => (
                       <button key={o.mode} role="menuitem" onClick={() => { setExportMenuOpen(false); handleExport(o.mode) }}
                         style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: '8px', padding: '10px 12px', color: C.text, cursor: 'pointer' }}>
@@ -742,6 +768,12 @@ export default function App() {
                         <span style={{ display: 'block', fontSize: '12px', color: C.text3, marginTop: '2px' }}>{o.sub}</span>
                       </button>
                     ))}
+                    {walletEnabled && (
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px 10px', borderTop: `1px solid ${C.border}`, marginTop: '4px', fontSize: '12.5px', color: C.text2, cursor: 'pointer' }}>
+                        <input type="checkbox" id="hd-upscale" checked={hdUpscaleOn} onChange={e => setHdUpscale(e.target.checked)} />
+                        <span>HD upscale ×2 for “Export for editing” <span style={{ color: C.text3 }}>(free, done on your device, can take a few minutes)</span></span>
+                      </label>
+                    )}
                   </div>
                 </>
               )}
