@@ -224,14 +224,15 @@ export async function proExportStart(pieces) {
   setState({ balance: out.balance })
   return out.export_id
 }
-// body = [4-byte length of preview][preview JPEG][part PNG]
+// body = [4-byte length][preview JPEG][4-byte length][cells JSON][part PNG]
 export async function proExportPiece(exportId, preview, blob, cells) {
   const token = await accessToken()
-  const len = new Uint8Array(4); new DataView(len.buffer).setUint32(0, preview.size)
+  const meta = new TextEncoder().encode(JSON.stringify(cells))
+  const len = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n); return b }
   const r = await fetch('/api/pro-export-piece', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId, 'X-Cells': JSON.stringify(cells) },
-    body: new Blob([len, preview, blob]),
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId },
+    body: new Blob([len(preview.size), preview, len(meta.length), meta, blob]),
   })
   if (!r.ok) {
     const data = await r.json().catch(() => ({}))
@@ -239,7 +240,9 @@ export async function proExportPiece(exportId, preview, blob, cells) {
     e.code = data?.error || (r.status === 413 ? 'too_large' : 'server_error')
     throw e
   }
-  return r.blob()
+  let logos = []
+  try { logos = JSON.parse(r.headers.get('X-Logos') || '[]') } catch { logos = [] }
+  return { blob: await r.blob(), logos: Array.isArray(logos) ? logos : [] }
 }
 export async function proExportFinish(exportId, failed) {
   const out = await api('pro-export-finish', { json: { export_id: exportId, failed } })

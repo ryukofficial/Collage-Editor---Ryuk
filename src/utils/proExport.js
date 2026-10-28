@@ -27,7 +27,7 @@ function planParts(layout) {
       const part = { x: col * c, y: bannerH + r * c, w: nc * c, h: nr * c, cells: [] }
       for (let rr = 0; rr < nr; rr++) for (let cc = 0; cc < nc; cc++) {
         const i = (r + rr) * cols + (col + cc)
-        if (skins[i]) part.cells.push([cc * c, rr * c, c])
+        if (skins[i]) part.cells.push([cc * c, rr * c, c, skins[i]])
       }
       parts.push(part)
     }
@@ -54,6 +54,7 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
   out.width = layout.width; out.height = layout.height
   const octx = out.getContext('2d', { alpha: false })
   let done = 0, next = 0, failed = null
+  const allLogos = []
 
   async function worker() {
     while (next < parts.length && !failed) {
@@ -63,7 +64,8 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
         cv.getContext('2d', { alpha: false }).drawImage(bmp, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h)
         const png = await new Promise(r => cv.toBlob(r, 'image/png'))
         cv.width = cv.height = 1
-        const res = await proExportPiece(exportId, preview, png, p.cells)
+        const { blob: res, logos } = await proExportPiece(exportId, preview, png, p.cells)
+        for (const [lx, ly, lw, lh] of logos) allLogos.push([p.x + lx, p.y + ly, lw, lh])
         const back = await createImageBitmap(res)
         octx.drawImage(back, p.x, p.y); back.close?.()
       } catch (err) {
@@ -84,5 +86,7 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
   const result = await new Promise(r => out.toBlob(r, 'image/png'))
   out.width = out.height = 1
   if (!result) throw new Error('server_error')
+  result.logos = allLogos              // where the logos are (kept crisp by HD upscale)
+  result.layout = layout
   return result
 }

@@ -130,6 +130,14 @@ async function mapWithConcurrency(items, limit, iteratee) {
   return results
 }
 
+// File name of a skin picture from the skin library (used to find its logo
+// outline for "Export for editing"); null for anything else, e.g. your uploads.
+function skinKey(img) {
+  const m = /^https:\/\/raw\.githubusercontent\.com\/ryukofficial\/mlbb-assets(?:-\d+)?\/.*\/([^/?#]+)$/.exec(String(img?.src || ''))
+  if (!m) return null
+  try { return decodeURIComponent(m[1]) } catch { return null }
+}
+
 export async function exportCollage(images, backgroundColor, profileImageSrc = null, options = {}) {
   const { onProgress, onImageError, concurrency = 6, maxCell = 0 } = options
   if (!images.length) return null
@@ -229,7 +237,7 @@ export async function exportCollage(images, backgroundColor, profileImageSrc = n
   // changing the function's return type (still just a Blob).
   blob.failedImages = failed
   // where each cell is, for "Export for editing" (skins carry a series tag)
-  blob.layout = { width: collageW, height: totalH, bannerH, cols, rows, cellSize, skins: images.map(im => !!(im.cropW && im.cropH)) }
+  blob.layout = { width: collageW, height: totalH, bannerH, cols, rows, cellSize, skins: images.map(skinKey) }
   return blob
 }
 
