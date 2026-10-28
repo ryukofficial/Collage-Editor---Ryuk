@@ -18,7 +18,7 @@ const MODEL_URL = '/models/realesrgan-fast.onnx'
 const MAX_OUT_PIXELS = 16_000_000
 const TILE = 400            // AI input tile (pixels) — a whole skin fits in one
 const OVERLAP = 12          // overlap between tiles, hides tile edges
-const AI_MIX = 0.55         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
+const AI_MIX = 0.30         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
 const MAX_MINUTES = 20      // if the device would take longer than this, stop and export without HD
 
 let cancelled = false
