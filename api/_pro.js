@@ -1,6 +1,6 @@
 // "Export for editing" = the Ryuk effect. Server only — the recipe never reaches the browser.
 //
-//   1. series tags/logos in each skin's top-right corner made 1.15× bigger
+//   1. the series logo on each skin made 1.15× bigger (only the logo itself)
 //   2. colour, brightness and contrast matched to the approved reference look
 //      (measured on a small preview of the skins, so every part of one collage
 //      gets exactly the same correction)
@@ -9,9 +9,9 @@
 //   5. very light sharpening
 import sharp from 'sharp'
 import { REF_L, REF_C } from './_pro_ref.js'
+import { TAG_MASKS, MASK_SIZE } from './_tagmasks.js'
 
-const TAG = { x0: 0.45, y0: 0, x1: 0.995, y1: 0.30 }   // where the series tag sits in a skin
-const TAG_SCALE = 1.15
+const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 const FINAL_CHROMA = 1.116                 // final look: colour up (tuned on the approved collages)
 const FINAL_B = 2.37                      // a little warmer (towards yellow)
@@ -95,46 +95,145 @@ function ryukColour(d, ch, P) {
   }
 }
 
-// ── bigger series tag in one skin (x, y, n in piece pixels) ─────────────────
-// The bigger copy is pinned to the same top-right corner, so it fully covers the
-// original tag. It is fully solid wherever the original tag was, and only fades
-// in the thin band it adds on the left and at the bottom — so no ghost edges.
-async function enlargeTag(raw, W, H, ch, x, y, n) {
-  const sx = Math.round(x + TAG.x0 * n), sy = Math.round(y + TAG.y0 * n)
-  const sw = Math.round((TAG.x1 - TAG.x0) * n), sh = Math.round((TAG.y1 - TAG.y0) * n)
-  if (sw < 8 || sh < 8 || sx + sw > W || sy + sh > H) return
-  const tw = Math.round(sw * TAG_SCALE), th = Math.round(sh * TAG_SCALE)
-  const crop = Buffer.alloc(sw * sh * ch)
-  for (let r = 0; r < sh; r++) raw.copy(crop, r * sw * ch, ((sy + r) * W + sx) * ch, ((sy + r) * W + sx + sw) * ch)
-  const big = await sharp(crop, { raw: { width: sw, height: sh, channels: ch } })
-    .resize(tw, th, { kernel: 'lanczos3' }).sharpen({ sigma: 0.6, m1: 0.4, m2: 0.8 }).raw().toBuffer()
-  const right = Math.round(x + TAG.x1 * n)                 // same right edge as the original box
-  const px = right - tw
-  const bandX = tw - sw, bandY = th - sh                    // the extra area the bigger copy adds
-  const cellRight = x + n, cellBottom = y + n
-  for (let r = 0; r < th; r++) {
-    const Y = sy + r; if (Y >= cellBottom || Y >= H) break
-    let my = r < sh ? 1 : 1 - (r - sh + 1) / (bandY + 1)    // fade only below the original tag
-    my = my * my * (3 - 2 * my)
-    for (let c = 0; c < tw; c++) {
-      const X = px + c; if (X < x || X >= cellRight || X >= W) continue
-      let mx = c >= bandX ? 1 : (c + 1) / (bandX + 1)       // fade only left of the original tag
-      mx = mx * mx * (3 - 2 * mx)
-      const m = mx * my; if (m <= 0) continue
-      const o = (Y * W + X) * ch, s = (r * tw + c) * ch
-      for (let k = 0; k < 3; k++) raw[o + k] = Math.round(raw[o + k] * (1 - m) + big[s + k] * m)
-    }
-  }
+// ── bigger series logo in one skin ──────────────────────────────────────────
+// Only the logo itself is enlarged, using its exact outline from the skin library
+// (_tagmasks.js). The original logo is first removed (filled in from the
+// surrounding picture), then the 1.15× copy is placed with soft edges, pinned to
+// the logo's own top-right corner. Faces, hair and background are never scaled.
+// Skins not in the library (your own uploads) are left exactly as they are.
+const maskCache = new Map()
+function maskFor(key) {
+  if (!key || !Object.prototype.hasOwnProperty.call(TAG_MASKS, key)) return null
+  if (maskCache.has(key)) return maskCache.get(key)
+  const [mx, my, mw, mh, b64] = TAG_MASKS[key]
+  const bytes = Buffer.from(b64, 'base64'), bits = new Uint8Array(mw * mh)
+  for (let i = 0; i < bits.length; i++) bits[i] = (bytes[i >> 3] >> (7 - (i & 7))) & 1
+  const m = { mx, my, mw, mh, bits }
+  maskCache.set(key, m)
+  return m
 }
 
-// image: PNG of one part; cells: [[x, y, n], …] skin cells inside it; P: from paramsFromPreview
+// grows a 0/255 mask by r pixels (square neighbourhood)
+function dilate(a, w, h, r) {
+  if (r < 1) return a
+  const tmp = new Uint8Array(a.length), out = new Uint8Array(a.length)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = 0; for (let k = Math.max(0, x - r); k <= Math.min(w - 1, x + r) && !v; k++) v = a[y * w + k]
+    tmp[y * w + x] = v
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = 0; for (let k = Math.max(0, y - r); k <= Math.min(h - 1, y + r) && !v; k++) v = tmp[k * w + x]
+    out[y * w + x] = v
+  }
+  return out
+}
+
+// returns the area the logo now covers (or null), so HD upscaling can keep the
+// letters crisp instead of letting the AI redraw them
+async function enlargeLogo(raw, W, H, ch, x, y, n, key) {
+  const m = maskFor(key)
+  if (!m || n < 32) return null
+  const s = n / MASK_SIZE
+  const pad = Math.ceil(4 * s)                                   // room for outlines / shadow
+  const bx = Math.max(0, Math.floor(m.mx * s) - pad), by = Math.max(0, Math.floor(m.my * s) - pad)
+  const bx2 = Math.min(n, Math.ceil((m.mx + m.mw) * s) + pad), by2 = Math.min(n, Math.ceil((m.my + m.mh) * s) + pad)
+  const bw = bx2 - bx, bh = by2 - by
+  if (bw < 4 || bh < 4 || x + bx2 > W || y + by2 > H) return null
+
+  // logo mask at cell scale (inside the box)
+  const big256 = new Uint8Array(m.mw * m.mh); for (let i = 0; i < big256.length; i++) big256[i] = m.bits[i] * 255
+  const mw = Math.max(1, Math.round(m.mw * s)), mh = Math.max(1, Math.round(m.mh * s))
+  const scaled = await sharp(Buffer.from(big256), { raw: { width: m.mw, height: m.mh, channels: 1 } }).resize(mw, mh, { kernel: 'cubic' }).extractChannel(0).raw().toBuffer()
+  const ox = Math.round(m.mx * s) - bx, oy = Math.round(m.my * s) - by
+  const hard = new Uint8Array(bw * bh)
+  for (let r = 0; r < mh; r++) for (let c = 0; c < mw; c++) {
+    const X = ox + c, Y = oy + r
+    if (X >= 0 && X < bw && Y >= 0 && Y < bh && scaled[r * mw + c] > 96) hard[Y * bw + X] = 255
+  }
+  const hole = dilate(hard, bw, bh, Math.max(1, Math.round(2.5 * s)))   // logo + its edge pixels
+  const keep = dilate(hard, bw, bh, Math.max(1, Math.round(1.2 * s)))   // what the bigger copy carries
+
+  // copy the box (original pixels)
+  const box = Buffer.alloc(bw * bh * ch)
+  for (let r = 0; r < bh; r++) raw.copy(box, r * bw * ch, ((y + by + r) * W + x + bx) * ch, ((y + by + r) * W + x + bx + bw) * ch)
+
+  // 1. remove the original logo: fill the hole smoothly from the surrounding
+  //    picture (pull-push: average down to coarse levels, then blend back up)
+  const filled = Buffer.from(box)
+  {
+    const levels = []
+    let w = bw, h = bh
+    let col = new Float32Array(w * h * 3), wt = new Float32Array(w * h)
+    for (let i = 0; i < w * h; i++) if (!hole[i]) { wt[i] = 1; col[i * 3] = box[i * ch]; col[i * 3 + 1] = box[i * ch + 1]; col[i * 3 + 2] = box[i * ch + 2] }
+    levels.push({ w, h, col, wt })
+    while (w > 1 || h > 1) {                                   // pull: halve size, keep weighted averages
+      const nw = Math.max(1, Math.ceil(w / 2)), nh = Math.max(1, Math.ceil(h / 2))
+      const nc = new Float32Array(nw * nh * 3), nwt = new Float32Array(nw * nh)
+      for (let y2 = 0; y2 < h; y2++) for (let x2 = 0; x2 < w; x2++) {
+        const i = y2 * w + x2, j = (y2 >> 1) * nw + (x2 >> 1), q = wt[i]
+        if (!q) continue
+        nwt[j] += q; nc[j * 3] += col[i * 3] * q; nc[j * 3 + 1] += col[i * 3 + 1] * q; nc[j * 3 + 2] += col[i * 3 + 2] * q
+      }
+      for (let j = 0; j < nw * nh; j++) if (nwt[j]) { nc[j * 3] /= nwt[j]; nc[j * 3 + 1] /= nwt[j]; nc[j * 3 + 2] /= nwt[j]; nwt[j] = Math.min(1, nwt[j]) }
+      w = nw; h = nh; col = nc; wt = nwt; levels.push({ w, h, col, wt })
+    }
+    for (let l = levels.length - 2; l >= 0; l--) {               // push: fill gaps from the coarser level
+      const L = levels[l], C = levels[l + 1]
+      for (let y2 = 0; y2 < L.h; y2++) for (let x2 = 0; x2 < L.w; x2++) {
+        const i = y2 * L.w + x2, q = L.wt[i]
+        if (q >= 1) continue
+        // bilinear sample of the coarser level
+        const fx = Math.min(C.w - 1, Math.max(0, (x2 + 0.5) / 2 - 0.5)), fy = Math.min(C.h - 1, Math.max(0, (y2 + 0.5) / 2 - 0.5))
+        const x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(C.w - 1, x0 + 1), y1 = Math.min(C.h - 1, y0 + 1), tx = fx - x0, ty = fy - y0
+        for (let k = 0; k < 3; k++) {
+          const v = (C.col[(y0 * C.w + x0) * 3 + k] * (1 - tx) + C.col[(y0 * C.w + x1) * 3 + k] * tx) * (1 - ty)
+                  + (C.col[(y1 * C.w + x0) * 3 + k] * (1 - tx) + C.col[(y1 * C.w + x1) * 3 + k] * tx) * ty
+          L.col[i * 3 + k] = L.col[i * 3 + k] * q + v * (1 - q)
+        }
+        L.wt[i] = 1
+      }
+    }
+    const L0 = levels[0]
+    for (let i = 0; i < bw * bh; i++) if (hole[i]) for (let k = 0; k < 3; k++) filled[i * ch + k] = Math.round(L0.col[i * 3 + k])
+  }
+
+  // 2. the logo 1.15× bigger (with soft edges), pinned to the logo's top-right corner
+  const tw = Math.round(bw * LOGO_SCALE), th = Math.round(bh * LOGO_SCALE)
+  const bigImg = await sharp(box, { raw: { width: bw, height: bh, channels: ch } }).resize(tw, th, { kernel: 'lanczos3' }).raw().toBuffer()
+  const bigA = await sharp(Buffer.from(keep), { raw: { width: bw, height: bh, channels: 1 } })
+    .resize(tw, th, { kernel: 'cubic' }).blur(Math.max(0.4, 0.8 * s)).extractChannel(0).raw().toBuffer()
+  const right = x + bx2, top = y + by                              // same top-right corner
+  for (let r = 0; r < bh; r++) {                                    // first paint the cleaned box back
+    filled.copy(raw, ((y + by + r) * W + x + bx) * ch, r * bw * ch, (r + 1) * bw * ch)
+  }
+  for (let r = 0; r < th; r++) {
+    const Y = top + r; if (Y < y || Y >= y + n || Y >= H) continue
+    for (let c = 0; c < tw; c++) {
+      const X = right - tw + c; if (X < x || X >= x + n || X >= W) continue
+      const a = bigA[r * tw + c] / 255; if (a <= 0.004) continue
+      const o = (Y * W + X) * ch, sidx = (r * tw + c) * ch
+      for (let k = 0; k < 3; k++) raw[o + k] = Math.round(raw[o + k] * (1 - a) + bigImg[sidx + k] * a)
+    }
+  }
+  const lx = Math.max(x, right - tw), ly = Math.max(y, top)
+  return [lx, ly, Math.min(x + n, right) - lx, Math.min(y + n, top + th) - ly]
+}
+
+// image: PNG of one part; cells: [[x, y, n, key], …] skin cells inside it (key = the
+// skin picture's file name in the library); P: from paramsFromPreview
+// Returns { png, logos: [[x, y, w, h], …] } (logo areas inside this part).
 export async function processPiece(image, cells, P) {
   const { data, info } = await sharp(image, { limitInputPixels: 16_000_000 }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
   const { width: W, height: H, channels: ch } = info
-  for (const [x, y, n] of cells) await enlargeTag(data, W, H, ch, x, y, n)
+  const logos = []
+  for (const [x, y, n, key] of cells) {
+    const box = await enlargeLogo(data, W, H, ch, x, y, n, key)
+    if (box && box[2] > 0 && box[3] > 0) logos.push(box)
+  }
   ryukColour(data, ch, P)
   // very light sharpening: out = 1.1·img − 0.1·blur
   const blur = await sharp(data, { raw: { width: W, height: H, channels: ch } }).blur(1.2).raw().toBuffer()
   for (let i = 0; i < data.length; i++) { const v = data[i] * (1 + SHARPEN) - blur[i] * SHARPEN; data[i] = v < 0 ? 0 : v > 255 ? 255 : Math.round(v) }
-  return sharp(data, { raw: { width: W, height: H, channels: ch } }).png({ compressionLevel: 6 }).toBuffer()
+  const png = await sharp(data, { raw: { width: W, height: H, channels: ch } }).png({ compressionLevel: 6 }).toBuffer()
+  return { png, logos }
 }
