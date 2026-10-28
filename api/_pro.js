@@ -16,12 +16,12 @@ import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 // final look = the approved Ryuk effect (28 Oct)
-const FINAL_CHROMA = 1.116                 // final look: colour up (tuned on the approved Ryuk effect collages)
-const FINAL_B = 2.37                      // a little warmer (towards yellow)
-const FINAL_A = -0.54                     // slightly less pink
+const FINAL_CHROMA = 1.116 * 0.94          // Ryuk effect colour, −6% (matched to the editor's dark reference, 28 Oct)
+const FINAL_B = 1.7                       // a little warmer (towards yellow)
+const FINAL_A = -2.1                      // less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
-const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
-const TONE_Y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]   // off (back to the approved Ryuk effect)
+const TONE_X = [0, 5, 12, 28, 48, 70, 93, 100]
+const TONE_Y = [0, -0.8, -1.7, -3.1, -3.6, -1.7, 0, 0]   // darker shadows and midtones, whites kept
 // last step: switched off (the 2-Legend match looked wrong on the site) — no change here
 const MATCH_X = [0, 100]
 const MATCH_Y = [0, 100]
