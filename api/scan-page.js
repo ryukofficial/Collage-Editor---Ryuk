@@ -14,7 +14,12 @@ export default handler(['POST'], async (req, res) => {
   const scanId = String(req.headers['x-scan-id'] || '')
   if (!UUID.test(scanId)) throw httpError(400, 'invalid_request')
   if (!/^image\/(png|jpe?g|webp)$/i.test(String(req.headers['content-type'] || ''))) throw httpError(400, 'bad_image')
-  if (busy >= 2) throw httpError(503, 'busy')            // one instance reads at most 2 at a time
+  // one instance reads at most 2 at a time: wait for a free slot (up to 25 s)
+  // instead of turning the screenshot away
+  for (let waited = 0; busy >= 2; waited += 250) {
+    if (waited >= 25000) throw httpError(503, 'busy')
+    await new Promise(r => setTimeout(r, 250))
+  }
   busy++
   try {
     const image = await readBody(req, MAX_BYTES)
