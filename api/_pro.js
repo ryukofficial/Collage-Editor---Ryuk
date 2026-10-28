@@ -16,19 +16,19 @@ import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 // final look = the approved Ryuk effect (28 Oct)
-const FINAL_CHROMA = 1.116 * 0.94          // Ryuk effect colour, −6% (matched to the editor's dark reference, 28 Oct)
-const FINAL_B = 1.7                       // a little warmer (towards yellow)
-const FINAL_A = -2.1                      // less pink
+const FINAL_CHROMA = 1.116                 // final look: colour up (the approved Ryuk effect)
+const FINAL_B = 2.37                      // a little warmer (towards yellow)
+const FINAL_A = -0.54                     // slightly less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
-const TONE_X = [0, 5, 12, 28, 48, 70, 93, 100]
-const TONE_Y = [0, -0.8, -1.7, -3.1, -3.6, -1.7, 0, 0]   // darker shadows and midtones, whites kept
-// last step: matched pixel by pixel to the editor's final collage (same 98 skins, 28 Oct)
-const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-const MATCH_Y = [1.63, 5.56, 11.41, 16.24, 21.3, 26.62, 31.67, 36.65, 41.48, 46.26, 50.98, 55.65, 60.38, 65.18, 70.06, 74.88, 79.59, 84.29, 89.03, 94.12, 98.14]   // a touch darker (−1.5 in the midtones, by eye 28 Oct)
-const MATCH_CHROMA = 0.972 * 1.035
-const MATCH_A = -0.62
-const MATCH_B = -2.73 + 2.0              // matched to target, then warmer (by eye, 28 Oct)
-const SHARPEN = 0.7                         // matched to the editor's final collage
+const TONE_X = [0, 100]
+const TONE_Y = [0, 0]                     // off
+// last step: off (default Ryuk effect)
+const MATCH_X = [0, 100]
+const MATCH_Y = [0, 100]
+const MATCH_CHROMA = 1
+const MATCH_A = 0
+const MATCH_B = 0
+const SHARPEN = 0.1
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
