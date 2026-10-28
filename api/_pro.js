@@ -1,6 +1,7 @@
 // "Export for editing" = the Ryuk effect. Server only — the recipe never reaches the browser.
 //
-//   1. the series logo on each skin made 1.15× bigger (only the logo itself)
+//   1. the series logo on each skin made 1.15× bigger (only the logo itself);
+//      where a clean, sharp copy of that logo exists it is used instead
 //   2. colour, brightness and contrast matched to the approved reference look
 //      (measured on a small preview of the skins, so every part of one collage
 //      gets exactly the same correction)
@@ -10,6 +11,7 @@
 import sharp from 'sharp'
 import { REF_L, REF_C } from './_pro_ref.js'
 import { TAG_MASKS, MASK_SIZE } from './_tagmasks.js'
+import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
 
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
@@ -157,8 +159,34 @@ async function enlargeLogo(raw, W, H, ch, x, y, n, key) {
   const box = Buffer.alloc(bw * bh * ch)
   for (let r = 0; r < bh; r++) raw.copy(box, r * bw * ch, ((y + by + r) * W + x + bx) * ch, ((y + by + r) * W + x + bx + bw) * ch)
 
-  // 1. remove the original logo: fill the hole smoothly from the surrounding
-  //    picture (pull-push: average down to coarse levels, then blend back up)
+  // 1. remove the original logo: fill the hole smoothly from the surrounding picture
+  const filled = fillHole(box, bw, bh, ch, hole)
+
+  // 2. the logo 1.15× bigger (with soft edges), pinned to the logo's top-right corner
+  const tw = Math.round(bw * LOGO_SCALE), th = Math.round(bh * LOGO_SCALE)
+  const bigImg = await sharp(box, { raw: { width: bw, height: bh, channels: ch } }).resize(tw, th, { kernel: 'lanczos3' }).raw().toBuffer()
+  const bigA = await sharp(Buffer.from(keep), { raw: { width: bw, height: bh, channels: 1 } })
+    .resize(tw, th, { kernel: 'cubic' }).blur(Math.max(0.4, 0.8 * s)).extractChannel(0).raw().toBuffer()
+  const right = x + bx2, top = y + by                              // same top-right corner
+  for (let r = 0; r < bh; r++) {                                    // first paint the cleaned box back
+    filled.copy(raw, ((y + by + r) * W + x + bx) * ch, r * bw * ch, (r + 1) * bw * ch)
+  }
+  for (let r = 0; r < th; r++) {
+    const Y = top + r; if (Y < y || Y >= y + n || Y >= H) continue
+    for (let c = 0; c < tw; c++) {
+      const X = right - tw + c; if (X < x || X >= x + n || X >= W) continue
+      const a = bigA[r * tw + c] / 255; if (a <= 0.004) continue
+      const o = (Y * W + X) * ch, sidx = (r * tw + c) * ch
+      for (let k = 0; k < 3; k++) raw[o + k] = Math.round(raw[o + k] * (1 - a) + bigImg[sidx + k] * a)
+    }
+  }
+  const lx = Math.max(x, right - tw), ly = Math.max(y, top)
+  return [lx, ly, Math.min(x + n, right) - lx, Math.min(y + n, top + th) - ly]
+}
+
+// Fills the hole (255 = fill) in a box of pixels smoothly from the surrounding
+// picture (pull-push: average down to coarse levels, then blend back up).
+function fillHole(box, bw, bh, ch, hole) {
   const filled = Buffer.from(box)
   {
     const levels = []
@@ -196,27 +224,82 @@ async function enlargeLogo(raw, W, H, ch, x, y, n, key) {
     const L0 = levels[0]
     for (let i = 0; i < bw * bh; i++) if (hole[i]) for (let k = 0; k < 3; k++) filled[i * ch + k] = Math.round(L0.col[i * 3 + k])
   }
+  return filled
+}
 
-  // 2. the logo 1.15× bigger (with soft edges), pinned to the logo's top-right corner
-  const tw = Math.round(bw * LOGO_SCALE), th = Math.round(bh * LOGO_SCALE)
-  const bigImg = await sharp(box, { raw: { width: bw, height: bh, channels: ch } }).resize(tw, th, { kernel: 'lanczos3' }).raw().toBuffer()
-  const bigA = await sharp(Buffer.from(keep), { raw: { width: bw, height: bh, channels: 1 } })
-    .resize(tw, th, { kernel: 'cubic' }).blur(Math.max(0.4, 0.8 * s)).extractChannel(0).raw().toBuffer()
-  const right = x + bx2, top = y + by                              // same top-right corner
-  for (let r = 0; r < bh; r++) {                                    // first paint the cleaned box back
-    filled.copy(raw, ((y + by + r) * W + x + bx) * ch, r * bw * ch, (r + 1) * bw * ch)
-  }
-  for (let r = 0; r < th; r++) {
-    const Y = top + r; if (Y < y || Y >= y + n || Y >= H) continue
-    for (let c = 0; c < tw; c++) {
-      const X = right - tw + c; if (X < x || X >= x + n || X >= W) continue
-      const a = bigA[r * tw + c] / 255; if (a <= 0.004) continue
-      const o = (Y * W + X) * ch, sidx = (r * tw + c) * ch
-      for (let k = 0; k < 3; k++) raw[o + k] = Math.round(raw[o + k] * (1 - a) + bigImg[sidx + k] * a)
+// ── Clean logos ─────────────────────────────────────────────────────────────
+// For skins whose series logo we have as a clean, sharp picture (_logos.js),
+// the logo on the skin is removed and the clean one is drawn 1.15× bigger in
+// its place (same top-right corner). Everything else on the skin is untouched.
+const logoCache = new Map()
+async function cleanLogo(id) {
+  if (logoCache.has(id)) return logoCache.get(id)
+  const p = sharp(Buffer.from(LOGO_IMAGES[id], 'base64')).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    .then(({ data, info }) => ({ data, w: info.width, h: info.height }))
+  logoCache.set(id, p)
+  p.catch(() => logoCache.delete(id))
+  return p
+}
+
+async function replaceLogo(raw, W, H, ch, x, y, n, key) {
+  const pl = Object.prototype.hasOwnProperty.call(LOGO_PLACES, key) ? LOGO_PLACES[key] : null
+  if (!pl || n < 32 || !LOGO_IMAGES[pl[0]]) return null
+  const lg = await cleanLogo(pl[0])
+  const m = maskFor(key)
+  const s = n / MASK_SIZE
+  // where the logo sits now (cell coordinates) and where the bigger one goes
+  const lx = pl[1] * s, ly = pl[2] * s, lw = pl[3] * s, lh = pl[4] * s
+  const tw = Math.max(1, Math.round(lw * LOGO_SCALE)), th = Math.max(1, Math.round(lh * LOGO_SCALE))
+  const right = Math.round(lx + lw), top = Math.round(ly)
+  let L = Math.min(lx, right - tw), T = ly, R = lx + lw, B = Math.max(ly + lh, top + th)
+  if (m) { L = Math.min(L, m.mx * s); T = Math.min(T, m.my * s); R = Math.max(R, (m.mx + m.mw) * s); B = Math.max(B, (m.my + m.mh) * s) }
+  const pad = Math.ceil(4 * s)
+  const bx = Math.max(0, Math.floor(L) - pad), by = Math.max(0, Math.floor(T) - pad)
+  const bx2 = Math.min(n, Math.ceil(R) + pad), by2 = Math.min(n, Math.ceil(B) + pad)
+  const bw = bx2 - bx, bh = by2 - by
+  if (bw < 4 || bh < 4 || x + bx2 > W || y + by2 > H) return null
+
+  // the area to clear: the old logo's outline (if known) + the clean logo's shape at the old size
+  const hard = new Uint8Array(bw * bh)
+  if (m) {
+    const big256 = new Uint8Array(m.mw * m.mh); for (let i = 0; i < big256.length; i++) big256[i] = m.bits[i] * 255
+    const mw = Math.max(1, Math.round(m.mw * s)), mh = Math.max(1, Math.round(m.mh * s))
+    const scaled = await sharp(Buffer.from(big256), { raw: { width: m.mw, height: m.mh, channels: 1 } }).resize(mw, mh, { kernel: 'cubic', fit: 'fill' }).extractChannel(0).raw().toBuffer()
+    const ox = Math.round(m.mx * s) - bx, oy = Math.round(m.my * s) - by
+    for (let r = 0; r < mh; r++) for (let c = 0; c < mw; c++) {
+      const X = ox + c, Y = oy + r
+      if (X >= 0 && X < bw && Y >= 0 && Y < bh && scaled[r * mw + c] > 96) hard[Y * bw + X] = 255
     }
   }
-  const lx = Math.max(x, right - tw), ly = Math.max(y, top)
-  return [lx, ly, Math.min(x + n, right) - lx, Math.min(y + n, top + th) - ly]
+  const ow = Math.max(1, Math.round(lw)), oh = Math.max(1, Math.round(lh))
+  const oldA = await sharp(lg.data, { raw: { width: lg.w, height: lg.h, channels: 4 } }).resize(ow, oh, { kernel: 'cubic', fit: 'fill' }).extractChannel(3).raw().toBuffer()
+  const ox = Math.round(lx) - bx, oy = Math.round(ly) - by
+  for (let r = 0; r < oh; r++) for (let c = 0; c < ow; c++) {
+    const X = ox + c, Y = oy + r
+    if (X >= 0 && X < bw && Y >= 0 && Y < bh && oldA[r * ow + c] > 90) hard[Y * bw + X] = 255
+  }
+  const hole = dilate(hard, bw, bh, Math.max(1, Math.round(2.5 * s)))
+
+  const box = Buffer.alloc(bw * bh * ch)
+  for (let r = 0; r < bh; r++) raw.copy(box, r * bw * ch, ((y + by + r) * W + x + bx) * ch, ((y + by + r) * W + x + bx + bw) * ch)
+  const filled = fillHole(box, bw, bh, ch, hole)
+  for (let r = 0; r < bh; r++) filled.copy(raw, ((y + by + r) * W + x + bx) * ch, r * bw * ch, (r + 1) * bw * ch)
+
+  // draw the clean logo 1.15× bigger, pinned to the old logo's top-right corner
+  const big = await sharp(lg.data, { raw: { width: lg.w, height: lg.h, channels: 4 } })
+    .resize(tw, th, { kernel: tw > lg.w ? 'lanczos3' : 'mitchell', fit: 'fill' }).raw().toBuffer()
+  const X0 = x + right - tw, Y0 = y + top
+  for (let r = 0; r < th; r++) {
+    const Y = Y0 + r; if (Y < y || Y >= y + n || Y >= H) continue
+    for (let c = 0; c < tw; c++) {
+      const X = X0 + c; if (X < x || X >= x + n || X >= W) continue
+      const si = (r * tw + c) * 4, a = big[si + 3] / 255; if (a <= 0.004) continue
+      const o = (Y * W + X) * ch
+      for (let k = 0; k < 3; k++) raw[o + k] = Math.round(raw[o + k] * (1 - a) + big[si + k] * a)
+    }
+  }
+  const qx = Math.max(x, X0), qy = Math.max(y, Y0)
+  return [qx, qy, Math.min(x + n, X0 + tw) - qx, Math.min(y + n, Y0 + th) - qy]
 }
 
 // image: PNG of one part; cells: [[x, y, n, key], …] skin cells inside it (key = the
@@ -227,7 +310,7 @@ export async function processPiece(image, cells, P) {
   const { width: W, height: H, channels: ch } = info
   const logos = []
   for (const [x, y, n, key] of cells) {
-    const box = await enlargeLogo(data, W, H, ch, x, y, n, key)
+    const box = (await replaceLogo(data, W, H, ch, x, y, n, key)) || (await enlargeLogo(data, W, H, ch, x, y, n, key))
     if (box && box[2] > 0 && box[3] > 0) logos.push(box)
   }
   ryukColour(data, ch, P)
