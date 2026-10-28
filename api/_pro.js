@@ -2,33 +2,42 @@
 //
 //   1. the series logo on each skin made 1.15× bigger (only the logo itself);
 //      where a clean, sharp copy of that logo exists it is used instead
-//   2. colour, brightness and contrast matched to the approved reference look
-//      (measured on a small preview of the skins, so every part of one collage
-//      gets exactly the same correction)
-//   3. strongest colours −9 %, all colours × 0.975, midtones a touch brighter
-//   4. final look: colour +12 %, a little warmer, slightly less pink
-//   5. very light sharpening
+//   2. colour (LOOK = 'editor', 29 Oct): one fixed look, the same for every
+//      collage, measured pixel by pixel on the editor's final collage
+//      (109 skins compared with the original skin pictures):
+//      original colours, normal colours about 4 % softer (the strongest ones
+//      kept), lower midtones a touch deeper. No sharpening here — the HD
+//      upscale adds the crispness.
+//   (LOOK = 'ryuk' is the older look: matched to the reference picture per
+//    collage, then graded. Kept so it can be switched back.)
 import sharp from 'sharp'
 import { REF_L, REF_C } from './_pro_ref.js'
 import { TAG_MASKS, MASK_SIZE } from './_tagmasks.js'
 import { LOGO_IMAGES, LOGO_PLACES } from './_logos.js'
+import { P3_SKINS } from './_p3.js'
 
 const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 // final look = the approved Ryuk effect (28 Oct)
-const FINAL_CHROMA = 1.116 * 0.94          // Ryuk effect colour, −6% (matched to the editor's dark reference, 28 Oct)
-const FINAL_B = 1.7                       // a little warmer (towards yellow)
-const FINAL_A = -2.1                      // less pink
+const FINAL_CHROMA = 1.116 * 1.04          // the approved Ryuk effect, +4% colour (28 Oct)
+const FINAL_B = 2.37 - 1.0                // a little less warm than the default (28 Oct)
+const FINAL_A = -0.54                     // slightly less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
-const TONE_X = [0, 5, 12, 28, 48, 70, 93, 100]
-const TONE_Y = [0, -0.8, -1.7, -3.1, -3.6, -1.7, 0, 0]   // darker shadows and midtones, whites kept
-// last step: matched pixel by pixel to the editor's final collage (same 98 skins, 28 Oct)
-const MATCH_X = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-const MATCH_Y = [1.63, 5.79, 11.87, 16.92, 22.18, 27.68, 32.88, 37.99, 42.91, 47.74, 52.48, 57.13, 61.81, 66.52, 71.27, 75.94, 80.47, 84.97, 89.49, 94.35, 98.14]
-const MATCH_CHROMA = 0.972 * 1.035
-const MATCH_A = -0.62
-const MATCH_B = -2.73
-const SHARPEN = 0.7                         // matched to the editor's final collage
+const TONE_X = [0, 50, 65, 80, 92, 100]
+const TONE_Y = [0, 0, -1.2, -3.2, -4.5, -4.5]   // bright areas toned down (28 Oct)
+// last step: off (default Ryuk effect)
+const MATCH_X = [0, 100]
+const MATCH_Y = [0, 100]
+const MATCH_CHROMA = 1
+const MATCH_A = 0
+const MATCH_B = 0
+const SHARPEN = 0
+// ── the editor's look (29 Oct) — measured by quantiles on 1.3 M matched pixels ──
+const LOOK = 'editor'
+const ED_LX = [0, 5.19, 9.13, 13.41, 18.52, 26.40, 33.48, 40.34, 47.23, 54.44, 62.33, 71.68, 82.82, 89.63, 95.06, 98.61, 100]
+const ED_LY = [0.1, 4.99, 9.18, 13.41, 18.21, 25.88, 32.95, 39.69, 46.71, 53.85, 61.81, 71.05, 82.01, 88.8, 94.43, 98.27, 99.95]
+const ED_CX = [0, 12.55, 21.13, 32.11, 45.10, 54.70, 72.46, 150]
+const ED_CY = [0.0, 12.2, 20.42, 31.27, 44.36, 54.47, 73.87, 150.0]
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
@@ -89,7 +98,35 @@ export async function paramsFromPreview(preview) {
   return { srcL, srcC, p60, p90: Math.max(p90, p60 + 1e-3) }
 }
 
+// Library skins saved in Display P3: the browser converted them to sRGB when it
+// drew the collage. Turn them back into their original numbers (sRGB → P3 in
+// linear light), the way the editor's tools show them.
+const S2P = [0.8225, 0.1774, 0, 0.0332, 0.9669, 0, 0.0171, 0.0724, 0.9108]
+function restoreP3(d, W, H, ch, x, y, n) {
+  const x1 = Math.min(W, x + n), y1 = Math.min(H, y + n)
+  for (let Y = Math.max(0, y); Y < y1; Y++) {
+    for (let X = Math.max(0, x); X < x1; X++) {
+      const o = (Y * W + X) * ch
+      const r = toLin[d[o]], g = toLin[d[o + 1]], b = toLin[d[o + 2]]
+      d[o]     = toSrgb(S2P[0] * r + S2P[1] * g + S2P[2] * b)
+      d[o + 1] = toSrgb(S2P[3] * r + S2P[4] * g + S2P[5] * b)
+      d[o + 2] = toSrgb(S2P[6] * r + S2P[7] * g + S2P[8] * b)
+    }
+  }
+}
+
+function editorColour(d, ch) {
+  for (let p = 0; p < d.length; p += ch) {
+    let [L, a, b] = rgbToLab(d[p], d[p + 1], d[p + 2])
+    L = interp(L, ED_LX, ED_LY)
+    const c = Math.hypot(a, b)
+    if (c > 1e-4) { const k = interp(c, ED_CX, ED_CY) / c; a *= k; b *= k }
+    labToRgb(L, a, b, d, p)
+  }
+}
+
 function ryukColour(d, ch, P) {
+  if (LOOK === 'editor') return editorColour(d, ch)
   for (let p = 0; p < d.length; p += ch) {
     let [L, a, b] = rgbToLab(d[p], d[p + 1], d[p + 2])
     // 1. match to the reference look
@@ -321,14 +358,17 @@ export async function processPiece(image, cells, P) {
   const { data, info } = await sharp(image, { limitInputPixels: 16_000_000 }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
   const { width: W, height: H, channels: ch } = info
   const logos = []
+  if (LOOK === 'editor') for (const [x, y, n, key] of cells) if (key && P3_SKINS.has(key)) restoreP3(data, W, H, ch, x, y, n)
   for (const [x, y, n, key] of cells) {
     const box = (await replaceLogo(data, W, H, ch, x, y, n, key)) || (await enlargeLogo(data, W, H, ch, x, y, n, key))
     if (box && box[2] > 0 && box[3] > 0) logos.push(box)
   }
   ryukColour(data, ch, P)
-  // very light sharpening: out = 1.1·img − 0.1·blur
+  // optional light sharpening: out = (1+s)·img − s·blur  (off when SHARPEN = 0)
+  if (SHARPEN > 0) {
   const blur = await sharp(data, { raw: { width: W, height: H, channels: ch } }).blur(1.2).raw().toBuffer()
   for (let i = 0; i < data.length; i++) { const v = data[i] * (1 + SHARPEN) - blur[i] * SHARPEN; data[i] = v < 0 ? 0 : v > 255 ? 255 : Math.round(v) }
+  }
   const png = await sharp(data, { raw: { width: W, height: H, channels: ch } }).png({ compressionLevel: 6 }).toBuffer()
   return { png, logos }
 }
