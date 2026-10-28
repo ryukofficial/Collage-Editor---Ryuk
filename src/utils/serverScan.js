@@ -9,7 +9,7 @@
 // Collage screen works the same either way.
 // ─────────────────────────────────────────────────────────────────────────────
 import { sortByPosition } from './skinScanner'
-import { startScan, scanPage, finishScan, walletError } from './wallet'
+import { startScan, retryScan, scanPage, finishScan, walletError } from './wallet'
 
 const MAX_UPLOAD = 3.8 * 1024 * 1024         // the server accepts up to 4 MB per screenshot
 const PARALLEL = 3                           // screenshots read at the same time
@@ -41,13 +41,21 @@ async function uploadable(file) {
 }
 
 export async function scanScreenshotsOnServer(files, vocab, options = {}) {
-  const { onProgress = () => {}, signal } = options
+  // retryScanId: re-read some screenshots again as part of an earlier paid scan (free)
+  const { onProgress = () => {}, signal, retryScanId = null } = options
   const total = files.length
   let done = 0
   const progress = (message) => onProgress({ page: done, total, percent: Math.round(5 + 90 * done / total), message })
 
-  progress('Starting your scan (₹10)…')
-  const scanId = await startScan(total)
+  let scanId
+  if (retryScanId) {
+    progress('Starting the re-scan (free)…')
+    await retryScan(retryScanId, total)
+    scanId = retryScanId
+  } else {
+    progress('Starting your scan (₹10)…')
+    scanId = await startScan(total)
+  }
   if (signal?.aborted) { await finishScan(scanId).catch(() => {}); throw abortError() }
 
   const results = new Array(total).fill(null)
@@ -129,10 +137,10 @@ export async function scanScreenshotsOnServer(files, vocab, options = {}) {
   const report = [
     'Skin scan report (server)',
     `Result: ${result.matches.length} sure, ${result.possible.length} maybe, ${result.ambiguous.length} shared-name from ${pageNo} screenshot${pageNo === 1 ? '' : 's'}`,
-    refunded ? 'Nothing was found, so the ₹10 was refunded to the wallet.' : 'Charged ₹10.',
+    retryScanId ? 'Re-scan (free, part of the earlier scan).' : refunded ? 'Nothing was found, so the ₹10 was refunded to the wallet.' : 'Charged ₹10.',
     '',
     ...lines,
   ].join('\n')
   onProgress({ page: total, total, percent: 100, message: 'Done' })
-  return { ...result, skipped, report, info: { words, engine: 'server', refunded }, shots }
+  return { ...result, skipped, report, info: { words, engine: 'server', refunded, scanId }, shots }
 }

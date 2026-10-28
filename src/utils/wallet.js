@@ -118,6 +118,8 @@ const MESSAGES = {
   bad_image:            'That file is not a screenshot we can read (use PNG or JPG).',
   busy:                 'The server is busy. Please try again in a moment.',
   scan_busy:            'Your screenshots are still being read. Please wait a moment.',
+  scan_refunded:        'That scan was refunded, so a re-scan counts as a new scan.',
+  too_many_retries:     'No free re-scans left for this scan.',
   not_admin:            'Only the admin can do this.',
   too_many_cleared:     'Publish stopped: it would have removed most skin tiers.',
   not_configured:       'This feature is not switched on yet.',
@@ -208,6 +210,10 @@ export async function startScan(pages) {
   const out = await api('scan-start', { json: { pages } })
   setState({ balance: out.balance })
   return out.scan_id
+}
+// Re-read `pages` screenshots again as part of an earlier paid scan (no charge)
+export async function retryScan(scanId, pages) {
+  return api('scan-retry', { json: { scan_id: scanId, pages } })
 }
 export async function scanPage(scanId, blob, signal) {
   return api('scan-page', { body: blob, headers: { 'Content-Type': blob.type, 'X-Scan-Id': scanId }, signal })
