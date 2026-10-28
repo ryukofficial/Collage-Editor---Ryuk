@@ -18,7 +18,7 @@ const LOGO_SCALE = 1.15
 const MIDTONE = 3 * 100 / 255                             // +3 of 255, on the L* scale
 // final look, matched to the editor's reference collage (same skins, side by side)
 const FINAL_CHROMA = 1.116 * 0.898         // colour strength
-const FINAL_B = 2.37 * 0.898 - 3.79 + 1.2  // less yellow (then +1.2 back: it looked a bit cold)
+const FINAL_B = 1.0                        // a little warmer (towards yellow) — tuned by eye on the live site
 const FINAL_A = -0.54 * 0.898 - 1.25       // less pink
 // brightness: darks and midtones a little lighter, highlights a little softer
 const TONE_X = [0, 5, 15, 30, 45, 55, 65, 75, 87, 100]
