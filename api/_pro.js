@@ -35,8 +35,7 @@ const SHARPEN = 0
 // ── the editor's look (29 Oct) — measured by quantiles on 1.3 M matched pixels ──
 const LOOK = 'editor'
 const ED_LX = [0, 5.19, 9.13, 13.41, 18.52, 26.40, 33.48, 40.34, 47.23, 54.44, 62.33, 71.68, 82.82, 89.63, 95.06, 98.61, 100]
-// darker look v3 (30 Oct): whole picture clearly darker (a dark, moody tone), whites soft
-const ED_LY = [0, 2.0, 4.4, 6.8, 9.8, 15.6, 21.2, 26.9, 33.1, 39.7, 47.3, 56.6, 67.6, 73.6, 78.4, 81.6, 83.2]
+const ED_LY = [0.1, 4.99, 9.18, 13.41, 18.21, 25.88, 32.95, 39.69, 46.71, 53.85, 61.81, 71.05, 82.01, 88.8, 94.43, 98.27, 99.95]
 const ED_CX = [0, 12.55, 21.13, 32.11, 45.10, 54.70, 72.46, 150]
 const ED_CY = [0.0, 12.2, 20.42, 31.27, 44.36, 54.47, 73.87, 150.0]
 
