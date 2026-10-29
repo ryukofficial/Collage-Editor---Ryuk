@@ -17,19 +17,16 @@ const BOX = {
   panel: [1650, 89, 2100, 897],
   panelBtnSrc: [1655, 60, 1735, 160], panelBtnDst: [2030, 60],
   // effects screen
-  tiles: {
-    notification: [689, 897, 784, 991],
-    spawn: [831, 897, 926, 991],
-    recall: [974, 897, 1069, 991],
-    elimination: [1114, 897, 1209, 991],
-  },
   diamonds: [1960, 22, 2118, 78], // top bar, right-anchored
+  coa: [1752, 24, 1942, 80],       // the star currency (COA), just left of the diamonds on draw / event pages
+  // Effects / Battle Emote screens: the grid on the right, where the item in use has a yellow frame
+  effectArea: [1720, 150, 2240, 720],
+  effectFirst: [1749, 190, 1884, 325],      // fallback: the first cell of the grid
   // Recharge → Weekly Diamond Pass screen (right-anchored): "Weekly Pass Active" + days/hours
-  weekly: [1712, 335, 2075, 572],
+  weekly: [1736, 398, 2068, 566],           // just the days + hours counters, so the numbers come out big
   weeklyBtnSrc: [1700, 410, 1735, 500], weeklyBtnDst: [[2050, 410], [2072, 410]],   // hide the "+ ₹price" button
 };
 
-export const TILE_KEYS = ['notification', 'spawn', 'recall', 'elimination'];
 
 // ---------- helpers ----------
 export function loadImage(src) {
@@ -80,15 +77,51 @@ function itemPiece(img) {
   return { img: cropTo(img, { x: (w - m) / 2, y: (h - m) / 2, w: m, h: m }), wide: false };
 }
 
+// ---------- the effect / emote in use ----------
+// On the Effects and Battle Emote screens the item in use has a yellow frame in
+// the grid on the right. Find that frame (long straight yellow lines) and cut
+// out what is inside it. If no frame is found, the first item of the grid is used.
+function selectedEffect(img) {
+  const s = img.height / REF_H;
+  const area = mapRect(img, BOX.effectArea, 'right');
+  const aw = Math.round(area.w / s), ah = Math.round(area.h / s);
+  const c = canvas(aw, ah), g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, area.x, area.y, area.w, area.h, 0, 0, aw, ah);
+  const d = g.getImageData(0, 0, aw, ah).data;
+  const yellow = new Uint8Array(aw * ah);
+  for (let i = 0; i < aw * ah; i++) {
+    const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
+    yellow[i] = r > 200 && gg > 160 && b < 130 && r - b > 100 ? 1 : 0;
+  }
+  const longest = (len, other, at) => {        // longest yellow run along one line
+    let best = 0, run = 0;
+    for (let k = 0; k < len; k++) { if (at(k, other)) { run++; if (run > best) best = run } else run = 0 }
+    return best;
+  };
+  const MIN = 90;                                  // a frame side is about 135 px long
+  let x1 = -1, x2 = -1, y1 = -1, y2 = -1;
+  for (let x = 0; x < aw; x++) if (longest(ah, x, (y, xx) => yellow[y * aw + xx]) >= MIN) { if (x1 < 0) x1 = x; x2 = x; }
+  for (let y = 0; y < ah; y++) if (longest(aw, y, (x, yy) => yellow[yy * aw + x]) >= MIN) { if (y1 < 0) y1 = y; y2 = y; }
+  let r;
+  if (x1 >= 0 && y1 >= 0 && x2 - x1 > 80 && y2 - y1 > 80 && x2 - x1 < 200 && y2 - y1 < 200) {
+    const inset = 7;
+    r = { x: area.x + (x1 + inset) * s, y: area.y + (y1 + inset) * s, w: (x2 - x1 - 2 * inset) * s, h: (y2 - y1 - 2 * inset) * s };
+  } else {
+    r = mapRect(img, BOX.effectFirst, 'right');
+    r = { x: r.x + 7 * s, y: r.y + 7 * s, w: r.w - 14 * s, h: r.h - 14 * s };
+  }
+  return cropTo(img, r);
+}
+
 // ---------- build the pieces from the screenshots ----------
-// sources: { profile, collection, effects, skin, extras: [] } (HTMLImageElements; only profile + skin required)
+// sources: { profile, collection, effects: [], weekly, coa, skin, extras: [], side: [] } (HTMLImageElements; only profile + skin required)
 // extras = any item pictures (avatar borders, emotes…); wide item cards keep their text.
 export function extractPieces(src) {
   const pieces = {};
   const P = src.profile;
   if (P.width < P.height) throw new Error('The profile screenshot must be taken in landscape (sideways), like the game.');
   if (src.collection && src.collection.width < src.collection.height) throw new Error('The collection screenshot must be in landscape, like the game.');
-  if (src.effects && src.effects.width < src.effects.height) throw new Error('The effects screenshot must be in landscape, like the game.');
+  if ((src.effects || []).some((e) => e.width < e.height)) throw new Error('Effects screenshots must be in landscape, like the game.');
 
   // profile normalised to height 1080
   const W = Math.round(P.width * REF_H / P.height);
@@ -127,11 +160,12 @@ export function extractPieces(src) {
   }
 
   // effects bar tiles + diamonds
-  if (src.effects) {
-    const E = src.effects;
-    pieces.tiles = {};
-    TILE_KEYS.forEach((k) => { pieces.tiles[k] = cropTo(E, mapRect(E, BOX.tiles[k], 'left')); });
-    pieces.diamonds = cropTo(E, mapRect(E, BOX.diamonds, 'right'));
+  // one effect per screenshot: the item in use (yellow frame) in the grid on the right
+  pieces.effects = (src.effects || []).map(selectedEffect);
+  if (src.effects?.length) pieces.diamonds = cropTo(src.effects[0], mapRect(src.effects[0], BOX.diamonds, 'right'));
+  if (src.coa) {
+    if (src.coa.width < src.coa.height) throw new Error('The COA screenshot must be in landscape, like the game.');
+    pieces.coa = cropTo(src.coa, mapRect(src.coa, BOX.coa, 'right'));
   }
   if (src.diamonds) pieces.diamonds = cropTo(src.diamonds, mapRect(src.diamonds, BOX.diamonds, 'right'));
 
@@ -165,10 +199,11 @@ export function defaultLayout(pieces, opts = {}) {
     tileSize: 162,                    // largest size; shrinks by itself when many items are added
     gap: 7,
     groupDX: 0, groupDY: 0,           // moves collector panel + square tiles together
-    showTiles: { notification: true, spawn: true, recall: true, elimination: true },
+    showEffects: (pieces.effects || []).map(() => true),
     showExtras: (pieces.extras || []).map(() => true),
     diamonds: { show: !!pieces.diamonds, scale: 1.9, dx: 0, dy: 0 },   // the number boxes (diamonds + weekly pass) move together
     weekly: { show: !!pieces.weekly },
+    coa: { show: !!pieces.coa },
     immortal: !!opts.immortal,        // Highest Rank is only highlighted when Immortal
     rank: { dx: 0, dy: 0 },
     cards: { height: 150, dx: 0, dy: 0 },   // wide item cards (with text), bottom-right
@@ -182,7 +217,7 @@ export function defaultLayout(pieces, opts = {}) {
 // Square tiles (recall, spawn, elimination, notification, emotes…) sit in a row
 // under the collector panel. With many tiles they shrink to stay left of the
 // skin; past one row they wrap onto a second row and the panel gets smaller.
-// The number boxes (diamonds, weekly pass days/hours) sit on top of the tiles,
+// The number boxes (diamonds, COA, weekly pass days/hours) sit on top of the tiles,
 // next to the panel.
 const ROW_RIGHT = 1190;     // tiles stay left of the skin art
 const MIN_TILE = 96;
@@ -193,7 +228,7 @@ export function computeBoxes(pieces, L) {
   const x0 = 30 + L.groupDX;
 
   const tileList = [];
-  if (pieces.tiles) TILE_KEYS.forEach((k) => { if (L.showTiles[k]) tileList.push(pieces.tiles[k]); });
+  (pieces.effects || []).forEach((img, i) => { if (L.showEffects?.[i] !== false) tileList.push(img); });
   const cardList = [];
   (pieces.extras || []).forEach((it, i) => {
     if (L.showExtras?.[i] === false) return;
@@ -240,9 +275,16 @@ export function computeBoxes(pieces, L) {
     boxes.push({ id: 'diamonds', group: 'diamonds', img: pieces.diamonds, x: nx, y: ny, w, h: nh });
     nx += w + 2 * B + GAP;
   }
+  if (pieces.coa && L.coa?.show) {
+    const w = Math.round(pieces.coa.width / pieces.coa.height * nh);
+    boxes.push({ id: 'coa', group: 'diamonds', img: pieces.coa, x: nx, y: ny, w, h: nh });
+    nx += w + 2 * B + GAP;
+  }
   if (pieces.weekly && L.weekly?.show) {
-    const w = Math.round(pieces.weekly.width / pieces.weekly.height * nh);
-    boxes.push({ id: 'weekly', group: 'diamonds', img: pieces.weekly, x: nx, y: ny, w, h: nh });
+    // the weekly pass is 50% bigger than the diamonds / COA, sitting on the same bottom line
+    const wh = Math.round(nh * 1.5);
+    const w = Math.round(pieces.weekly.width / pieces.weekly.height * wh);
+    boxes.push({ id: 'weekly', group: 'diamonds', img: pieces.weekly, x: nx, y: ny + nh - wh, w, h: wh });
   }
 
   // right side grid: hero cards, skin grids (and wide item cards, when there is a grid)
@@ -457,6 +499,23 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
       gy.addColorStop(0, 'rgba(0,0,0,0)'); gy.addColorStop(Math.min(1, 24 / ph), '#000'); gy.addColorStop(1, '#000');
       pg.fillStyle = gy; pg.fillRect(0, 0, pw, ph);
       g.drawImage(patch, x1, py);
+    }
+  }
+  // the number boxes (diamonds, COA, weekly pass) can reach the hero / skin numbers:
+  // clear those lines so nothing peeks out half covered
+  const nums = boxes.filter((b) => b.group === 'diamonds');
+  if (nums.length && Math.max(...nums.map((b) => b.x + b.w)) > 940) {
+    const nt = Math.min(...nums.map((b) => b.y)) - 10, nb = Math.max(...nums.map((b) => b.y + b.h)) + 10;
+    const hits = [[815, 862], [862, 905], [928, 972], [972, 1020]].filter(([t, b2]) => b2 > nt && t < nb);
+    if (hits.length) {
+      const px = 900, py = hits[0][0] - 6, pw = 1340 - px, ph = hits[hits.length - 1][1] + 6 - py;
+      const patch = canvas(pw, ph), pg = patch.getContext('2d');
+      for (let x = 0; x < pw; x += 40) pg.drawImage(pieces.base, 850, 925, 40, 125, x, 0, 40, ph);
+      pg.globalCompositeOperation = 'destination-in';
+      const gx = pg.createLinearGradient(0, 0, pw, 0);
+      gx.addColorStop(0, 'rgba(0,0,0,0)'); gx.addColorStop(30 / pw, '#000'); gx.addColorStop(1 - 90 / pw, '#000'); gx.addColorStop(1, 'rgba(0,0,0,0)');
+      pg.fillStyle = gx; pg.fillRect(0, 0, pw, ph);
+      g.drawImage(patch, px, py);
     }
   }
   boxes.forEach((b) => (b.kind === 'circle' ? drawCircle(g, b) : drawFramed(g, b)));

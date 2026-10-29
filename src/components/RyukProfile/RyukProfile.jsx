@@ -4,7 +4,7 @@
 // wallet (free while the wallet is switched off, like Auto Collage).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
-import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob, TILE_KEYS } from './ryukProfileEngine'
+import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob } from './ryukProfileEngine'
 import { useWallet, walletEnabled, walletError, chargeProfileExport, PROFILE_EXPORT_PRICE } from '../../utils/wallet'
 import './RyukProfile.css'
 
@@ -12,10 +12,9 @@ const SLOTS = [
   { key: 'profile', label: 'Profile screenshot', hint: 'Profile page in the game', required: true },
   { key: 'skin', label: 'Skin art', hint: 'Splash art of the skin to show on the right' },
   { key: 'collection', label: 'Collection', hint: 'Collection → Collectible (collector badge on the right)' },
-  { key: 'effects', label: 'Effects', hint: 'Any Effects tab (uses the equipped bar + diamonds)' },
   { key: 'weekly', label: 'Weekly pass', hint: 'Recharge → Weekly Diamond Pass (days + hours left)' },
+  { key: 'coa', label: 'COA', hint: 'A draw page where your COA (star) shows next to diamonds' },
 ]
-const TILE_LABELS = { notification: 'Notification', spawn: 'Spawn', recall: 'Recall', elimination: 'Elimination' }
 const MAX_ITEMS = 40
 let itemSeq = 0
 
@@ -33,6 +32,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [thumbs, setThumbs] = useState({})
   const [items, setItems] = useState([])            // extra item pictures: avatar borders, emotes…
   const [hiddenItems, setHiddenItems] = useState(() => new Set())
+  const [effItems, setEffItems] = useState([])       // one Effects / Battle Emote screenshot per effect
+  const [hiddenEff, setHiddenEff] = useState(() => new Set())
   const [sideItems, setSideItems] = useState([])     // right side: hero win-rate cards, skin grids…
   const [hiddenSide, setHiddenSide] = useState(() => new Set())
   const [pieces, setPieces] = useState(null)
@@ -47,6 +48,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const raf = useRef(0)
   const lastSkin = useRef(null)
   const hadWeekly = useRef(false)
+  const hadCoa = useRef(false)
 
   const paid = walletEnabled
   const price = PROFILE_EXPORT_PRICE
@@ -58,10 +60,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   itemsRef.current = items
   const sideRef = useRef(sideItems)
   sideRef.current = sideItems
+  const effRef = useRef(effItems)
+  effRef.current = effItems
   useEffect(() => () => {
     Object.values(thumbsRef.current).forEach((u) => URL.revokeObjectURL(u))
     itemsRef.current.forEach((it) => URL.revokeObjectURL(it.url))
     sideRef.current.forEach((it) => URL.revokeObjectURL(it.url))
+    effRef.current.forEach((it) => URL.revokeObjectURL(it.url))
   }, [])
 
   // Escape closes; other keys stay inside this screen, so the collage behind it
@@ -89,6 +94,21 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     setFiles((p) => ({ ...p, [key]: f }))
     setThumbs((p) => { if (p[key]) URL.revokeObjectURL(p[key]); return { ...p, [key]: URL.createObjectURL(f) } })
   }
+
+  const addTo = (setList, max) => (e) => {
+    const list = [...(e.target.files || [])]
+    e.target.value = ''
+    const good = list.filter((f) => /^image\//.test(f.type) && f.size <= 25 * 1024 * 1024)
+    setMsg(good.length < list.length ? 'Some files were skipped (only PNG/JPG pictures up to 25 MB).' : '')
+    setList((cur) => [...cur, ...good.slice(0, Math.max(0, max - cur.length)).map((file) => ({ id: ++itemSeq, file, url: URL.createObjectURL(file) }))])
+  }
+  const removeFrom = (setList) => (id) => setList((cur) => {
+    const it = cur.find((x) => x.id === id)
+    if (it) URL.revokeObjectURL(it.url)
+    return cur.filter((x) => x.id !== id)
+  })
+  const addEff = addTo(setEffItems, 40)
+  const removeEff = removeFrom(setEffItems)
 
   const addSide = (e) => {
     const list = [...(e.target.files || [])]
@@ -133,11 +153,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         await Promise.all(Object.entries(files).map(async ([k, f]) => { imgs[k] = await loadImage(f) }))
         imgs.extras = await Promise.all(items.map((it) => loadImage(it.file)))
         imgs.side = await Promise.all(sideItems.map((it) => loadImage(it.file)))
+        imgs.effects = await Promise.all(effItems.map((it) => loadImage(it.file)))
         if (cancelled) return
         const p = extractPieces(imgs)
         const sameSkin = lastSkin.current === files.skin
         lastSkin.current = files.skin
         const keepWeekly = hadWeekly.current && !!p.weekly   // read now: the update below runs later
+        const keepCoa = hadCoa.current && !!p.coa
         setPieces(p)
         setLayout((old) => {
           const fresh = defaultLayout(p, { immortal })
@@ -147,13 +169,14 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             ...fresh,
             skin: sameSkin ? old.skin : fresh.skin,
             tileSize: old.tileSize, groupDX: old.groupDX, groupDY: old.groupDY, rank: old.rank, cards: old.cards ?? fresh.cards,
-            showTiles: { ...fresh.showTiles, ...Object.fromEntries(TILE_KEYS.map((k) => [k, old.showTiles[k]])) },
             diamonds: { ...fresh.diamonds, scale: old.diamonds.scale, dx: old.diamonds.dx, dy: old.diamonds.dy },
             weekly: keepWeekly ? old.weekly : fresh.weekly,
             side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats,
+            coa: keepCoa ? old.coa : fresh.coa,
           }
         })
         hadWeekly.current = !!p.weekly
+        hadCoa.current = !!p.coa
         setMsg('')
       } catch (err) {
         if (!cancelled) setMsg(err?.message || 'Could not read the pictures.')
@@ -162,7 +185,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       }
     })()
     return () => { cancelled = true }
-  }, [files, items, sideItems]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [files, items, sideItems, effItems]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setLayout((l) => (l ? { ...l, immortal } : l)) }, [immortal])
 
@@ -171,12 +194,14 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     if (!layout || !pieces) return layout
     const n = pieces.extras?.length || 0
     const m = pieces.side?.length || 0
+    const e = pieces.effects?.length || 0
     return {
       ...layout,
+      showEffects: effItems.slice(0, e).map((it) => !hiddenEff.has(it.id)),
       showExtras: items.slice(0, n).map((it) => !hiddenItems.has(it.id)),
       showSide: sideItems.slice(0, m).map((it) => !hiddenSide.has(it.id)),
     }
-  }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide])
+  }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide, effItems, hiddenEff])
 
   // draw the watermarked preview
   useEffect(() => {
@@ -257,7 +282,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     }
   }
 
-  const tileKeys = pieces?.tiles ? TILE_KEYS : []
+  const effCount = pieces?.effects?.length || 0
   const itemCount = pieces?.extras?.length || 0
   const hdLabel = paid ? (confirmPay ? `Pay ₹${price} & download HD` : `HD export · ₹${price}`) : 'HD export'
 
@@ -279,11 +304,17 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               <span className="rp-slot-hint">{s.hint}</span>
             </label>
           ))}
+          <label className={`rp-slot${effItems.length ? ' has' : ''}`}>
+            <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addEff} hidden />
+            <span className="rp-plus">+</span>
+            <span className="rp-slot-label">Effects &amp; emotes</span>
+            <span className="rp-slot-hint">One screenshot per effect: Recall, Elimination, Notification, Spawn, Battle Emote… The one in use (yellow frame) is taken.</span>
+          </label>
           <label className={`rp-slot${items.length ? ' has' : ''}`}>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addItems} hidden disabled={items.length >= MAX_ITEMS} />
             <span className="rp-plus">+</span>
             <span className="rp-slot-label">Items</span>
-            <span className="rp-slot-hint">Recall, spawn, elimination, notification, emotes… as many as you like. Wide item cards (like avatar borders) keep their text.</span>
+            <span className="rp-slot-hint">Your own cropped pictures (borders, emotes…). Wide item cards keep their text.</span>
           </label>
           <label className={`rp-slot${sideItems.length ? ' has' : ''}`}>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addSide} hidden />
@@ -292,6 +323,17 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             <span className="rp-slot-hint">Hero win-rate cards, skin icon grids… they fill the right side in rows.</span>
           </label>
         </div>
+
+        {effItems.length > 0 && (
+          <div className="rp-items">
+            {effItems.map((it, i) => (
+              <span key={it.id} className="rp-item">
+                <img src={it.url} alt={`Effect screenshot ${i + 1}`} />
+                <button type="button" onClick={() => removeEff(it.id)} aria-label={`Remove effect ${i + 1}`}><X size={12} /></button>
+              </span>
+            ))}
+          </div>
+        )}
 
         {items.length > 0 && (
           <div className="rp-items">
@@ -373,16 +415,24 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                     Show weekly pass
                   </label>
                 )}
-                {((pieces.diamonds && layout.diamonds.show) || (pieces.weekly && layout.weekly.show)) && (
+                {pieces.coa && (
+                  <label className="rp-check">
+                    <input id="rp-coa" type="checkbox" checked={layout.coa.show} onChange={(e) => set('coa.show', e.target.checked)} />
+                    Show COA
+                  </label>
+                )}
+                {((pieces.diamonds && layout.diamonds.show) || (pieces.weekly && layout.weekly.show) || (pieces.coa && layout.coa.show)) && (
                   <Slider id="rp-dia-s" label="Number boxes" min={1} max={2.6} step={0.05} value={layout.diamonds.scale} onChange={(v) => set('diamonds.scale', v)} />
                 )}
-                {(tileKeys.length > 0 || itemCount > 0) && (
+                {(effCount > 0 || itemCount > 0) && (
                   <>
                     <Slider id="rp-tile-s" label="Tile size (max)" min={110} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />
                     <div className="rp-chips">
-                      {tileKeys.map((k) => (
-                        <button key={k} type="button" className={layout.showTiles[k] ? 'on' : ''} onClick={() => set('showTiles.' + k, !layout.showTiles[k])}>
-                          {TILE_LABELS[k]}
+                      {effItems.slice(0, effCount).map((it, i) => (
+                        <button key={it.id} type="button" className={`rp-chip-img${hiddenEff.has(it.id) ? '' : ' on'}`}
+                          aria-label={`Effect ${i + 1}`}
+                          onClick={() => setHiddenEff((h) => { const n = new Set(h); n.has(it.id) ? n.delete(it.id) : n.add(it.id); return n })}>
+                          <img src={it.url} alt="" /> Effect {i + 1}
                         </button>
                       ))}
                       {items.slice(0, itemCount).map((it, i) => (
