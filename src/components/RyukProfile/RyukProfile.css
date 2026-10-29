@@ -1,0 +1,54 @@
+/* Ryuk Profile — matches the home screen: black, #1c1c1e cards, pink accent */
+.rp {
+  position: fixed; inset: 0; z-index: 300; overflow-y: auto;
+  background: #000; color: #fff;
+  font-family: inherit; -webkit-overflow-scrolling: touch;
+}
+.rp *, .rp *::before, .rp *::after { box-sizing: border-box; }
+.rp-inner { max-width: 980px; margin: 0 auto; padding: 0 16px 32px; }
+.rp-top { display: flex; align-items: center; gap: 10px; padding: 14px 0 4px; }
+.rp-top h1 { flex: 1; margin: 0; font-size: 24px; font-weight: 800; }
+.rp-top h1::after { content: '.'; color: #ff3d77; }
+.rp-close { width: 36px; height: 36px; border-radius: 999px; border: none; background: #1c1c1e; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.rp-sub { margin: 4px 0 14px; color: #8e8e93; font-size: 13px; line-height: 1.45; }
+
+.rp-uploads { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.rp-slot { display: flex; flex-direction: column; gap: 4px; padding: 10px; border-radius: 16px; background: #1c1c1e; border: 1px dashed #3a3a3c; cursor: pointer; min-width: 0; }
+.rp-slot.has { border: 1px solid #ff3d77; }
+.rp-slot img { width: 100%; height: 64px; object-fit: cover; border-radius: 10px; }
+.rp-plus { height: 64px; border-radius: 10px; background: #2c2c2e; display: grid; place-items: center; font-size: 26px; color: #ff3d77; }
+.rp-slot-label { font-size: 13px; font-weight: 700; }
+.rp-slot-label b { color: #ff3d77; margin-left: 2px; }
+.rp-slot-hint { font-size: 11px; color: #8e8e93; line-height: 1.3; }
+
+.rp-empty { color: #8e8e93; font-size: 14px; margin: 20px 0; }
+.rp-stage { position: relative; margin: 16px 0 10px; border-radius: 14px; overflow: hidden; background: #111113; }
+.rp-stage canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+.rp-stage canvas:active { cursor: grabbing; }
+.rp-tip { position: absolute; top: 8px; right: 8px; padding: 3px 9px; border-radius: 999px; font-size: 11px; background: rgba(0,0,0,.65); color: #c7c7cc; pointer-events: none; }
+
+.rp-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.rp-card { background: #1c1c1e; border-radius: 16px; padding: 12px 14px; min-width: 0; }
+.rp-card h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .8px; text-transform: uppercase; color: #8e8e93; }
+.rp-slider { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
+.rp-slider input { width: 100%; accent-color: #ff3d77; }
+.rp-check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
+.rp-check input { width: 17px; height: 17px; accent-color: #ff3d77; }
+.rp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.rp-chips button { padding: 6px 11px; border-radius: 999px; border: 1px solid #3a3a3c; background: transparent; color: #8e8e93; font-size: 12px; font-weight: 600; cursor: pointer; }
+.rp-chips button.on { border-color: #ffd628; color: #ffd628; }
+.rp-link { background: none; border: none; padding: 4px 0; color: #ff3d77; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+.rp-export { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.rp-btn { flex: 1 1 200px; height: 48px; border-radius: 999px; border: none; background: #fff; color: #000; font-size: 15px; font-weight: 800; cursor: pointer; }
+.rp-btn.ghost { background: #1c1c1e; color: #fff; }
+.rp-btn:disabled { opacity: .55; cursor: default; }
+.rp-note { margin: 10px 0 0; font-size: 13px; color: #c7c7cc; }
+.rp-msg { margin: 12px 0 0; font-size: 13px; color: #ff6b81; }
+.rp button:focus-visible, .rp label:focus-within { outline: 2px solid #ff3d77; outline-offset: 2px; }
+.rp-items { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.rp-item { position: relative; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; background: #1c1c1e; }
+.rp-item img { width: 100%; height: 100%; object-fit: cover; }
+.rp-item button { position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 999px; border: none; background: rgba(0,0,0,.75); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.rp-chips .rp-chip-img { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; }
+.rp-chip-img img { width: 22px; height: 22px; border-radius: 999px; object-fit: cover; }
