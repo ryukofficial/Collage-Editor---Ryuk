@@ -186,7 +186,7 @@ function History({ data }) {
       {data.map((x, i) => (
         <div key={x.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderTop: i ? `1px solid ${C.divider}` : 'none' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 600 }}>{TITLES[x.kind] || x.note || 'Changed by admin'}</p>
+            <p style={{ margin: 0, color: C.text, fontSize: '13px', fontWeight: 600 }}>{x.note === 'Ryuk Profile HD export' ? x.note : (TITLES[x.kind] || x.note || 'Changed by admin')}</p>
             <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '11px' }}>{when(x.created_at)}</p>
           </div>
           <span style={{ color: x.amount < 0 ? C.text2 : C.green, fontSize: '14px', fontWeight: 700, flexShrink: 0 }}>
