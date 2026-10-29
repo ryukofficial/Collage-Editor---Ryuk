@@ -256,6 +256,14 @@ export async function proExportFinish(exportId, failed) {
   return out
 }
 
+// ── Paid Ryuk Profile HD export (₹10) ────────────────────────────────────────
+export const PROFILE_EXPORT_PRICE = 10          // shown in the app; the real price is in the database
+export async function chargeProfileExport() {
+  const out = await api('profile-export', { json: {} })
+  if (out.balance != null) setState({ balance: out.balance })
+  return out
+}
+
 // ── Admin ────────────────────────────────────────────────────────────────────
 async function rpc(fn, args) {
   const sb = await client()
