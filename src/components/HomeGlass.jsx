@@ -34,7 +34,7 @@ function Tile({ emoji, title, sub, bg, onClick, children, big, cta }) {
   )
 }
 
-export default function HomeGlass({ onAuto, onPick, onTier, onUpload, onProjects, onWallet, onMenu, onLogo, user, balance, price }) {
+export default function HomeGlass({ onAuto, onRyukProfile, onPick, onTier, onUpload, onProjects, onWallet, onMenu, onLogo, user, balance, price }) {
   return (
     <div style={{ position: 'fixed', inset: '0 0 36px 0', zIndex: 45, background: '#000', color: '#fff', overflowY: 'auto' }}>
       <div style={{ maxWidth: '520px', margin: '0 auto', padding: '0 16px 24px' }}>
@@ -76,6 +76,10 @@ export default function HomeGlass({ onAuto, onPick, onTier, onUpload, onProjects
           <Tile emoji="🖼️" title="Upload" sub="Your images" onClick={onUpload} bg="linear-gradient(135deg, #00d68f, #00838f)" />
           <Tile emoji="💎" title="By tier" sub="Legend, Collector…" onClick={onTier} bg="#1c1c1e" />
           <Tile emoji="📁" title="My projects" sub="Saved collages" onClick={onProjects} bg="#1c1c1e" />
+          {onRyukProfile && (
+            <Tile big emoji="🪪" title="Ryuk Profile" sub="Profile screenshot → showcase edit" onClick={onRyukProfile}
+              cta="Try it" bg="linear-gradient(135deg, #1c1c1e, #3a2a00 70%, #ffd628)" />
+          )}
         </div>
 
         <p style={{ margin: '22px 0 0', textAlign: 'center', fontSize: '11px', color: '#636366' }}>Fan-made tool · Not affiliated with Moonton</p>
