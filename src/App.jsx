@@ -276,6 +276,12 @@ function ArrangePanel({ images, onClose, onReorder }) {
   )
 }
 
+// After a new version is deployed, a page that was already open can't load the
+// old code pieces any more ("Importing a module script failed").
+function isStaleModule(e) {
+  return /module script|dynamically imported module|error loading dynamically|Failed to fetch/i.test(e?.message || '')
+}
+
 export default function App() {
   const stageRef        = useRef()
   const fileInputRef    = useRef()
@@ -522,11 +528,15 @@ export default function App() {
         blob.failedImages = failedImgs
         // HD upscale ×2 on this device (free); if the device can't, keep the export as is
         if (hdUpscaleOn) {
-          const { hdUpscale, cancelHdUpscale } = await import('./utils/hdUpscale')
+          // loaded inside the try: if it can't load (e.g. the site was just updated
+          // while this page was open) the paid export still downloads, without HD
+          let cancelHdUpscale = () => {}
           const stopBtn = <button onClick={() => cancelHdUpscale()} style={{ marginLeft: '8px', background: 'none', border: '1px solid #8e8e93', color: 'inherit', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}>Skip</button>
           try {
             toast.loading(<span>Enhancing (HD upscale)… starting{stopBtn}</span>, { id })
-            const big = await hdUpscale(blob, {
+            const mod = await import('./utils/hdUpscale')
+            cancelHdUpscale = mod.cancelHdUpscale
+            const big = await mod.hdUpscale(blob, {
               onProgress: (p, minsLeft) => toast.loading(<span>Enhancing (HD upscale)… {Math.round(p * 100)}% · about {minsLeft} min left · keep this page open{stopBtn}</span>, { id }),
             })
             big.failedImages = failedImgs
@@ -536,7 +546,9 @@ export default function App() {
               no_webgpu: "This browser can't run HD upscale (it needs Chrome with WebGPU on a newer phone or computer).",
               too_slow: 'HD upscale would take too long on this device.',
               cancelled: 'HD upscale skipped.',
-            }[err?.code] || "HD upscale couldn't run on this device."
+            }[err?.code] || (isStaleModule(err)
+              ? 'The website was just updated, so HD couldn\'t load on this open page. Refresh the page to get HD next time.'
+              : "HD upscale couldn't run on this device.")
             console.warn('[hd upscale]', err?.code || err?.message)
             hdNote = `${why} Your export (Ryuk effect + bigger logos) is downloading without it.`
           }
@@ -551,6 +563,9 @@ export default function App() {
         toast.success(paid ? `Exported for editing (₹${PRO_EXPORT_PRICE}). Check your downloads.` : 'Exported! Check your downloads.', { id })
       }
     } catch (e) {
+      if (isStaleModule(e)) {
+        toast.error('The website was just updated. Refresh the page and export again.', { id, duration: 8000 }); return
+      }
       toast.error('Export failed: ' + e.message, { id }); return
     }
     let thumbnail = null
