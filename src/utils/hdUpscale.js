@@ -19,7 +19,10 @@ const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/di
 const MODELS = {
   fast: { url: '/models/realesrgan-fast.onnx', mix: 0.65, tile: 400, maxMinutes: 20 },
 }
-const MAX_OUT_PIXELS = 16_000_000
+// Biggest picture the upscale may make. Strong phones (8 GB+ memory) get 64 MP, so
+// even a 300+ skin collage is upscaled; others 32 MP, which is still a full ×2 up
+// to about 100 skins.
+const MAX_OUT_PIXELS = (navigator.deviceMemory || 4) >= 8 ? 64_000_000 : 32_000_000
 let TILE = 400              // AI input tile (pixels), set per quality
 const OVERLAP = 12          // overlap between tiles, hides tile edges
 let AI_MIX = 0.65         // how much of the AI result is used (the rest is a plain smooth enlarge) — full AI looked over-processed
@@ -208,8 +211,10 @@ export async function hdUpscale(blob, { onProgress = () => {}, quality = 'fast' 
   for (const [x, y, w, h] of jobs) await upscaleRect(S, src, x, y, w, h, octx, k, clock)
   crispLogos(src, octx, logos, k)
   const result = await new Promise(r => out.toBlob(r, 'image/png'))
+  const outW = out.width, outH = out.height
   src.width = src.height = out.width = out.height = 1
   if (!result) throw new Error('upscaler_failed')
+  result.hdSize = `${outW}×${outH}`
   return result
 }
 
