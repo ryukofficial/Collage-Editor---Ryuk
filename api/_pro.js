@@ -35,10 +35,11 @@ const SHARPEN = 0
 // ── the editor's look (29 Oct) — measured by quantiles on 1.3 M matched pixels ──
 const LOOK = 'editor'
 const ED_LX = [0, 5.19, 9.13, 13.41, 18.52, 26.40, 33.48, 40.34, 47.23, 54.44, 62.33, 71.68, 82.82, 89.63, 95.06, 98.61, 100]
-// darker (30 Oct): bright parts of the skins brought down, whole picture a little darker
-const ED_LY = [0, 4.0, 7.8, 11.6, 16.0, 23.2, 29.9, 36.4, 43.2, 50.2, 57.9, 66.7, 76.5, 81.7, 85.8, 88.4, 89.6]
+// darker + richer, softer step (30 Oct): shadows and midtones deeper, whites kept almost white
+const ED_LY = [0.04, 3.92, 7.45, 11.12, 15.38, 22.47, 29.14, 35.68, 42.56, 49.74, 57.78, 67.3, 78.64, 85.92, 91.95, 95.89, 97.58]
 const ED_CX = [0, 12.55, 21.13, 32.11, 45.10, 54.70, 72.46, 150]
-const ED_CY = [0.0, 12.2, 20.42, 31.27, 44.36, 54.47, 73.87, 150.0]
+// colour a little lower (30 Oct): −4%
+const ED_CY = [0.0, 11.71, 19.6, 30.02, 42.59, 52.29, 70.92, 150.0]
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
