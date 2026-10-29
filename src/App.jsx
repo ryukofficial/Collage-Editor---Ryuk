@@ -295,8 +295,6 @@ export default function App() {
   const [pickerMode,        setPickerMode]         = useState(null)
   const [exportMenuOpen,    setExportMenuOpen]     = useState(false)
   const [hdUpscaleOn,       setHdUpscaleOn]        = useState(() => { try { return localStorage.getItem('ryuk_hd_upscale') !== '0' } catch { return true } })
-  const [hdQuality,         setHdQualityState]     = useState(() => { try { return localStorage.getItem('ryuk_hd_quality') === 'best' ? 'best' : 'fast' } catch { return 'fast' } })
-  const setHdQuality = q => { setHdQualityState(q); try { localStorage.setItem('ryuk_hd_quality', q) } catch {} }
   const setHdUpscale = on => { setHdUpscaleOn(on); try { localStorage.setItem('ryuk_hd_upscale', on ? '1' : '0') } catch {} }
   const [walletOpen,        setWalletOpen]         = useState(null)    // null = closed, otherwise { reason }
   const wallet = useWallet()
@@ -529,7 +527,6 @@ export default function App() {
           try {
             toast.loading(<span>Enhancing (HD upscale)… starting{stopBtn}</span>, { id })
             const big = await hdUpscale(blob, {
-              quality: hdQuality,
               onProgress: (p, minsLeft) => toast.loading(<span>Enhancing (HD upscale)… {Math.round(p * 100)}% · about {minsLeft} min left · keep this page open{stopBtn}</span>, { id }),
             })
             big.failedImages = failedImgs
@@ -776,16 +773,6 @@ export default function App() {
                         <input type="checkbox" id="hd-upscale" checked={hdUpscaleOn} onChange={e => setHdUpscale(e.target.checked)} />
                         <span>HD upscale ×2 for “Export for editing” <span style={{ color: C.text3 }}>(free, done on your device)</span></span>
                       </label>
-                    )}
-                    {walletEnabled && hdUpscaleOn && (
-                      <div style={{ display: 'flex', gap: '6px', padding: '0 12px 10px' }}>
-                        {[['fast', 'Fast', 'few minutes'], ['best', 'Best quality', 'slow']].map(([q, t, s2]) => (
-                          <button key={q} type="button" onClick={() => setHdQuality(q)}
-                            style={{ flex: 1, background: hdQuality === q ? C.accent : 'none', border: `1px solid ${hdQuality === q ? C.accent : C.border}`, borderRadius: '8px', padding: '6px 4px', color: hdQuality === q ? '#fff' : C.text2, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                            {t}<span style={{ display: 'block', fontSize: '10.5px', fontWeight: 500, opacity: 0.8 }}>{s2}</span>
-                          </button>
-                        ))}
-                      </div>
                     )}
                   </div>
                 </>
