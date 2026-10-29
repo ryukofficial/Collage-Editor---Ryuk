@@ -10,12 +10,13 @@ import './RyukProfile.css'
 
 const SLOTS = [
   { key: 'profile', label: 'Profile screenshot', hint: 'Profile page in the game', required: true },
-  { key: 'skin', label: 'Skin art', hint: 'Splash art of the skin to show', required: true },
+  { key: 'skin', label: 'Skin art', hint: 'Splash art of the skin to show on the right' },
   { key: 'collection', label: 'Collection', hint: 'Collection → Collectible (collector badge on the right)' },
   { key: 'effects', label: 'Effects', hint: 'Any Effects tab (uses the equipped bar + diamonds)' },
+  { key: 'weekly', label: 'Weekly pass', hint: 'Recharge → Weekly Diamond Pass (days + hours left)' },
 ]
 const TILE_LABELS = { notification: 'Notification', spawn: 'Spawn', recall: 'Recall', elimination: 'Elimination' }
-const MAX_ITEMS = 6
+const MAX_ITEMS = 40
 let itemSeq = 0
 
 function download(blob, name) {
@@ -32,6 +33,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [thumbs, setThumbs] = useState({})
   const [items, setItems] = useState([])            // extra item pictures: avatar borders, emotes…
   const [hiddenItems, setHiddenItems] = useState(() => new Set())
+  const [sideItems, setSideItems] = useState([])     // right side: hero win-rate cards, skin grids…
+  const [hiddenSide, setHiddenSide] = useState(() => new Set())
   const [pieces, setPieces] = useState(null)
   const [layout, setLayout] = useState(null)
   const [immortal, setImmortal] = useState(false)
@@ -43,6 +46,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const drag = useRef(null)
   const raf = useRef(0)
   const lastSkin = useRef(null)
+  const hadWeekly = useRef(false)
 
   const paid = walletEnabled
   const price = PROFILE_EXPORT_PRICE
@@ -52,9 +56,12 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   thumbsRef.current = thumbs
   const itemsRef = useRef(items)
   itemsRef.current = items
+  const sideRef = useRef(sideItems)
+  sideRef.current = sideItems
   useEffect(() => () => {
     Object.values(thumbsRef.current).forEach((u) => URL.revokeObjectURL(u))
     itemsRef.current.forEach((it) => URL.revokeObjectURL(it.url))
+    sideRef.current.forEach((it) => URL.revokeObjectURL(it.url))
   }, [])
 
   // Escape closes; other keys stay inside this screen, so the collage behind it
@@ -83,6 +90,19 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     setThumbs((p) => { if (p[key]) URL.revokeObjectURL(p[key]); return { ...p, [key]: URL.createObjectURL(f) } })
   }
 
+  const addSide = (e) => {
+    const list = [...(e.target.files || [])]
+    e.target.value = ''
+    const good = list.filter((f) => /^image\//.test(f.type) && f.size <= 25 * 1024 * 1024)
+    setMsg(good.length < list.length ? 'Some files were skipped (only PNG/JPG pictures up to 25 MB).' : '')
+    setSideItems((cur) => [...cur, ...good.slice(0, Math.max(0, 24 - cur.length)).map((file) => ({ id: ++itemSeq, file, url: URL.createObjectURL(file) }))])
+  }
+  const removeSide = (id) => setSideItems((cur) => {
+    const it = cur.find((x) => x.id === id)
+    if (it) URL.revokeObjectURL(it.url)
+    return cur.filter((x) => x.id !== id)
+  })
+
   const addItems = (e) => {
     const list = [...(e.target.files || [])]
     e.target.value = ''
@@ -104,7 +124,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
 
   // build the pieces whenever the uploads change
   useEffect(() => {
-    if (!files.profile || !files.skin) { setPieces(null); return }
+    if (!files.profile) { setPieces(null); return }
     let cancelled = false
     ;(async () => {
       setBusy(true)
@@ -112,10 +132,12 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         const imgs = {}
         await Promise.all(Object.entries(files).map(async ([k, f]) => { imgs[k] = await loadImage(f) }))
         imgs.extras = await Promise.all(items.map((it) => loadImage(it.file)))
+        imgs.side = await Promise.all(sideItems.map((it) => loadImage(it.file)))
         if (cancelled) return
         const p = extractPieces(imgs)
         const sameSkin = lastSkin.current === files.skin
         lastSkin.current = files.skin
+        const keepWeekly = hadWeekly.current && !!p.weekly   // read now: the update below runs later
         setPieces(p)
         setLayout((old) => {
           const fresh = defaultLayout(p, { immortal })
@@ -127,8 +149,11 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             tileSize: old.tileSize, groupDX: old.groupDX, groupDY: old.groupDY, rank: old.rank, cards: old.cards ?? fresh.cards,
             showTiles: { ...fresh.showTiles, ...Object.fromEntries(TILE_KEYS.map((k) => [k, old.showTiles[k]])) },
             diamonds: { ...fresh.diamonds, scale: old.diamonds.scale, dx: old.diamonds.dx, dy: old.diamonds.dy },
+            weekly: keepWeekly ? old.weekly : fresh.weekly,
+            side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats,
           }
         })
+        hadWeekly.current = !!p.weekly
         setMsg('')
       } catch (err) {
         if (!cancelled) setMsg(err?.message || 'Could not read the pictures.')
@@ -137,7 +162,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       }
     })()
     return () => { cancelled = true }
-  }, [files, items]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [files, items, sideItems]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setLayout((l) => (l ? { ...l, immortal } : l)) }, [immortal])
 
@@ -145,8 +170,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const view = useMemo(() => {
     if (!layout || !pieces) return layout
     const n = pieces.extras?.length || 0
-    return { ...layout, showExtras: items.slice(0, n).map((it) => !hiddenItems.has(it.id)) }
-  }, [layout, pieces, items, hiddenItems])
+    const m = pieces.side?.length || 0
+    return {
+      ...layout,
+      showExtras: items.slice(0, n).map((it) => !hiddenItems.has(it.id)),
+      showSide: sideItems.slice(0, m).map((it) => !hiddenSide.has(it.id)),
+    }
+  }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide])
 
   // draw the watermarked preview
   useEffect(() => {
@@ -253,7 +283,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addItems} hidden disabled={items.length >= MAX_ITEMS} />
             <span className="rp-plus">+</span>
             <span className="rp-slot-label">Items</span>
-            <span className="rp-slot-hint">Avatar borders, emotes… up to {MAX_ITEMS}. Item cards keep their name and text.</span>
+            <span className="rp-slot-hint">Recall, spawn, elimination, notification, emotes… as many as you like. Wide item cards (like avatar borders) keep their text.</span>
+          </label>
+          <label className={`rp-slot${sideItems.length ? ' has' : ''}`}>
+            <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addSide} hidden />
+            <span className="rp-plus">+</span>
+            <span className="rp-slot-label">Right side</span>
+            <span className="rp-slot-hint">Hero win-rate cards, skin icon grids… they fill the right side in rows.</span>
           </label>
         </div>
 
@@ -268,8 +304,20 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           </div>
         )}
 
+        {sideItems.length > 0 && (
+          <div className="rp-items">
+            {sideItems.map((it, i) => (
+              <span key={it.id} className={`rp-item${hiddenSide.has(it.id) ? ' off' : ''}`}>
+                <img src={it.url} alt={`Right side picture ${i + 1}`}
+                  onClick={() => setHiddenSide((h) => { const n = new Set(h); n.has(it.id) ? n.delete(it.id) : n.add(it.id); return n })} />
+                <button type="button" onClick={() => removeSide(it.id)} aria-label={`Remove right side picture ${i + 1}`}><X size={12} /></button>
+              </span>
+            ))}
+          </div>
+        )}
+
         {!pieces && (
-          <p className="rp-empty">{busy ? 'Reading your screenshots…' : 'Add the profile screenshot and the skin art to start.'}</p>
+          <p className="rp-empty">{busy ? 'Reading your screenshots…' : 'Add the profile screenshot to start.'}</p>
         )}
 
         {pieces && view && (
@@ -281,12 +329,31 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
 
             <div className="rp-controls">
               <div className="rp-card">
+                <h3>Win rate</h3>
+                <div className="rp-stats">
+                  <label htmlFor="rp-st-m">Matches<input id="rp-st-m" inputMode="numeric" placeholder="9065" value={layout.stats.matches} onChange={(e) => set('stats.matches', e.target.value.slice(0, 8))} /></label>
+                  <label htmlFor="rp-st-w">Win rate<input id="rp-st-w" placeholder="65.82%" value={layout.stats.winRate} onChange={(e) => set('stats.winRate', e.target.value.slice(0, 8))}
+                    onBlur={(e) => { const v = e.target.value.trim(); if (v && /^\d+(\.\d+)?$/.test(v)) set('stats.winRate', v + '%') }} /></label>
+                  <label htmlFor="rp-st-v">MVP<input id="rp-st-v" inputMode="numeric" placeholder="2069" value={layout.stats.mvp} onChange={(e) => set('stats.mvp', e.target.value.slice(0, 8))} /></label>
+                </div>
+                <p className="rp-hint">From Battlefield → your overall stats. Shown as circles on top of the collection.</p>
+                {(layout.stats.matches || layout.stats.winRate || layout.stats.mvp) && (
+                  <Slider id="rp-st-s" label="Circle size" min={0.7} max={1.3} step={0.01} value={layout.stats.size} onChange={(v) => set('stats.size', v)} />
+                )}
+                {pieces.side?.length > 0 && (
+                  <Slider id="rp-side-s" label="Right side size" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />
+                )}
+              </div>
+
+              {pieces.skin && (
+              <div className="rp-card">
                 <h3>Skin</h3>
                 <Slider id="rp-skin-x" label="Left / right" min={150} max={900} value={layout.skin.centerFromRight} onChange={(v) => set('skin.centerFromRight', v)} invert />
                 <Slider id="rp-skin-f" label="Focus" min={0.1} max={0.9} step={0.01} value={layout.skin.focusX} onChange={(v) => set('skin.focusX', v)} />
                 <Slider id="rp-skin-z" label="Zoom" min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
                 <Slider id="rp-skin-y" label="Up / down" min={0} max={1} step={0.01} value={layout.skin.offsetY} onChange={(v) => set('skin.offsetY', v)} />
               </div>
+              )}
 
               <div className="rp-card">
                 <h3>Boxes</h3>
@@ -300,12 +367,18 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                     Show diamonds
                   </label>
                 )}
-                {pieces.diamonds && layout.diamonds.show && (
-                  <Slider id="rp-dia-s" label="Diamonds size" min={1} max={2.6} step={0.05} value={layout.diamonds.scale} onChange={(v) => set('diamonds.scale', v)} />
+                {pieces.weekly && (
+                  <label className="rp-check">
+                    <input id="rp-weekly" type="checkbox" checked={layout.weekly.show} onChange={(e) => set('weekly.show', e.target.checked)} />
+                    Show weekly pass
+                  </label>
+                )}
+                {((pieces.diamonds && layout.diamonds.show) || (pieces.weekly && layout.weekly.show)) && (
+                  <Slider id="rp-dia-s" label="Number boxes" min={1} max={2.6} step={0.05} value={layout.diamonds.scale} onChange={(v) => set('diamonds.scale', v)} />
                 )}
                 {(tileKeys.length > 0 || itemCount > 0) && (
                   <>
-                    <Slider id="rp-tile-s" label="Tile size" min={110} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />
+                    <Slider id="rp-tile-s" label="Tile size (max)" min={110} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />
                     <div className="rp-chips">
                       {tileKeys.map((k) => (
                         <button key={k} type="button" className={layout.showTiles[k] ? 'on' : ''} onClick={() => set('showTiles.' + k, !layout.showTiles[k])}>
