@@ -12,6 +12,7 @@ const SLOTS = [
   { key: 'profile', label: 'Profile screenshot', hint: 'Profile page in the game', required: true },
   { key: 'skin', label: 'Skin art', hint: 'Splash art of the skin to show on the right' },
   { key: 'collection', label: 'Collection', hint: 'Collection → Collectible (collector badge on the right)' },
+  { key: 'stats', label: 'Statistics', hint: 'Battlefield → Statistics (Matches, Win Rate, MVP circles)' },
   { key: 'weekly', label: 'Weekly pass', hint: 'Recharge → Weekly Diamond Pass (days + hours left)' },
   { key: 'coa', label: 'COA', hint: 'A draw page where your COA (star) shows next to diamonds' },
 ]
@@ -34,7 +35,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [hiddenItems, setHiddenItems] = useState(() => new Set())
   const [effItems, setEffItems] = useState([])       // one Effects / Battle Emote screenshot per effect
   const [hiddenEff, setHiddenEff] = useState(() => new Set())
-  const [sideItems, setSideItems] = useState([])     // right side: hero win-rate cards, skin grids…
+  const [heroItems, setHeroItems] = useState([])     // Battlefield → Favorite screenshots (hero cards found automatically)
+  const [sideItems, setSideItems] = useState([])     // right side: skin grids and other pictures
   const [hiddenSide, setHiddenSide] = useState(() => new Set())
   const [pieces, setPieces] = useState(null)
   const [layout, setLayout] = useState(null)
@@ -62,11 +64,14 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   sideRef.current = sideItems
   const effRef = useRef(effItems)
   effRef.current = effItems
+  const heroRef = useRef(heroItems)
+  heroRef.current = heroItems
   useEffect(() => () => {
     Object.values(thumbsRef.current).forEach((u) => URL.revokeObjectURL(u))
     itemsRef.current.forEach((it) => URL.revokeObjectURL(it.url))
     sideRef.current.forEach((it) => URL.revokeObjectURL(it.url))
     effRef.current.forEach((it) => URL.revokeObjectURL(it.url))
+    heroRef.current.forEach((it) => URL.revokeObjectURL(it.url))
   }, [])
 
   // Escape closes; other keys stay inside this screen, so the collage behind it
@@ -109,6 +114,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   })
   const addEff = addTo(setEffItems, 40)
   const removeEff = removeFrom(setEffItems)
+  const addHero = addTo(setHeroItems, 10)
+  const removeHero = removeFrom(setHeroItems)
 
   const addSide = (e) => {
     const list = [...(e.target.files || [])]
@@ -154,6 +161,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         imgs.extras = await Promise.all(items.map((it) => loadImage(it.file)))
         imgs.side = await Promise.all(sideItems.map((it) => loadImage(it.file)))
         imgs.effects = await Promise.all(effItems.map((it) => loadImage(it.file)))
+        imgs.heroes = await Promise.all(heroItems.map((it) => loadImage(it.file)))
         if (cancelled) return
         const p = extractPieces(imgs)
         const sameSkin = lastSkin.current === files.skin
@@ -171,7 +179,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             tileSize: old.tileSize, groupDX: old.groupDX, groupDY: old.groupDY, rank: old.rank, cards: old.cards ?? fresh.cards,
             diamonds: { ...fresh.diamonds, scale: old.diamonds.scale, dx: old.diamonds.dx, dy: old.diamonds.dy },
             weekly: keepWeekly ? old.weekly : fresh.weekly,
-            side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats,
+            side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats, sizes: old.sizes ?? fresh.sizes,
             coa: keepCoa ? old.coa : fresh.coa,
           }
         })
@@ -185,7 +193,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       }
     })()
     return () => { cancelled = true }
-  }, [files, items, sideItems, effItems]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [files, items, sideItems, effItems, heroItems]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setLayout((l) => (l ? { ...l, immortal } : l)) }, [immortal])
 
@@ -199,7 +207,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       ...layout,
       showEffects: effItems.slice(0, e).map((it) => !hiddenEff.has(it.id)),
       showExtras: items.slice(0, n).map((it) => !hiddenItems.has(it.id)),
-      showSide: sideItems.slice(0, m).map((it) => !hiddenSide.has(it.id)),
+      showSide: [...sideItems.map((it) => !hiddenSide.has(it.id)), ...Array(Math.max(0, m - sideItems.length)).fill(true)].slice(0, m),
     }
   }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide, effItems, hiddenEff])
 
@@ -316,11 +324,17 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             <span className="rp-slot-label">Items</span>
             <span className="rp-slot-hint">Your own cropped pictures (borders, emotes…). Wide item cards keep their text.</span>
           </label>
+          <label className={`rp-slot${heroItems.length ? ' has' : ''}`}>
+            <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addHero} hidden />
+            <span className="rp-plus">+</span>
+            <span className="rp-slot-label">Favourite heroes</span>
+            <span className="rp-slot-hint">Battlefield → Favorite. Every hero card fully on screen is found. Scroll and add more screenshots for more heroes.</span>
+          </label>
           <label className={`rp-slot${sideItems.length ? ' has' : ''}`}>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addSide} hidden />
             <span className="rp-plus">+</span>
-            <span className="rp-slot-label">Right side</span>
-            <span className="rp-slot-hint">Hero win-rate cards, skin icon grids… they fill the right side in rows.</span>
+            <span className="rp-slot-label">Right side extras</span>
+            <span className="rp-slot-hint">Skin icon grids or other pictures. They go above the hero cards on the right.</span>
           </label>
         </div>
 
@@ -344,6 +358,20 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               </span>
             ))}
           </div>
+        )}
+
+        {heroItems.length > 0 && (
+          <div className="rp-items">
+            {heroItems.map((it, i) => (
+              <span key={it.id} className="rp-item">
+                <img src={it.url} alt={`Favourite heroes screenshot ${i + 1}`} />
+                <button type="button" onClick={() => removeHero(it.id)} aria-label={`Remove favourite heroes screenshot ${i + 1}`}><X size={12} /></button>
+              </span>
+            ))}
+          </div>
+        )}
+        {heroItems.length > 0 && pieces && (pieces.side?.length || 0) === sideItems.length && (
+          <p className="rp-msg">No full hero card was found. Use a Favorite screenshot where at least one row of cards is fully on screen.</p>
         )}
 
         {sideItems.length > 0 && (
@@ -371,20 +399,15 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
 
             <div className="rp-controls">
               <div className="rp-card">
-                <h3>Win rate</h3>
-                <div className="rp-stats">
-                  <label htmlFor="rp-st-m">Matches<input id="rp-st-m" inputMode="numeric" placeholder="9065" value={layout.stats.matches} onChange={(e) => set('stats.matches', e.target.value.slice(0, 8))} /></label>
-                  <label htmlFor="rp-st-w">Win rate<input id="rp-st-w" placeholder="65.82%" value={layout.stats.winRate} onChange={(e) => set('stats.winRate', e.target.value.slice(0, 8))}
-                    onBlur={(e) => { const v = e.target.value.trim(); if (v && /^\d+(\.\d+)?$/.test(v)) set('stats.winRate', v + '%') }} /></label>
-                  <label htmlFor="rp-st-v">MVP<input id="rp-st-v" inputMode="numeric" placeholder="2069" value={layout.stats.mvp} onChange={(e) => set('stats.mvp', e.target.value.slice(0, 8))} /></label>
-                </div>
-                <p className="rp-hint">From Battlefield → your overall stats. Shown as circles on top of the collection.</p>
-                {(layout.stats.matches || layout.stats.winRate || layout.stats.mvp) && (
-                  <Slider id="rp-st-s" label="Circle size" min={0.7} max={1.3} step={0.01} value={layout.stats.size} onChange={(v) => set('stats.size', v)} />
-                )}
-                {pieces.side?.length > 0 && (
-                  <Slider id="rp-side-s" label="Right side size" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />
-                )}
+                <h3>Sizes</h3>
+                {pieces.panel && <Slider id="rp-sz-panel" label="Collection" min={0.6} max={1.3} step={0.01} value={layout.sizes.panel} onChange={(v) => set('sizes.panel', v)} />}
+                {pieces.circles && <Slider id="rp-st-s" label="Win rate circles" min={0.6} max={1.4} step={0.01} value={layout.stats.size} onChange={(v) => set('stats.size', v)} />}
+                {pieces.diamonds && layout.diamonds.show && <Slider id="rp-sz-dia" label="Diamonds" min={0.5} max={2} step={0.01} value={layout.sizes.diamonds} onChange={(v) => set('sizes.diamonds', v)} />}
+                {pieces.coa && layout.coa.show && <Slider id="rp-sz-coa" label="COA" min={0.5} max={2} step={0.01} value={layout.sizes.coa} onChange={(v) => set('sizes.coa', v)} />}
+                {pieces.weekly && layout.weekly.show && <Slider id="rp-sz-wk" label="Weekly pass" min={0.6} max={2.5} step={0.01} value={layout.sizes.weekly} onChange={(v) => set('sizes.weekly', v)} />}
+                {(effCount > 0 || itemCount > 0) && <Slider id="rp-tile-s" label="Effects (max)" min={100} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />}
+                {pieces.side?.length > 0 && <Slider id="rp-side-s" label="Hero cards" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />}
+                {pieces.extras?.some((x) => x.wide) && <Slider id="rp-card-s" label="Item cards" min={80} max={220} value={layout.cards.height} onChange={(v) => set('cards.height', v)} />}
               </div>
 
               {pieces.skin && (
@@ -406,7 +429,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                 {pieces.diamonds && (
                   <label className="rp-check">
                     <input id="rp-dia" type="checkbox" checked={layout.diamonds.show} onChange={(e) => set('diamonds.show', e.target.checked)} />
-                    Show diamonds
+                    {pieces.weekly ? 'Include diamonds (from the weekly pass screenshot)' : 'Include diamonds'}
                   </label>
                 )}
                 {pieces.weekly && (
@@ -421,12 +444,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                     Show COA
                   </label>
                 )}
-                {((pieces.diamonds && layout.diamonds.show) || (pieces.weekly && layout.weekly.show) || (pieces.coa && layout.coa.show)) && (
-                  <Slider id="rp-dia-s" label="Number boxes" min={1} max={2.6} step={0.05} value={layout.diamonds.scale} onChange={(v) => set('diamonds.scale', v)} />
-                )}
                 {(effCount > 0 || itemCount > 0) && (
                   <>
-                    <Slider id="rp-tile-s" label="Tile size (max)" min={110} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />
                     <div className="rp-chips">
                       {effItems.slice(0, effCount).map((it, i) => (
                         <button key={it.id} type="button" className={`rp-chip-img${hiddenEff.has(it.id) ? '' : ' on'}`}
@@ -444,9 +463,6 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                       ))}
                     </div>
                   </>
-                )}
-                {pieces.extras?.some((x) => x.wide) && (
-                  <Slider id="rp-card-s" label="Item card size" min={80} max={220} value={layout.cards.height} onChange={(v) => set('cards.height', v)} />
                 )}
                 <button type="button" className="rp-link" onClick={reset}>Reset layout</button>
               </div>

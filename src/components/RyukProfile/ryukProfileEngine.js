@@ -22,6 +22,8 @@ const BOX = {
   // Effects / Battle Emote screens: the grid on the right, where the item in use has a yellow frame
   effectArea: [1720, 150, 2240, 720],
   effectFirst: [1749, 190, 1884, 325],      // fallback: the first cell of the grid
+  // Battlefield → Statistics: centres of the Matches / Win Rate / MVP circles (left-anchored), radius
+  statCircles: [[688, 333], [970, 333], [1252, 333]], statR: 118,
   // Recharge → Weekly Diamond Pass screen (right-anchored): "Weekly Pass Active" + days/hours
   weekly: [1736, 398, 2068, 566],           // just the days + hours counters, so the numbers come out big
   weeklyBtnSrc: [1700, 410, 1735, 500], weeklyBtnDst: [[2050, 410], [2072, 410]],   // hide the "+ ₹price" button
@@ -113,6 +115,58 @@ function selectedEffect(img) {
   return cropTo(img, r);
 }
 
+// ---------- favourite heroes (Battlefield → Favorite) ----------
+// Finds every hero card that is fully on screen: cards have thin straight
+// edges, so we look for long horizontal and vertical lines on the right part of
+// the screen and pair them into card-shaped boxes. Half-visible cards are skipped.
+function heroCards(img) {
+  if (img.width < img.height) throw new Error('Favourite heroes screenshots must be in landscape, like the game.');
+  const k = REF_H / img.height, W = Math.round(img.width * k), H = REF_H;
+  const c = canvas(W, H), g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0, W, H);
+  const d = g.getImageData(0, 0, W, H).data;
+  const L = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) L[i] = (d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) / 3;
+  const xa = Math.round(W * 0.45);
+  const edge = (a, b1, b2) => Math.abs(a - b1) > 8 && Math.abs(a - b2) > 3;
+  const group = (score, thr) => {
+    const out = []; let start = -1, last = -1;
+    score.forEach((v, i) => { if (v > thr) { if (start < 0 || i - last > 3) { if (start >= 0) out.push((start + last) >> 1); start = i } last = i } });
+    if (start >= 0) out.push((start + last) >> 1);
+    return out;
+  };
+  // horizontal lines
+  const hs = new Array(H).fill(0);
+  for (let y = 4; y < H - 4; y++) {
+    let n = 0;
+    for (let x = xa; x < W - 20; x++) { const v = L[y * W + x]; if (edge(v, L[(y - 4) * W + x], L[(y + 4) * W + x])) n++ }
+    hs[y] = n / (W - 20 - xa);
+  }
+  const rowsY = group(hs, 0.35);
+  // card rows: a top line with a bottom line about 400–450 px below
+  const rows = [];
+  rowsY.forEach((y1) => {
+    const y2 = rowsY.find((y) => y - y1 >= 395 && y - y1 <= 450);
+    if (y2 && !rows.some(([a, b]) => y1 < b && y2 > a)) rows.push([y1, y2]);
+  });
+  const cards = [];
+  rows.forEach(([y1, y2]) => {
+    const vs = new Array(W).fill(0);
+    for (let x = Math.max(4, xa); x < W - 4; x++) {
+      let n = 0;
+      for (let y = y1 + 20; y < y2 - 20; y++) { const v = L[y * W + x]; if (edge(v, L[y * W + x - 4], L[y * W + x + 4])) n++ }
+      vs[x] = n / (y2 - y1 - 40);
+    }
+    const cols = group(vs, 0.5);
+    const h = y2 - y1;
+    for (let i = 0; i < cols.length - 1; i++) {
+      const w = cols[i + 1] - cols[i];
+      if (w / h > 0.66 && w / h < 0.84) { cards.push([cols[i], y1, cols[i + 1], y2]); i++ }
+    }
+  });
+  return cards.map(([x1, y1, x2, y2]) => cropTo(c, { x: x1 - 2, y: y1 - 2, w: x2 - x1 + 4, h: y2 - y1 + 4 }));
+}
+
 // ---------- build the pieces from the screenshots ----------
 // sources: { profile, collection, effects: [], weekly, coa, skin, extras: [], side: [] } (HTMLImageElements; only profile + skin required)
 // extras = any item pictures (avatar borders, emotes…); wide item cards keep their text.
@@ -182,12 +236,22 @@ export function extractPieces(src) {
       tg.drawImage(R, b.x, b.y, b.w, b.h, d.x, d.y, b.w, b.h);
     });
     pieces.weekly = cropTo(tmp, mapRect(R, BOX.weekly, 'right'));
-    if (!pieces.diamonds) pieces.diamonds = cropTo(R, mapRect(R, BOX.diamonds, 'right'));
+    pieces.diamonds = cropTo(R, mapRect(R, BOX.diamonds, 'right'));   // its top bar has the diamonds
   }
 
   pieces.extras = (src.extras || []).map(itemPiece);
   // right side pictures: hero win-rate cards, skin icon grids… used as they are
-  pieces.side = (src.side || []).map((im) => cropTo(im, { x: 0, y: 0, w: im.width, h: im.height }));
+  pieces.side = [
+    ...(src.side || []).map((im) => cropTo(im, { x: 0, y: 0, w: im.width, h: im.height })),
+    ...(src.heroes || []).flatMap(heroCards),
+  ];
+  // Matches / Win Rate / MVP circles from the Statistics screen
+  if (src.stats) {
+    const S = src.stats;
+    if (S.width < S.height) throw new Error('The statistics screenshot must be in landscape, like the game.');
+    const r = BOX.statR;
+    pieces.circles = BOX.statCircles.map(([cx, cy]) => cropTo(S, mapRect(S, [cx - r, cy - r, cx + r, cy + r], 'left')));
+  }
   pieces.skin = src.skin;
   return pieces;
 }
@@ -208,7 +272,8 @@ export function defaultLayout(pieces, opts = {}) {
     rank: { dx: 0, dy: 0 },
     cards: { height: 150, dx: 0, dy: 0 },   // wide item cards (with text), bottom-right
     side: { size: 1, dx: 0, dy: 0 },        // right side grid (hero cards, skin grids)
-    stats: { matches: '', winRate: '', mvp: '', dx: 0, dy: 0, size: 1 },   // circles over the collector panel
+    stats: { dx: 0, dy: 0, size: 1 },       // Matches / Win Rate / MVP circles over the collector panel
+    sizes: { panel: 1, diamonds: 1, coa: 1, weekly: 1.5 },   // each box's own size
     showSide: (pieces.side || []).map(() => true),
   };
 }
@@ -258,7 +323,7 @@ export function computeBoxes(pieces, L) {
 
   let panelRight = x0 - B - GAP;
   if (pieces.panel) {
-    let pw = 368;
+    let pw = Math.round(368 * (L.sizes?.panel ?? 1));
     let ph = Math.round(pieces.panel.height * pw / pieces.panel.width);
     const room = aboveTiles - 150;                         // keep it under the Profile tab
     if (ph > room && room > 120) { pw = Math.round(pw * room / ph); ph = room; }
@@ -266,26 +331,19 @@ export function computeBoxes(pieces, L) {
     panelRight = x0 + pw;
   }
 
-  // number boxes: diamonds, then weekly pass, same height, side by side
-  const nh = Math.round(56 * L.diamonds.scale);
+  // number boxes: diamonds, COA, weekly pass side by side on one bottom line, each its own size
+  // (the weekly pass starts 50% bigger than the others)
+  const base = 106;
   let nx = panelRight + 2 * B + GAP + L.diamonds.dx;
-  const ny = aboveTiles - nh + L.diamonds.dy;
-  if (pieces.diamonds && L.diamonds.show) {
-    const w = Math.round(pieces.diamonds.width / pieces.diamonds.height * nh);
-    boxes.push({ id: 'diamonds', group: 'diamonds', img: pieces.diamonds, x: nx, y: ny, w, h: nh });
+  const bottom = aboveTiles + L.diamonds.dy;
+  [['diamonds', L.diamonds.show], ['coa', L.coa?.show], ['weekly', L.weekly?.show]].forEach(([k, on]) => {
+    const img = pieces[k];
+    if (!img || !on) return;
+    const h = Math.round(base * (L.sizes?.[k] ?? (k === 'weekly' ? 1.5 : 1)));
+    const w = Math.round(img.width / img.height * h);
+    boxes.push({ id: k, group: 'diamonds', img, x: nx, y: bottom - h, w, h });
     nx += w + 2 * B + GAP;
-  }
-  if (pieces.coa && L.coa?.show) {
-    const w = Math.round(pieces.coa.width / pieces.coa.height * nh);
-    boxes.push({ id: 'coa', group: 'diamonds', img: pieces.coa, x: nx, y: ny, w, h: nh });
-    nx += w + 2 * B + GAP;
-  }
-  if (pieces.weekly && L.weekly?.show) {
-    // the weekly pass is 50% bigger than the diamonds / COA, sitting on the same bottom line
-    const wh = Math.round(nh * 1.5);
-    const w = Math.round(pieces.weekly.width / pieces.weekly.height * wh);
-    boxes.push({ id: 'weekly', group: 'diamonds', img: pieces.weekly, x: nx, y: ny + nh - wh, w, h: wh });
-  }
+  });
 
   // right side grid: hero cards, skin grids (and wide item cards, when there is a grid)
   const sideList = (pieces.side || []).filter((_, i) => L.showSide?.[i] !== false);
@@ -305,18 +363,20 @@ export function computeBoxes(pieces, L) {
     });
   }
   // Matches / Win Rate / MVP circles, along the top of the collector panel
-  const st = L.stats || {};
-  const statVals = [st.matches, st.winRate, st.mvp].map((v) => String(v ?? '').trim());
-  if (statVals.some(Boolean)) {
+  if (pieces.circles) {
+    const st = L.stats || {};
     const panel = boxes.find((b) => b.id === 'panel');
     const d = Math.round(128 * (st.size || 1));
-    const span = d * 3 - Math.round(d * 0.08) * 2;           // circles touch a little
+    const step = d - Math.round(d * 0.08);                   // circles touch a little
+    const span = d + step * 2;
     const left = (panel ? panel.x + panel.w / 2 : 214) - span / 2;
     const top = (panel ? panel.y : 190) - Math.round(d * 0.62);
-    [['matches', 'Matches'], ['winRate', 'Win Rate'], ['mvp', 'MVP']].forEach(([k, label], i) => {
-      if (!statVals[i]) return;
-      boxes.push({ id: 'stat-' + k, group: 'stats', kind: 'circle', label, value: statVals[i],
-        x: Math.max(8, left + i * (d - Math.round(d * 0.08))) + (st.dx || 0), y: Math.max(8, top) + (st.dy || 0), w: d, h: d });
+    pieces.circles.forEach((img, i) => {
+      // the middle one (Win Rate) is a little bigger and sits a little higher
+      const dd = i === 1 ? Math.round(d * 1.15) : d;
+      const cx = left + i * step + d / 2, cy = Math.max(8, top) + d / 2 - (i === 1 ? Math.round(d * 0.12) : 0);
+      boxes.push({ id: 'stat' + i, group: 'stats', kind: 'circle', img,
+        x: Math.max(8, Math.round(cx - dd / 2)) + (st.dx || 0), y: Math.max(4, Math.round(cy - dd / 2)) + (st.dy || 0), w: dd, h: dd });
     });
   }
   if (L.immortal && pieces.rank) {
@@ -370,30 +430,23 @@ function sideGrid(list, W, L, B, GAP) {
   return out;
 }
 
-// a stat circle: dark blue disc, yellow ring, big number, coloured label
-const STAT_COLORS = { Matches: '#ff9be0', 'Win Rate': '#e9eef7', MVP: '#7ff0b6' };
+// a stat circle from the game, with a yellow ring drawn over its coloured ring
 function drawCircle(g, b) {
   const r = b.w / 2, cx = b.x + r, cy = b.y + r;
   g.save();
   g.shadowColor = 'rgba(255,214,40,0.55)';
   g.shadowBlur = 26;
   g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
-  const grad = g.createLinearGradient(0, b.y, 0, b.y + b.h);
-  grad.addColorStop(0, '#2b4f86'); grad.addColorStop(1, '#173058');
-  g.fillStyle = grad; g.fill();
+  g.fillStyle = '#1d3a66'; g.fill();
   g.restore();
-  g.lineWidth = Math.max(5, r * 0.09);
+  g.save();
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.clip();
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(b.img, b.x, b.y, b.w, b.h);
+  g.restore();
+  g.lineWidth = Math.max(5, r * 0.1);
   g.strokeStyle = YELLOW;
   g.beginPath(); g.arc(cx, cy, r - g.lineWidth / 2, 0, Math.PI * 2); g.stroke();
-  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-  let fs = r * 0.6;
-  g.font = `600 ${fs}px Roboto, Arial, sans-serif`;
-  while (g.measureText(b.value).width > r * 1.6 && fs > 10) { fs -= 1; g.font = `600 ${fs}px Roboto, Arial, sans-serif`; }
-  g.fillStyle = '#ffffff';
-  g.fillText(b.value, cx, cy + fs * 0.18);
-  g.font = `500 ${r * 0.3}px Roboto, Arial, sans-serif`;
-  g.fillStyle = STAT_COLORS[b.label] || '#fff';
-  g.fillText(b.label, cx, cy + r * 0.55);
 }
 
 // ---------- draw ----------
@@ -518,7 +571,8 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
       g.drawImage(patch, px, py);
     }
   }
-  boxes.forEach((b) => (b.kind === 'circle' ? drawCircle(g, b) : drawFramed(g, b)));
+  [...boxes.filter((b) => b.id !== 'stat1'), ...boxes.filter((b) => b.id === 'stat1')]
+    .forEach((b) => (b.kind === 'circle' ? drawCircle(g, b) : drawFramed(g, b)));
   if (highlight) {
     boxes.filter((b) => b.group === highlight).forEach((b) => {
       g.save(); g.strokeStyle = '#00e5c0'; g.lineWidth = 4; g.setLineDash([14, 10]);
