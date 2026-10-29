@@ -14,12 +14,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const ORT_VERSION = '1.29.0'
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`
-// two qualities: 'fast' (small model, a few minutes) and 'best' (the big model,
-// slow on phones). Both at 40 % AI: measured on the editor's final collage, that
-// gives the same sharpness (more looks over-processed).
+// The original upscaler: the big anime model at full strength (the same as the
+// hand-made upscales). Slow on phones — about 20–30 minutes for 81 skins.
 const MODELS = {
-  fast: { url: '/models/realesrgan-fast.onnx',  mix: 0.4,  tile: 400, maxMinutes: 20 },
-  best: { url: '/models/realesrgan-anime.onnx', mix: 0.4,  tile: 192, maxMinutes: 60 },
+  fast: { url: '/models/realesrgan-anime.onnx', mix: 1.0, tile: 192, maxMinutes: 60 },
 }
 const MAX_OUT_PIXELS = 16_000_000
 let TILE = 400              // AI input tile (pixels), set per quality
