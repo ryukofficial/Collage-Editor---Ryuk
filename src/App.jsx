@@ -17,6 +17,7 @@ import WalletPanel from './components/WalletPanel'
 import { useWallet, walletEnabled, AUTO_COLLAGE_PRICE, walletError } from './utils/wallet'
 import { PRO_EXPORT_PRICE, makeEditingExport } from './utils/proExport'
 import { autoSave, loadAutoSave, generateThumbnail } from './utils/projectManager'
+const RyukProfile = React.lazy(() => import('./components/RyukProfile/RyukProfile'))
 
 const AUTO_HISTORY_KEY   = 'ryuk_autosave_history'
 const AUTO_HISTORY_LIMIT = 10
@@ -297,6 +298,7 @@ export default function App() {
   const [adminOpen,         setAdminOpen]          = useState(false)
   const [arrangeOpen,       setArrangeOpen]        = useState(false)
   const [autoCollageOpen,   setAutoCollageOpen]    = useState(false)
+  const [ryukProfileOpen,   setRyukProfileOpen]    = useState(false)
   const [heroPickerOpen,    setHeroPickerOpen]     = useState(false)
   const [pickerMode,        setPickerMode]         = useState(null)
   const [exportMenuOpen,    setExportMenuOpen]     = useState(false)
@@ -407,6 +409,7 @@ export default function App() {
   // ── Back button ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const handlePopState = () => {
+      if (ryukProfileOpen)     { setRyukProfileOpen(false);     return }
       if (arrangeOpen)         { setArrangeOpen(false);         return }
       if (projectsOpen)        { setProjectsOpen(false);        return }
       if (historyOpen)         { setHistoryOpen(false);         return }
@@ -417,7 +420,7 @@ export default function App() {
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [arrangeOpen, projectsOpen, historyOpen, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+  }, [ryukProfileOpen, arrangeOpen, projectsOpen, historyOpen, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleOpenHeroPicker = useCallback(() => {
@@ -436,6 +439,7 @@ export default function App() {
   const openProjects = () => { window.history.pushState({ overlay: 'projects' }, ''); setProjectsOpen(true) }
   const openHistory  = () => { window.history.pushState({ overlay: 'history' }, '');  setHistoryOpen(true) }
   const closeHistory = () => setHistoryOpen(false)
+  const openRyukProfile = () => { window.history.pushState({ overlay: 'ryuk-profile' }, ''); setRyukProfileOpen(true) }
 
   // Admin area: tap the name 3 times. Only accounts marked as admin in the
   // database get in (no password in the website code any more).
@@ -586,6 +590,7 @@ export default function App() {
       {!images.length && (
         <HomeGlass
           onAuto={() => setAutoCollageOpen(true)}
+          onRyukProfile={openRyukProfile}
           onPick={() => { setPickerMode(null); setHeroPickerOpen(true) }}
           onTier={() => { setPickerMode('collection'); setHeroPickerOpen(true) }}
           onUpload={() => fileInputRef.current?.click()}
@@ -607,6 +612,12 @@ export default function App() {
       {/* ── Arrange Panel ────────────────────────────────────────────────── */}
       {autoCollageOpen && (
         <AutoCollage onClose={() => setAutoCollageOpen(false)} onOpenWallet={reason => setWalletOpen({ reason })} />
+      )}
+
+      {ryukProfileOpen && (
+        <React.Suspense fallback={null}>
+          <RyukProfile onClose={() => window.history.back()} onOpenWallet={reason => setWalletOpen({ reason })} />
+        </React.Suspense>
       )}
 
       {walletOpen && <WalletPanel reason={walletOpen.reason} onClose={() => setWalletOpen(null)} />}
@@ -702,6 +713,7 @@ export default function App() {
           {[
             { icon: '🗂', label: 'Projects', sub: 'Manage saved collages', action: () => { setSidebarOpen(false); openProjects() } },
             { icon: '📁', label: 'Export History', sub: 'View past exports', action: () => { setSidebarOpen(false); openHistory() } },
+            { icon: '🪪', label: 'Ryuk Profile', sub: 'Profile showcase edit', action: () => { setSidebarOpen(false); openRyukProfile() } },
             ...(walletEnabled ? [{ icon: '💳', label: 'Wallet', sub: wallet.user ? `Balance ₹${wallet.balance ?? '…'}` : 'Log in or create an account', action: () => { setSidebarOpen(false); setWalletOpen({}) } }] : []),
             ...(wallet.admin ? [{ icon: '🛠', label: 'Admin panel', sub: 'Skin tiers', action: () => { setSidebarOpen(false); openAdmin() } }] : []),
           ].map(item => (
