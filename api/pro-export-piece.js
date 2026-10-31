@@ -1,9 +1,9 @@
-// POST /api/pro-export-piece  (body: PNG of one part of the collage)
-//   header X-Export-Id; body = [len][preview][len][cells JSON [[x, y, size, fileName]]][part PNG]
-// Only for a paid, open export that belongs to the caller. Returns the processed PNG.
+// POST /api/pro-export-piece  (body: JPEG of one part of the collage)
+//   header X-Export-Id; body = [len][preview][len][cells JSON [[x, y, size, fileName]]][part image]
+// Only for a paid, open export that belongs to the caller. Returns the processed part as a high-quality JPEG.
 import { handler, readBody, send, bearer, httpError } from './_http.js'
 import { userFromToken, rpcService, supabaseConfigured } from './_supabase.js'
-import { processPiece, paramsFromPreview } from './_pro.js'
+import { processPiece, paramsFromPreview, LOOK_NAMES } from './_pro.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_BYTES = 4 * 1024 * 1024
@@ -27,12 +27,14 @@ export default handler(['POST'], async (req, res) => {
   const uid = await userFromToken(bearer(req))
   const exportId = String(req.headers['x-export-id'] || '')
   if (!UUID.test(exportId)) throw httpError(400, 'invalid_request')
+  const look = String(req.headers['x-look'] || 'dark')            // which effect the customer chose
+  if (!LOOK_NAMES.includes(look)) throw httpError(400, 'invalid_request')
   if (!/^application\/octet-stream$/i.test(String(req.headers['content-type'] || ''))) throw httpError(400, 'bad_image')
   if (busy >= 3) throw httpError(503, 'busy')
   busy++
   try {
     const body = await readBody(req, MAX_BYTES)
-    // [4-byte length][preview of the collage's skins][4-byte length][cells JSON][this part as PNG]
+    // [4-byte length][preview of the collage's skins][4-byte length][cells JSON][this part (JPEG or PNG)]
     if (body.length < 80) throw httpError(400, 'bad_image')
     const plen = body.readUInt32BE(0)
     if (plen < 60 || plen > 1_500_000 || 8 + plen + 60 > body.length) throw httpError(400, 'bad_image')
@@ -43,14 +45,14 @@ export default handler(['POST'], async (req, res) => {
     const image = body.subarray(8 + plen + mlen)
     await rpcService('svc_use_pro_piece', { p_export: exportId, p_user: uid })   // counts against the paid export
     let out
-    try { out = await processPiece(image, cells, await paramsFromPreview(preview)) } catch { throw httpError(400, 'bad_image') }
+    try { out = await processPiece(image, cells, await paramsFromPreview(preview), look) } catch { throw httpError(400, 'bad_image') }
     await rpcService('svc_pro_piece_done', { p_export: exportId, p_user: uid })   // fails if already refunded
     res.statusCode = 200
-    res.setHeader('Content-Type', 'image/png')
+    res.setHeader('Content-Type', 'image/jpeg')
     res.setHeader('Cache-Control', 'no-store')
     res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader('X-Logos', JSON.stringify(out.logos))           // logo areas, kept crisp by HD upscale
-    res.end(out.png)
+    res.end(out.jpg)
   } finally {
     busy--
   }

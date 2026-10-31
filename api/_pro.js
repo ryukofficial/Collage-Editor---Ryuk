@@ -40,6 +40,17 @@ const ED_LY = [0.04, 3.92, 7.45, 11.12, 15.38, 22.47, 29.14, 35.68, 42.56, 49.74
 const ED_CX = [0, 12.55, 21.13, 32.11, 45.10, 54.70, 72.46, 150]
 // colour a little lower (30 Oct): −4%
 const ED_CY = [0.0, 11.71, 19.6, 30.02, 42.59, 52.29, 70.92, 150.0]
+// Two looks the customer can choose from at export:
+//   dark    = the curves above (deeper shadows, colour −4 %)
+//   classic = the original default editor look (29 Oct)
+const LOOKS = {
+  dark: { LY: ED_LY, CY: ED_CY },
+  classic: {
+    LY: [0.1, 4.99, 9.18, 13.41, 18.21, 25.88, 32.95, 39.69, 46.71, 53.85, 61.81, 71.05, 82.01, 88.8, 94.43, 98.27, 99.95],
+    CY: [0.0, 12.2, 20.42, 31.27, 44.36, 54.47, 73.87, 150.0],
+  },
+}
+export const LOOK_NAMES = Object.keys(LOOKS)
 
 // ── sRGB ⇄ CIELAB (D65) ─────────────────────────────────────────────────────
 const toLin = new Float32Array(256)
@@ -117,18 +128,19 @@ function restoreP3(d, W, H, ch, x, y, n) {
   }
 }
 
-function editorColour(d, ch) {
+function editorColour(d, ch, look) {
+  const { LY, CY } = LOOKS[look] || LOOKS.dark
   for (let p = 0; p < d.length; p += ch) {
     let [L, a, b] = rgbToLab(d[p], d[p + 1], d[p + 2])
-    L = interp(L, ED_LX, ED_LY)
+    L = interp(L, ED_LX, LY)
     const c = Math.hypot(a, b)
-    if (c > 1e-4) { const k = interp(c, ED_CX, ED_CY) / c; a *= k; b *= k }
+    if (c > 1e-4) { const k = interp(c, ED_CX, CY) / c; a *= k; b *= k }
     labToRgb(L, a, b, d, p)
   }
 }
 
-function ryukColour(d, ch, P) {
-  if (LOOK === 'editor') return editorColour(d, ch)
+function ryukColour(d, ch, P, look) {
+  if (LOOK === 'editor') return editorColour(d, ch, look)
   for (let p = 0; p < d.length; p += ch) {
     let [L, a, b] = rgbToLab(d[p], d[p + 1], d[p + 2])
     // 1. match to the reference look
@@ -353,10 +365,13 @@ async function replaceLogo(raw, W, H, ch, x, y, n, key) {
   return [qx, qy, Math.min(x + n, X0 + tw) - qx, Math.min(y + n, Y0 + th) - qy]
 }
 
-// image: PNG of one part; cells: [[x, y, n, key], …] skin cells inside it (key = the
-// skin picture's file name in the library); P: from paramsFromPreview
-// Returns { png, logos: [[x, y, w, h], …] } (logo areas inside this part).
-export async function processPiece(image, cells, P) {
+// image: one part (JPEG or PNG); cells: [[x, y, n, key], …] skin cells inside it (key =
+// the skin picture's file name in the library); P: from paramsFromPreview;
+// look: 'dark' or 'classic'.
+// Returns { jpg, logos: [[x, y, w, h], …] } (logo areas inside this part). The part goes
+// back as a high-quality JPEG (full colour, no chroma subsampling): it looks the same
+// as PNG but is about 8× smaller, which keeps data transfer low.
+export async function processPiece(image, cells, P, look = 'dark') {
   const { data, info } = await sharp(image, { limitInputPixels: 16_000_000 }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
   const { width: W, height: H, channels: ch } = info
   const logos = []
@@ -365,12 +380,12 @@ export async function processPiece(image, cells, P) {
     const box = (await replaceLogo(data, W, H, ch, x, y, n, key)) || (await enlargeLogo(data, W, H, ch, x, y, n, key))
     if (box && box[2] > 0 && box[3] > 0) logos.push(box)
   }
-  ryukColour(data, ch, P)
+  ryukColour(data, ch, P, look)
   // optional light sharpening: out = (1+s)·img − s·blur  (off when SHARPEN = 0)
   if (SHARPEN > 0) {
   const blur = await sharp(data, { raw: { width: W, height: H, channels: ch } }).blur(1.2).raw().toBuffer()
   for (let i = 0; i < data.length; i++) { const v = data[i] * (1 + SHARPEN) - blur[i] * SHARPEN; data[i] = v < 0 ? 0 : v > 255 ? 255 : Math.round(v) }
   }
-  const png = await sharp(data, { raw: { width: W, height: H, channels: ch } }).png({ compressionLevel: 6 }).toBuffer()
-  return { png, logos }
+  const jpg = await sharp(data, { raw: { width: W, height: H, channels: ch } }).jpeg({ quality: 95, chromaSubsampling: '4:4:4' }).toBuffer()
+  return { jpg, logos }
 }
