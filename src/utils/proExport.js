@@ -35,7 +35,8 @@ function planParts(layout) {
   return parts
 }
 
-export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
+// look: 'dark' or 'classic' (the two Ryuk effects the customer can choose)
+export async function makeEditingExport(blob, { onProgress = () => {}, look = 'dark' } = {}) {
   const layout = blob.layout
   if (!layout) throw new Error('invalid_request')
   const parts = planParts(layout)
@@ -62,9 +63,10 @@ export async function makeEditingExport(blob, { onProgress = () => {} } = {}) {
       try {
         const cv = document.createElement('canvas'); cv.width = p.w; cv.height = p.h
         cv.getContext('2d', { alpha: false }).drawImage(bmp, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h)
-        const png = await new Promise(r => cv.toBlob(r, 'image/png'))
+        // high-quality JPEG instead of PNG: looks the same, about 8× less data to send
+        const part = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.95))
         cv.width = cv.height = 1
-        const { blob: res, logos } = await proExportPiece(exportId, preview, png, p.cells)
+        const { blob: res, logos } = await proExportPiece(exportId, preview, part, p.cells, look)
         for (const [lx, ly, lw, lh] of logos) allLogos.push([p.x + lx, p.y + ly, lw, lh])
         const back = await createImageBitmap(res)
         octx.drawImage(back, p.x, p.y); back.close?.()

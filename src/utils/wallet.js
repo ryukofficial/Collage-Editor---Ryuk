@@ -231,13 +231,13 @@ export async function proExportStart(pieces) {
   return out.export_id
 }
 // body = [4-byte length][preview JPEG][4-byte length][cells JSON][part PNG]
-export async function proExportPiece(exportId, preview, blob, cells) {
+export async function proExportPiece(exportId, preview, blob, cells, look = 'dark') {
   const token = await accessToken()
   const meta = new TextEncoder().encode(JSON.stringify(cells))
   const len = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n); return b }
   const r = await fetch('/api/pro-export-piece', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId, 'X-Look': look },
     body: new Blob([len(preview.size), preview, len(meta.length), meta, blob]),
   })
   if (!r.ok) {

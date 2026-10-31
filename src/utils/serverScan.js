@@ -21,7 +21,9 @@ const abortError = () => new DOMException('Scan cancelled', 'AbortError')
 // enough, otherwise a re-encoded copy (full-colour JPEG, so no quality is lost
 // that matters for reading text). `width` is the original width (for boxes).
 async function uploadable(file) {
-  if (/^image\/(png|jpe?g|webp)$/i.test(file.type) && file.size <= MAX_UPLOAD) return { blob: file, width: null }
+  // small JPEGs go as they are; everything else (big PNG screenshots) is re-encoded
+  // as a high-quality JPEG at the same size: just as readable, about 5× less data
+  if (/^image\/jpe?g$/i.test(file.type) && file.size <= 900 * 1024) return { blob: file, width: null }
   const bmp = await createImageBitmap(file)
   try {
     let scale = Math.min(1, 3000 / Math.max(bmp.width, bmp.height))
@@ -30,7 +32,7 @@ async function uploadable(file) {
       canvas.width = Math.round(bmp.width * scale)
       canvas.height = Math.round(bmp.height * scale)
       canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height)
-      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 1))
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92))
       canvas.width = canvas.height = 1
       if (blob && blob.size <= MAX_UPLOAD) return { blob, width: bmp.width }
       scale *= 0.8
