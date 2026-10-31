@@ -503,7 +503,8 @@ export default function App() {
   // ── Export ──────────────────────────────────────────────────────────────────
   const handleExport = async (mode = 'normal') => {
     if (!images.length) return
-    const paid = mode === 'editor'
+    const paid = mode === 'editor' || mode === 'editor-classic'
+    const look = mode === 'editor-classic' ? 'classic' : 'dark'
     if (paid) {
       // locked behind the wallet: log in and have ₹50 first
       if (!wallet.user) { setWalletOpen({ reason: `Export for editing costs ₹${PRO_EXPORT_PRICE}. Log in or create an account first.` }); return }
@@ -512,7 +513,7 @@ export default function App() {
     const toast    = (await import('react-hot-toast')).default
     const id       = toast.loading('Exporting collage...')
     let blob       = null
-    const filename = `ryukcreates-${paid ? 'for-editing-' : ''}${Date.now()}.png`
+    const filename = `ryukcreates-${paid ? (look === 'classic' ? 'classic-' : 'dark-') : ''}${Date.now()}.png`
     let hdNote = null
     try {
       const { exportCollage, downloadBlob } = await import('./utils/imageUtils')
@@ -524,7 +525,7 @@ export default function App() {
       if (paid) {
         const failedImgs = blob.failedImages
         try {
-          blob = await makeEditingExport(blob, { onProgress: p => toast.loading(`Preparing for editing… ${Math.round(40 + p * 60)}%`, { id }) })
+          blob = await makeEditingExport(blob, { look, onProgress: p => toast.loading(`Preparing for editing… ${Math.round(40 + p * 60)}%`, { id }) })
         } catch (err) {
           toast.error(walletError(err) + (err?.refunded ? ` Your ₹${PRO_EXPORT_PRICE} was refunded.` : ''), { id, duration: 7000 })
           return
@@ -787,7 +788,10 @@ export default function App() {
                   <div role="menu" style={{ position: 'absolute', right: 0, top: '40px', zIndex: 160, width: '240px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '6px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                     {[
                       { mode: 'normal', title: 'Export PNG', sub: 'Full quality, free' },
-                      ...(walletEnabled ? [{ mode: 'editor', title: `🔒 Export for editing · ₹${PRO_EXPORT_PRICE}`, sub: hdUpscaleOn ? 'Ryuk effect + bigger logos + HD upscale ×2. Paid from your wallet' : 'Ryuk effect + bigger logos. Paid from your wallet' }] : []),
+                      ...(walletEnabled ? [
+                        { mode: 'editor', title: `🔒 Ryuk Dark · ₹${PRO_EXPORT_PRICE}`, sub: `Deeper, richer tone + bigger logos${hdUpscaleOn ? ' + HD upscale' : ''}. Paid from your wallet` },
+                        { mode: 'editor-classic', title: `🔒 Ryuk Classic · ₹${PRO_EXPORT_PRICE}`, sub: `Original Ryuk effect + bigger logos${hdUpscaleOn ? ' + HD upscale' : ''}. Paid from your wallet` },
+                      ] : []),
                     ].map(o => (
                       <button key={o.mode} role="menuitem" onClick={() => { setExportMenuOpen(false); handleExport(o.mode) }}
                         style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: '8px', padding: '10px 12px', color: C.text, cursor: 'pointer' }}>
