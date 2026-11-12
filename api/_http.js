@@ -62,6 +62,7 @@ const PUBLIC_CODES = new Set([
   'not_admin', 'not_configured', 'method_not_allowed', 'forbidden', 'busy', 'scan_busy',
   'too_many_exports', 'unknown_export', 'export_closed', 'export_used_up',
   'scan_refunded', 'too_many_retries',
+  'wrong_password', 'skin_exists', 'file_exists', 'repos_full',
 ])
 
 // Wraps a handler: method check, same-origin check, error → JSON.

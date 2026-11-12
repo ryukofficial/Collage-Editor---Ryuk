@@ -81,7 +81,8 @@ function skinKeywords(n) { return slugify(n).split(' ').filter(w => w.length >= 
 function matchScore(filename, heroId, skinName) {
   const f = slugify(filename.replace(/\.(jpg|jpeg|png|webp)$/i, ''))
   const aliases = HERO_ALIASES[heroId] || [heroId]
-  if (!aliases.some(a => f.includes(a))) return 0
+  const fJoined = f.replace(/ /g, '')          // so a new hero like "Yu Zhong" (id yuzhong) still matches
+  if (!aliases.some(a => f.includes(a) || fJoined.includes(a))) return 0
   const kw = skinKeywords(skinName)
   if (kw.length === 0) return 1
   return kw.filter(k => f.includes(k)).length / kw.length

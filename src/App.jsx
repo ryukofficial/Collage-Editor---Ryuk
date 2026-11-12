@@ -9,6 +9,7 @@ import useImage from 'use-image'
 import HeroPicker from './components/HeroPicker'
 import AutoCollage from './components/AutoCollage'
 import AdminPanel from './components/AdminPanel'
+import AddSkinPanel from './components/AddSkinPanel'
 import WelcomeScreen, { useWelcome } from './components/WelcomeScreen'
 import HomeGlass from './components/HomeGlass'
 import ProjectsPanel from './components/ProjectsPanel'
@@ -314,6 +315,7 @@ export default function App() {
   const [sidebarOpen,       setSidebarOpen]        = useState(false)
   const [projectsOpen,      setProjectsOpen]       = useState(false)
   const [adminOpen,         setAdminOpen]          = useState(false)
+  const [addSkinOpen,       setAddSkinOpen]        = useState(false)
   const [arrangeOpen,       setArrangeOpen]        = useState(false)
   const [autoCollageOpen,   setAutoCollageOpen]    = useState(false)
   const [ryukProfileOpen,   setRyukProfileOpen]    = useState(false)
@@ -432,13 +434,14 @@ export default function App() {
       if (projectsOpen)        { setProjectsOpen(false);        return }
       if (historyOpen)         { setHistoryOpen(false);         return }
       if (adminOpen)           { setAdminOpen(false);           return }
+      if (addSkinOpen)         { setAddSkinOpen(false);         return }
       if (diamondPopupOpen)    { setDiamondPopupOpen(false);    return }
       if (showWelcome)         { dismissWelcome();              return }
       if (hasSelection)        { clearSelection();              return }
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [ryukProfileOpen, arrangeOpen, projectsOpen, historyOpen, adminOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
+  }, [ryukProfileOpen, arrangeOpen, projectsOpen, historyOpen, adminOpen, addSkinOpen, diamondPopupOpen, showWelcome, hasSelection, dismissWelcome, clearSelection])
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleOpenHeroPicker = useCallback(() => {
@@ -458,6 +461,7 @@ export default function App() {
   const openHistory  = () => { window.history.pushState({ overlay: 'history' }, '');  setHistoryOpen(true) }
   const closeHistory = () => setHistoryOpen(false)
   const openRyukProfile = () => { window.history.pushState({ overlay: 'ryuk-profile' }, ''); setRyukProfileOpen(true) }
+  const openAddSkin = () => { window.history.pushState({ overlay: 'add-skin' }, ''); setAddSkinOpen(true) }
 
   // Admin area: tap the name 3 times. Only accounts marked as admin in the
   // database get in (no password in the website code any more).
@@ -626,6 +630,7 @@ export default function App() {
 
       {showWelcome  && <WelcomeScreen onDismiss={dismissWelcome} />}
       {adminOpen    && <AdminPanel onClose={() => setAdminOpen(false)} />}
+      {addSkinOpen  && <AddSkinPanel onClose={() => window.history.back()} />}
       {projectsOpen && <ProjectsPanel onClose={() => setProjectsOpen(false)} currentSnapshot={currentSnapshot} onLoadProject={handleLoadProject} />}
 
       {/* ── Arrange Panel ────────────────────────────────────────────────── */}
@@ -735,6 +740,7 @@ export default function App() {
             { icon: '🪪', label: 'Ryuk Profile', sub: 'Profile showcase edit', action: () => { setSidebarOpen(false); openRyukProfile() } },
             ...(walletEnabled ? [{ icon: '💳', label: 'Wallet', sub: wallet.user ? `Balance ₹${wallet.balance ?? '…'}` : 'Log in or create an account', action: () => { setSidebarOpen(false); setWalletOpen({}) } }] : []),
             ...(wallet.admin ? [{ icon: '🛠', label: 'Admin panel', sub: 'Skin tiers', action: () => { setSidebarOpen(false); openAdmin() } }] : []),
+            { icon: '➕', label: 'Add new skin', sub: 'Password protected', action: () => { setSidebarOpen(false); openAddSkin() } },
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', borderRadius: '10px', padding: '11px 12px', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}

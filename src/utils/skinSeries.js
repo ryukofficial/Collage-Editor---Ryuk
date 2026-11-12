@@ -298,10 +298,19 @@ export const HERO_SERIES_EXCLUDE = new Set([
 
 // Returns the series for a given heroId + skinName, respecting per-hero excludes
 // Matching is case-insensitive
+// Skins added from the website ("Add new skin") carry their series in skins.json.
+const SKIN_SERIES = new Map()
+for (const hero of skinsData) for (const skin of hero.skins || []) {
+  if (skin.series) SKIN_SERIES.set(`${hero.id}__${skin.name}`, skin.series)
+}
+
+// Every series name, for the "Add new skin" form
+export const SERIES_NAMES = [...new Set([...Object.values(SERIES_MAP_RAW), ...SKIN_SERIES.values()])].sort((a, b) => a.localeCompare(b))
+
 export function getSeries(heroId, skinName) {
   const excludeKey = `${heroId}__${skinName}`
   if (HERO_SERIES_EXCLUDE.has(excludeKey)) return null
-  return SERIES_MAP[skinName.toLowerCase()] || null
+  return SERIES_MAP[skinName.toLowerCase()] || SKIN_SERIES.get(excludeKey) || null
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
