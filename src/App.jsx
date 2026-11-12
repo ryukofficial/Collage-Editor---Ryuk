@@ -91,6 +91,16 @@ function ArrangePanel({ images, onClose, onReorder }) {
   )
   const [selectedIdx, setSelectedIdx] = useState(null)
   const [search, setSearch] = useState('')
+  // how many skins per row (more = shorter list); remembered on this device
+  const [cols, setCols] = useState(() => {
+    try { const v = +localStorage.getItem('arrangeCols'); if (v >= 3 && v <= 12) return v } catch {}
+    return window.innerWidth >= 700 ? 8 : 6
+  })
+  const changeCols = d => setCols(c => {
+    const v = Math.min(12, Math.max(3, c + d))
+    try { localStorage.setItem('arrangeCols', String(v)) } catch {}
+    return v
+  })
 
   useEffect(() => {
     setOrder([...images].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0)))
@@ -129,7 +139,7 @@ function ArrangePanel({ images, onClose, onReorder }) {
       )
     : order.map((img, i) => ({ img, i }))
 
-  const CELL = 80
+  const small = cols >= 7            // smaller badges when the tiles are small
 
   return (
     <div
@@ -141,10 +151,10 @@ function ArrangePanel({ images, onClose, onReorder }) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#111113', borderRadius: '20px 20px 0 0',
+        background: '#111113', borderRadius: '16px 16px 0 0',
         border: '1px solid #2c2c2e', borderBottom: 'none',
-        width: '100%', maxWidth: '520px',
-        maxHeight: '88vh', display: 'flex', flexDirection: 'column',
+        width: '100%', maxWidth: '1100px',
+        height: '96vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 -4px 16px rgba(0,0,0,0.35)',
       }}>
 
@@ -166,19 +176,27 @@ function ArrangePanel({ images, onClose, onReorder }) {
           </div>
         </div>
 
-        {/* Search bar */}
-        <div style={{ padding: '10px 14px 6px', flexShrink: 0 }}>
+        {/* Search bar + size */}
+        <div style={{ padding: '8px 10px 6px', flexShrink: 0, display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={`Search by name or number (1–${order.length})…`}
             style={{
-              width: '100%', boxSizing: 'border-box',
+              flex: 1, minWidth: 0, boxSizing: 'border-box',
               background: '#1c1c1e', border: '1px solid #2c2c2e',
               borderRadius: '8px', padding: '8px 12px',
               color: '#ffffff', fontSize: '13px', outline: 'none',
             }}
           />
+          {/* fewer / more skins per row */}
+          <div style={{ display: 'flex', alignItems: 'center', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '8px', flexShrink: 0 }}>
+            <button onClick={() => changeCols(-1)} aria-label="Bigger tiles"
+              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '18px', padding: '4px 10px', cursor: 'pointer' }}>−</button>
+            <span style={{ color: '#8e8e93', fontSize: '12px', minWidth: '44px', textAlign: 'center' }}>{cols} / row</span>
+            <button onClick={() => changeCols(1)} aria-label="Smaller tiles"
+              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '18px', padding: '4px 10px', cursor: 'pointer' }}>+</button>
+          </div>
         </div>
 
         {/* Selected item info bar */}
@@ -199,14 +217,14 @@ function ArrangePanel({ images, onClose, onReorder }) {
         )}
 
         {/* Grid */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '10px 12px 24px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '6px 8px 24px' }}>
           {order.length === 0 && (
             <p style={{ textAlign: 'center', color: '#8e8e93', fontSize: '13px', marginTop: '40px' }}>No images on canvas yet.</p>
           )}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(auto-fill, minmax(${CELL}px, 1fr))`,
-            gap: '8px',
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+            gap: small ? '3px' : '6px',
           }}>
             {filtered.map(({ img, i }) => {
               const isSelected = selectedIdx === i
@@ -223,7 +241,7 @@ function ArrangePanel({ images, onClose, onReorder }) {
                     position: 'relative',
                     width: '100%',
                     paddingBottom: '100%',
-                    borderRadius: '10px',
+                    borderRadius: small ? '5px' : '8px',
                     overflow: 'hidden',
                     cursor: 'pointer',
                     border: isSelected
@@ -252,17 +270,17 @@ function ArrangePanel({ images, onClose, onReorder }) {
                       background: 'rgba(255,61,119,0.15)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <span style={{ fontSize: '22px' }}>✔</span>
+                      <span style={{ fontSize: small ? '16px' : '22px' }}>✔</span>
                     </div>
                   )}
                   {/* Position badge */}
                   <div style={{
-                    position: 'absolute', top: '4px', left: '4px',
+                    position: 'absolute', top: small ? '2px' : '4px', left: small ? '2px' : '4px',
                     background: badgeBg,
                     border: `1px solid ${badgeColor}`,
                     color: badgeColor,
-                    fontSize: '9px', fontWeight: 800,
-                    borderRadius: '4px', padding: '1px 4px',
+                    fontSize: small ? '8px' : '9px', fontWeight: 800,
+                    borderRadius: '3px', padding: small ? '0 2px' : '1px 4px',
                     lineHeight: 1.4,
                   }}>
                     {label}
