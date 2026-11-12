@@ -46,6 +46,72 @@ async function toJpegBase64(file) {
 }
 
 const heroIdOf = n => n.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+// ── series suggestions: similar names, not only exact matches ───────────────
+const norm = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
+const squash = s => norm(s).replace(/ /g, '')
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 9
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    prev = cur
+  }
+  return prev[b.length]
+}
+// higher = better; 0 = no match
+function seriesScore(name, query) {
+  const n = norm(name), q = norm(query)
+  if (!q) return 1
+  const nq = squash(name), qq = squash(query)
+  if (n === q) return 100
+  if (n.startsWith(q) || nq.startsWith(qq)) return 80
+  const words = n.split(' ')
+  if (words.some(w => w.startsWith(q))) return 70
+  if (n.includes(q) || nq.includes(qq)) return 60
+  const qw = q.split(' ')
+  if (qw.every(x => words.some(w => w.startsWith(x)))) return 55                    // "sh cov" → Shadow Covenant
+  if (qq.length >= 2 && words.map(w => w[0]).join('').startsWith(qq)) return 50       // "sc" → Shadow Covenant
+  if (qq.length >= 3) {
+    const best = Math.min(...words.map(w => editDistance(w.slice(0, Math.max(q.length, 3)), q)), editDistance(nq.slice(0, qq.length), qq))
+    if (best <= (qq.length >= 5 ? 2 : 1)) return 40 - best                           // small typos: "covenent", "vesels"
+  }
+  return 0
+}
+
+// Text box with a list of matching series under it. Typing a name that isn't in
+// the list makes a new series.
+function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) {
+  const [open, setOpen] = useState(false)
+  const matches = useMemo(() => SERIES_NAMES
+    .map(s => [s, seriesScore(s, value || '')]).filter(([, sc]) => sc > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8).map(([s]) => s), [value])
+  const exact = SERIES_NAMES.some(s => s.toLowerCase() === (value || '').trim().toLowerCase())
+  const pick = s => { (onPick || onChange)(s); setOpen(false) }
+  return (
+    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+      <input value={value} disabled={disabled} placeholder={placeholder} style={style} autoComplete="off"
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); pick(matches[0] && !exact && (value || '').trim() && seriesScore(matches[0], value) >= 80 ? matches[0] : (value || '').trim()) } }} />
+      {open && !disabled && (matches.length > 0 || (value || '').trim()) && (
+        <div style={{ position: 'absolute', left: 0, right: 0, top: '100%', marginTop: '4px', zIndex: 5, background: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: '240px', overflowY: 'auto' }}>
+          {matches.map(s => (
+            <button key={s} type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(s)}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: s === value ? '#2c2c2e' : 'none', border: 'none', borderBottom: '1px solid #2c2c2e', color: '#fff', fontSize: '13px', padding: '9px 11px', cursor: 'pointer' }}>{s}</button>
+          ))}
+          {(value || '').trim() && !exact && (
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(value.trim())}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', color: '#f5a524', fontSize: '13px', padding: '9px 11px', cursor: 'pointer' }}>
+              ➕ New series: “{value.trim()}”
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 const field = { width: '100%', boxSizing: 'border-box', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
 const small = { ...field, padding: '7px 9px', fontSize: '13px' }
 const label = { display: 'block', color: '#c7c7cc', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
@@ -78,7 +144,6 @@ export default function AddSkinPanel({ onClose }) {
         </div>
 
         <datalist id="skin-lib-heroes">{heroes.map(h => <option key={h.id} value={h.name} />)}</datalist>
-        <datalist id="skin-lib-series">{SERIES_NAMES.map(s => <option key={s} value={s} />)}</datalist>
 
         <div style={{ overflowY: 'auto', flex: 1, padding: '4px 16px 24px' }}>
           {tab === 'add'
@@ -102,6 +167,7 @@ function guessFromFile(name, heroes) {
 function AddSkins({ heroes, password, busy, setBusy }) {
   const [rows, setRows] = useState([])        // { id, file, preview, hero, skin, tier, series, status, error }
   const [msg, setMsg] = useState(null)
+  const [allSeries, setAllSeries] = useState('')
   const fileRef = useRef(null)
 
   const addFiles = files => {
@@ -169,9 +235,8 @@ function AddSkins({ heroes, password, busy, setBusy }) {
             <option value="">Tier…</option><option value="-">— none —</option>
             {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <input list="skin-lib-series" placeholder="Series…" style={small} disabled={busy}
-            onKeyDown={e => { if (e.key === 'Enter') { setAll({ series: e.currentTarget.value.trim() }); e.currentTarget.value = '' } }}
-            onBlur={e => { if (e.currentTarget.value.trim()) { setAll({ series: e.currentTarget.value.trim() }); e.currentTarget.value = '' } }} />
+          <SeriesInput value={allSeries} onChange={setAllSeries} placeholder="Series…" style={small} disabled={busy}
+            onPick={s => { setAll({ series: s }); setAllSeries('') }} />
         </div>
       )}
 
@@ -190,7 +255,7 @@ function AddSkins({ heroes, password, busy, setBusy }) {
                   <option value="">Tier: none</option>
                   {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
-                <input list="skin-lib-series" value={r.series} onChange={e => upd(r.id, { series: e.target.value })} placeholder="Series (or new)" style={small} disabled={busy} />
+                <SeriesInput value={r.series} onChange={v => upd(r.id, { series: v })} placeholder="Series (or new)" style={small} disabled={busy} />
               </div>
               <p style={{ margin: 0, fontSize: '11px', color: r.error || p ? '#ff6b6b' : '#8e8e93' }}>
                 {r.error || p || [isNewHero && 'New hero', isNewSeries && 'New series', r.status === 'uploading' && 'Uploading…', r.status === 'uploaded' && 'Picture saved ✓'].filter(Boolean).join(' · ')}
@@ -224,7 +289,7 @@ function ChangeSeries({ heroes, password, busy, setBusy }) {
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase()
     if (!t) return []
-    return all.filter(x => x.hero.toLowerCase().includes(t) || x.skin.toLowerCase().includes(t) || x.series.toLowerCase().includes(t)).slice(0, 80)
+    return all.filter(x => x.hero.toLowerCase().includes(t) || x.skin.toLowerCase().includes(t) || (x.series && seriesScore(x.series, t) >= 38)).slice(0, 80)
   }, [q, all])
   const changed = Object.entries(edits).filter(([k, v]) => (all.find(x => x.key === k)?.series || '') !== v.trim())
 
@@ -254,7 +319,7 @@ function ChangeSeries({ heroes, password, busy, setBusy }) {
           <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#ff3d77' : '#2c2c2e'}`, borderRadius: '10px' }}>
             <p style={{ margin: '0 0 6px', color: '#fff', fontSize: '13px', fontWeight: 600 }}>{x.hero} · <span style={{ color: '#c7c7cc', fontWeight: 400 }}>{x.skin}</span></p>
             <div style={{ display: 'flex', gap: '6px' }}>
-              <input list="skin-lib-series" value={v} disabled={busy} onChange={e => setEdits(s => ({ ...s, [x.key]: e.target.value }))} placeholder="No series" style={small} />
+              <SeriesInput value={v} disabled={busy} onChange={val => setEdits(s => ({ ...s, [x.key]: val }))} placeholder="No series" style={small} />
               {v && <button disabled={busy} onClick={() => setEdits(s => ({ ...s, [x.key]: '' }))} style={{ ...small, width: 'auto', cursor: 'pointer' }}>None</button>}
             </div>
             {(isNew || dirty) && <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#f5a524' }}>{[isNew && 'New series', dirty && `was: ${x.series || 'none'}`].filter(Boolean).join(' · ')}</p>}
