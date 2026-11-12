@@ -1,22 +1,34 @@
-// ➕ Add new skin — password-protected form.
-// Picks a hero (or types a new one), skin name, tier, optional series and the
-// skin picture. The server checks the password, stores the picture in the skin
-// library and adds the skin to skins.json; the website then rebuilds itself and
-// the skin appears in about a minute.
+// ➕ Add skins / 🏷 Change series — password-protected admin tools.
+//
+// Add skins: choose one or many pictures; each becomes a row (hero, skin name,
+// tier, series). Series can be an existing one or a brand-new name. On save each
+// picture is stored in the skin library, then all skins are added to skins.json
+// in one go — the website rebuilds once and they appear about a minute later.
+//
+// Change series: find skins by hero or name and give them another series, a new
+// series, or none.
 import { useMemo, useRef, useState } from 'react'
 import skinsData from '../../skins.json'
-import { SERIES_NAMES } from '../utils/skinSeries'
+import { SERIES_NAMES, getSeries } from '../utils/skinSeries'
 
 const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
 const ERRORS = {
   wrong_password: 'Wrong password.',
-  skin_exists: 'This hero already has a skin with that name.',
-  file_exists: 'A picture with this name is already in the library.',
+  skin_exists: 'That hero already has a skin with this name.',
   repos_full: 'The skin picture library is full. Create the next mlbb-assets repo and add it to src/utils/assetRepos.js.',
-  not_configured: 'GITHUB_TOKEN is missing in Vercel, so skins can’t be saved.',
+  not_configured: 'GITHUB_TOKEN is missing in Vercel, so changes can’t be saved.',
   bad_image: 'That picture could not be read. Try a JPG or PNG.',
   invalid_request: 'Check the names: letters, numbers and simple punctuation only.',
   too_large: 'The picture is too big.',
+  busy: 'Someone else saved at the same moment. Tap save again.',
+}
+const errText = e => /fetch|network|load failed/i.test(e.message) ? 'Could not reach the server.' : e.message
+
+async function api(body) {
+  const r = await fetch('/api/admin-add-skin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const data = await r.json().catch(() => ({}))
+  if (!r.ok) throw new Error(ERRORS[data.error] || 'Something went wrong. Try again.')
+  return data
 }
 
 // shrink the picture on the phone first (max 1200 px), so the upload stays small
@@ -26,112 +38,237 @@ async function toJpegBase64(file) {
   const c = document.createElement('canvas')
   c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k)
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height)
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95))
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.93))
   const buf = new Uint8Array(await blob.arrayBuffer())
   let s = ''
   for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000))
   return btoa(s)
 }
 
-const field = { width: '100%', boxSizing: 'border-box', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '10px', padding: '10px 12px', color: '#fff', fontSize: '14px', outline: 'none' }
+const heroIdOf = n => n.toLowerCase().replace(/[^a-z0-9]/g, '')
+const field = { width: '100%', boxSizing: 'border-box', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
+const small = { ...field, padding: '7px 9px', fontSize: '13px' }
 const label = { display: 'block', color: '#c7c7cc', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
+const btn = (on = true) => ({ width: '100%', background: on ? '#ff3d77' : '#5a2236', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
 
 export default function AddSkinPanel({ onClose }) {
   const heroes = useMemo(() => [...skinsData].sort((a, b) => a.name.localeCompare(b.name)), [])
+  const [tab, setTab] = useState('add')
   const [password, setPassword] = useState('')
-  const [hero, setHero] = useState('')
-  const [skin, setSkin] = useState('')
-  const [tier, setTier] = useState('')
-  const [series, setSeries] = useState('')
-  const [file, setFile] = useState(null)
-  const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState(null)        // { ok, text }
-  const fileRef = useRef(null)
-
-  const knownHero = heroes.find(h => h.name.toLowerCase() === hero.trim().toLowerCase())
-  const pick = f => {
-    if (!f) return
-    setFile(f); setMsg(null)
-    if (preview) URL.revokeObjectURL(preview)
-    setPreview(URL.createObjectURL(f))
-  }
-
-  const save = async () => {
-    setMsg(null)
-    if (!password) return setMsg({ ok: false, text: 'Enter the password.' })
-    if (!hero.trim() || !skin.trim()) return setMsg({ ok: false, text: 'Enter the hero and the skin name.' })
-    if (!file) return setMsg({ ok: false, text: 'Choose the skin picture.' })
-    setBusy(true)
-    try {
-      const image = await toJpegBase64(file)
-      const r = await fetch('/api/admin-add-skin', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, heroName: hero.trim(), skinName: skin.trim(), tier, series, image }),
-      })
-      const data = await r.json().catch(() => ({}))
-      if (!r.ok) throw new Error(ERRORS[data.error] || 'Could not save the skin. Try again.')
-      setMsg({ ok: true, text: `✅ ${data.hero} – ${data.skin} added. The website updates in about a minute — then refresh the page.` })
-      setSkin(''); setFile(null); setPreview(null); setSeries('')
-      if (fileRef.current) fileRef.current.value = ''
-    } catch (e) {
-      setMsg({ ok: false, text: /fetch|network|load failed/i.test(e.message) ? 'Could not reach the server.' : e.message })
-    } finally { setBusy(false) }
-  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 260, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       onClick={e => { if (e.target === e.currentTarget && !busy) onClose() }}>
-      <div style={{ background: '#111113', borderRadius: '16px 16px 0 0', border: '1px solid #2c2c2e', borderBottom: 'none', width: '100%', maxWidth: '520px', maxHeight: '94vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: '#111113', borderRadius: '16px 16px 0 0', border: '1px solid #2c2c2e', borderBottom: 'none', width: '100%', maxWidth: '640px', height: '94vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: '1px solid #232326' }}>
-          <div>
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#fff' }}>➕ Add new skin</p>
-            <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#8e8e93' }}>Adds it to the picker, Auto Collage and the scanner</p>
-          </div>
+          <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#fff' }}>🛠 Skin library</p>
           <button onClick={onClose} disabled={busy} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
-        <div style={{ overflowY: 'auto', padding: '4px 16px 24px' }}>
-          <label style={label}>Password</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" style={field} />
+        <div style={{ padding: '10px 16px 0' }}>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" placeholder="Password" style={field} />
+          <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+            {[['add', '➕ Add skins'], ['series', '🏷 Change series']].map(([k, t]) => (
+              <button key={k} onClick={() => !busy && setTab(k)}
+                style={{ flex: 1, padding: '9px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                  background: tab === k ? '#ff3d77' : '#1c1c1e', color: '#fff', border: `1px solid ${tab === k ? '#ff3d77' : '#2c2c2e'}` }}>{t}</button>
+            ))}
+          </div>
+        </div>
 
-          <label style={label}>Hero</label>
-          <input list="add-skin-heroes" value={hero} onChange={e => setHero(e.target.value)} placeholder="Pick or type a hero" style={field} />
-          <datalist id="add-skin-heroes">{heroes.map(h => <option key={h.id} value={h.name} />)}</datalist>
-          {hero.trim() && !knownHero && <p style={{ color: '#f5a524', fontSize: '11px', margin: '4px 0 0' }}>New hero — it will be added too.</p>}
+        <datalist id="skin-lib-heroes">{heroes.map(h => <option key={h.id} value={h.name} />)}</datalist>
+        <datalist id="skin-lib-series">{SERIES_NAMES.map(s => <option key={s} value={s} />)}</datalist>
 
-          <label style={label}>Skin name</label>
-          <input value={skin} onChange={e => setSkin(e.target.value)} placeholder="e.g. Divine Owl" style={field} />
-          {knownHero && skin.trim() && knownHero.skins.some(s => s.name.toLowerCase() === skin.trim().toLowerCase()) &&
-            <p style={{ color: '#ff6b6b', fontSize: '11px', margin: '4px 0 0' }}>{knownHero.name} already has this skin.</p>}
-
-          <label style={label}>Tier</label>
-          <select value={tier} onChange={e => setTier(e.target.value)} style={field}>
-            <option value="">— none —</option>
-            {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-
-          <label style={label}>Series (optional)</label>
-          <select value={series} onChange={e => setSeries(e.target.value)} style={field}>
-            <option value="">— none —</option>
-            {SERIES_NAMES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-
-          <label style={label}>Skin picture</label>
-          <input ref={fileRef} type="file" accept="image/*" onChange={e => pick(e.target.files?.[0])} style={{ ...field, padding: '8px' }} />
-          {preview && <img src={preview} alt="" style={{ marginTop: '10px', width: '140px', height: '140px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #2c2c2e' }} />}
-
-          {msg && <p style={{ margin: '14px 0 0', fontSize: '13px', color: msg.ok ? '#22c55e' : '#ff6b6b' }}>{msg.text}</p>}
-
-          <button onClick={save} disabled={busy}
-            style={{ marginTop: '16px', width: '100%', background: busy ? '#5a2236' : '#ff3d77', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: busy ? 'default' : 'pointer' }}>
-            {busy ? 'Saving…' : 'Add skin'}
-          </button>
-          <p style={{ color: '#8e8e93', fontSize: '11px', margin: '10px 0 0' }}>
-            Name the skin exactly as in the game, so Auto Collage can read it from screenshots.
-          </p>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '4px 16px 24px' }}>
+          {tab === 'add'
+            ? <AddSkins heroes={heroes} password={password} busy={busy} setBusy={setBusy} />
+            : <ChangeSeries heroes={heroes} password={password} busy={busy} setBusy={setBusy} />}
         </div>
       </div>
     </div>
+  )
+}
+
+// ── Add skins (one or many) ─────────────────────────────────────────────────
+let rowId = 0
+function guessFromFile(name, heroes) {
+  const base = name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
+  const lower = base.toLowerCase()
+  const hero = [...heroes].sort((a, b) => b.name.length - a.name.length).find(h => lower.startsWith(h.name.toLowerCase() + ' '))
+  return hero ? { hero: hero.name, skin: base.slice(hero.name.length).trim() } : { hero: '', skin: base }
+}
+
+function AddSkins({ heroes, password, busy, setBusy }) {
+  const [rows, setRows] = useState([])        // { id, file, preview, hero, skin, tier, series, status, error }
+  const [msg, setMsg] = useState(null)
+  const fileRef = useRef(null)
+
+  const addFiles = files => {
+    setMsg(null)
+    const next = [...files].filter(f => f.type.startsWith('image/')).map(f => ({
+      id: ++rowId, file: f, preview: URL.createObjectURL(f), ...guessFromFile(f.name, heroes), tier: '', series: '', status: '', error: '',
+    }))
+    setRows(r => [...r, ...next].slice(0, 50))
+    if (fileRef.current) fileRef.current.value = ''
+  }
+  const upd = (id, patch) => setRows(r => r.map(x => x.id === id ? { ...x, ...patch } : x))
+  const remove = id => setRows(r => r.filter(x => x.id !== id))
+  const setAll = patch => setRows(r => r.map(x => ({ ...x, ...patch })))
+
+  const problems = row => {
+    if (!row.hero.trim() || !row.skin.trim()) return 'Enter the hero and skin name'
+    const h = heroes.find(x => x.name.toLowerCase() === row.hero.trim().toLowerCase())
+    if (h && h.skins.some(s => s.name.toLowerCase() === row.skin.trim().toLowerCase())) return `${h.name} already has this skin`
+    const dup = rows.filter(x => x.hero.trim().toLowerCase() === row.hero.trim().toLowerCase() && x.skin.trim().toLowerCase() === row.skin.trim().toLowerCase())
+    if (dup.length > 1) return 'Same skin twice in this list'
+    return ''
+  }
+
+  const save = async () => {
+    setMsg(null)
+    if (!password) return setMsg({ ok: false, text: 'Enter the password at the top.' })
+    if (!rows.length) return setMsg({ ok: false, text: 'Choose at least one picture.' })
+    const bad = rows.find(r => problems(r))
+    if (bad) return setMsg({ ok: false, text: `${bad.hero || 'A row'} ${bad.skin}: ${problems(bad)}.` })
+    setBusy(true)
+    try {
+      // 1. pictures, one by one
+      for (const r of rows) {
+        if (r.status === 'uploaded') continue
+        upd(r.id, { status: 'uploading', error: '' })
+        try {
+          await api({ action: 'image', password, heroName: r.hero.trim(), skinName: r.skin.trim(), image: await toJpegBase64(r.file) })
+          upd(r.id, { status: 'uploaded' }); r.status = 'uploaded'
+        } catch (e) {
+          upd(r.id, { status: 'error', error: errText(e) })
+          throw e
+        }
+      }
+      // 2. all skins in one change
+      const res = await api({ action: 'add', password, skins: rows.map(r => ({ heroName: r.hero.trim(), skinName: r.skin.trim(), tier: r.tier, series: r.series.trim() })) })
+      setRows([])
+      setMsg({ ok: true, text: `✅ Added ${res.added.length} skin${res.added.length === 1 ? '' : 's'}. The website updates in about a minute — then refresh the page.` })
+    } catch (e) {
+      setMsg({ ok: false, text: errText(e) })
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <>
+      <label style={label}>Skin pictures (pick one or many)</label>
+      <input ref={fileRef} type="file" accept="image/*" multiple disabled={busy} onChange={e => addFiles(e.target.files || [])} style={{ ...field, padding: '8px' }} />
+      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '6px 0 0' }}>
+        Tip: name the files like "Alice Divine Owl.jpg" and the hero and skin fill in by themselves. Up to 50 at once.
+      </p>
+
+      {rows.length > 1 && (
+        <div style={{ display: 'flex', gap: '6px', marginTop: '12px', alignItems: 'center' }}>
+          <span style={{ color: '#c7c7cc', fontSize: '12px', flexShrink: 0 }}>Set all:</span>
+          <select defaultValue="" onChange={e => { if (e.target.value !== '') setAll({ tier: e.target.value === '-' ? '' : e.target.value }); e.target.value = '' }} style={small} disabled={busy}>
+            <option value="">Tier…</option><option value="-">— none —</option>
+            {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input list="skin-lib-series" placeholder="Series…" style={small} disabled={busy}
+            onKeyDown={e => { if (e.key === 'Enter') { setAll({ series: e.currentTarget.value.trim() }); e.currentTarget.value = '' } }}
+            onBlur={e => { if (e.currentTarget.value.trim()) { setAll({ series: e.currentTarget.value.trim() }); e.currentTarget.value = '' } }} />
+        </div>
+      )}
+
+      {rows.map(r => {
+        const p = problems(r)
+        const isNewHero = r.hero.trim() && !heroes.some(h => h.name.toLowerCase() === r.hero.trim().toLowerCase())
+        const isNewSeries = r.series.trim() && !SERIES_NAMES.some(s => s.toLowerCase() === r.series.trim().toLowerCase())
+        return (
+          <div key={r.id} style={{ display: 'flex', gap: '10px', marginTop: '12px', padding: '10px', background: '#17171a', border: `1px solid ${r.status === 'error' ? '#ff6b6b' : r.status === 'uploaded' ? '#22c55e' : '#2c2c2e'}`, borderRadius: '12px' }}>
+            <img src={r.preview} alt="" style={{ width: '78px', height: '78px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: '6px' }}>
+              <input list="skin-lib-heroes" value={r.hero} onChange={e => upd(r.id, { hero: e.target.value })} placeholder="Hero" style={small} disabled={busy} />
+              <input value={r.skin} onChange={e => upd(r.id, { skin: e.target.value })} placeholder="Skin name" style={small} disabled={busy} />
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <select value={r.tier} onChange={e => upd(r.id, { tier: e.target.value })} style={small} disabled={busy}>
+                  <option value="">Tier: none</option>
+                  {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input list="skin-lib-series" value={r.series} onChange={e => upd(r.id, { series: e.target.value })} placeholder="Series (or new)" style={small} disabled={busy} />
+              </div>
+              <p style={{ margin: 0, fontSize: '11px', color: r.error || p ? '#ff6b6b' : '#8e8e93' }}>
+                {r.error || p || [isNewHero && 'New hero', isNewSeries && 'New series', r.status === 'uploading' && 'Uploading…', r.status === 'uploaded' && 'Picture saved ✓'].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+            {!busy && <button onClick={() => remove(r.id)} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start' }}>✕</button>}
+          </div>
+        )
+      })}
+
+      {msg && <p style={{ margin: '14px 0 0', fontSize: '13px', color: msg.ok ? '#22c55e' : '#ff6b6b' }}>{msg.text}</p>}
+      <button onClick={save} disabled={busy} style={{ ...btn(!busy), marginTop: '16px' }}>
+        {busy ? 'Saving…' : rows.length > 1 ? `Add ${rows.length} skins` : 'Add skin'}
+      </button>
+      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '10px 0 0' }}>
+        Name each skin exactly as in the game, so Auto Collage can read it from screenshots.
+      </p>
+    </>
+  )
+}
+
+// ── Change series ───────────────────────────────────────────────────────────
+function ChangeSeries({ heroes, password, busy, setBusy }) {
+  const [q, setQ] = useState('')
+  const [edits, setEdits] = useState({})      // key → new series ('' = none)
+  const [msg, setMsg] = useState(null)
+
+  const all = useMemo(() => heroes.flatMap(h => h.skins.map(s => ({
+    key: `${h.id}__${s.name}`, heroId: h.id, hero: h.name, skin: s.name, series: getSeries(h.id, s.name) || '',
+  }))), [heroes])
+  const shown = useMemo(() => {
+    const t = q.trim().toLowerCase()
+    if (!t) return []
+    return all.filter(x => x.hero.toLowerCase().includes(t) || x.skin.toLowerCase().includes(t) || x.series.toLowerCase().includes(t)).slice(0, 80)
+  }, [q, all])
+  const changed = Object.entries(edits).filter(([k, v]) => (all.find(x => x.key === k)?.series || '') !== v.trim())
+
+  const save = async () => {
+    setMsg(null)
+    if (!password) return setMsg({ ok: false, text: 'Enter the password at the top.' })
+    if (!changed.length) return setMsg({ ok: false, text: 'Nothing changed yet.' })
+    setBusy(true)
+    try {
+      const changes = changed.map(([k, v]) => { const x = all.find(y => y.key === k); return { heroId: x.heroId, skinName: x.skin, series: v.trim() } })
+      const res = await api({ action: 'series', password, changes })
+      setEdits({})
+      setMsg({ ok: true, text: `✅ Changed ${res.changed} skin${res.changed === 1 ? '' : 's'}. The website updates in about a minute — then refresh the page.` })
+    } catch (e) { setMsg({ ok: false, text: errText(e) }) } finally { setBusy(false) }
+  }
+
+  return (
+    <>
+      <label style={label}>Find skins (hero, skin or series name)</label>
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="e.g. Alice, Divine Owl, Soul Vessels" style={field} />
+      {q.trim() && !shown.length && <p style={{ color: '#8e8e93', fontSize: '12px' }}>No skins found.</p>}
+      {shown.map(x => {
+        const v = edits[x.key] ?? x.series
+        const isNew = v.trim() && !SERIES_NAMES.some(s => s.toLowerCase() === v.trim().toLowerCase())
+        const dirty = v.trim() !== x.series
+        return (
+          <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#ff3d77' : '#2c2c2e'}`, borderRadius: '10px' }}>
+            <p style={{ margin: '0 0 6px', color: '#fff', fontSize: '13px', fontWeight: 600 }}>{x.hero} · <span style={{ color: '#c7c7cc', fontWeight: 400 }}>{x.skin}</span></p>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input list="skin-lib-series" value={v} disabled={busy} onChange={e => setEdits(s => ({ ...s, [x.key]: e.target.value }))} placeholder="No series" style={small} />
+              {v && <button disabled={busy} onClick={() => setEdits(s => ({ ...s, [x.key]: '' }))} style={{ ...small, width: 'auto', cursor: 'pointer' }}>None</button>}
+            </div>
+            {(isNew || dirty) && <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#f5a524' }}>{[isNew && 'New series', dirty && `was: ${x.series || 'none'}`].filter(Boolean).join(' · ')}</p>}
+          </div>
+        )
+      })}
+
+      {msg && <p style={{ margin: '14px 0 0', fontSize: '13px', color: msg.ok ? '#22c55e' : '#ff6b6b' }}>{msg.text}</p>}
+      <button onClick={save} disabled={busy} style={{ ...btn(!busy), marginTop: '16px' }}>
+        {busy ? 'Saving…' : `Save ${changed.length || ''} change${changed.length === 1 ? '' : 's'}`}
+      </button>
+      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '10px 0 0' }}>
+        Type a name nobody used before to make a new series. Skins of the same series stay together in Auto Collage.
+      </p>
+    </>
   )
 }

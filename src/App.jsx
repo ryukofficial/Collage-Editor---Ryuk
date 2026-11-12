@@ -740,7 +740,7 @@ export default function App() {
             { icon: '🪪', label: 'Ryuk Profile', sub: 'Profile showcase edit', action: () => { setSidebarOpen(false); openRyukProfile() } },
             ...(walletEnabled ? [{ icon: '💳', label: 'Wallet', sub: wallet.user ? `Balance ₹${wallet.balance ?? '…'}` : 'Log in or create an account', action: () => { setSidebarOpen(false); setWalletOpen({}) } }] : []),
             ...(wallet.admin ? [{ icon: '🛠', label: 'Admin panel', sub: 'Skin tiers', action: () => { setSidebarOpen(false); openAdmin() } }] : []),
-            { icon: '➕', label: 'Add new skin', sub: 'Password protected', action: () => { setSidebarOpen(false); openAddSkin() } },
+            { icon: '➕', label: 'Add skins / series', sub: 'Password protected', action: () => { setSidebarOpen(false); openAddSkin() } },
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', borderRadius: '10px', padding: '11px 12px', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}

@@ -298,19 +298,21 @@ export const HERO_SERIES_EXCLUDE = new Set([
 
 // Returns the series for a given heroId + skinName, respecting per-hero excludes
 // Matching is case-insensitive
-// Skins added from the website ("Add new skin") carry their series in skins.json.
+// Series set from the website ("Add new skin" / "Change series") are saved in
+// skins.json and win over the list above. An empty "series" means: no series.
 const SKIN_SERIES = new Map()
 for (const hero of skinsData) for (const skin of hero.skins || []) {
-  if (skin.series) SKIN_SERIES.set(`${hero.id}__${skin.name}`, skin.series)
+  if (Object.prototype.hasOwnProperty.call(skin, 'series')) SKIN_SERIES.set(`${hero.id}__${skin.name}`, skin.series || '')
 }
 
 // Every series name, for the "Add new skin" form
-export const SERIES_NAMES = [...new Set([...Object.values(SERIES_MAP_RAW), ...SKIN_SERIES.values()])].sort((a, b) => a.localeCompare(b))
+export const SERIES_NAMES = [...new Set([...Object.values(SERIES_MAP_RAW), ...SKIN_SERIES.values()].filter(Boolean))].sort((a, b) => a.localeCompare(b))
 
 export function getSeries(heroId, skinName) {
-  const excludeKey = `${heroId}__${skinName}`
-  if (HERO_SERIES_EXCLUDE.has(excludeKey)) return null
-  return SERIES_MAP[skinName.toLowerCase()] || SKIN_SERIES.get(excludeKey) || null
+  const key = `${heroId}__${skinName}`
+  if (SKIN_SERIES.has(key)) return SKIN_SERIES.get(key) || null
+  if (HERO_SERIES_EXCLUDE.has(key)) return null
+  return SERIES_MAP[skinName.toLowerCase()] || null
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
