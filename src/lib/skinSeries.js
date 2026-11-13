@@ -324,6 +324,7 @@ export function getSeries(heroId, skinName) {
 //
 // Each line is one group, top to bottom. A group is either
 //   - picked skins    { hero: 'roger', series: 'Prime' } (that hero's skins of that series)
+//                     or a list of single skins [{ hero: 'karina', skin: 'Leona' }, …]
 //   - a tier          { tier: 'Legend' }
 //   - one or more series names exactly as written in SERIES_MAP_RAW above
 //   - a special rule  (STUN skins are the "S.T.U.N. …" skins of 515 eParty)
@@ -392,6 +393,9 @@ export const COLLAGE_ORDER = [
   'Licensed',
   'Shadow Covenant',
   'SpongeBob SquarePants Collab',
+  // good skins that aren't wanted near the top: just before Blazing Bounties
+  [{ hero: 'karina', skin: 'Leona' }, { hero: 'floryn', skin: 'Fluffy Dream' }, { hero: 'vale', skin: 'Gaara' },
+   { hero: 'roger', skin: 'Grimlock' }, { hero: 'natalia', skin: 'Warrioress Paragon' }],
   'Blazing Bounties',
   'Dragon Tamer',
   'Lightborn',
@@ -457,6 +461,7 @@ export function sortForCollage(skins) {
   const seriesRank = new Map(), tierRank = new Map(), pinRank = new Map()
   COLLAGE_ORDER.forEach((g, i) => {
     if (g && g.hero) pinRank.set(`${g.hero}|${g.series}`, i)
+    else if (Array.isArray(g) && g.some(x => x && x.skin)) g.forEach((x, k) => pinRank.set(`${x.hero}|skin:${x.skin}`, i + k / 100))
     else if (typeof g === 'object' && !Array.isArray(g)) for (const t of [].concat(g.tier)) tierRank.set(t, i)
     else for (const name of [].concat(g)) seriesRank.set(name, i)
   })
@@ -467,7 +472,7 @@ export function sortForCollage(skins) {
     if (series === '515 eParty' && s.skinName.startsWith(STUN)) series = STUN
 
     let rank
-    const pin = pinRank.get(`${s.heroId}|${series}`)
+    const pin = pinRank.get(`${s.heroId}|skin:${s.skinName}`) ?? pinRank.get(`${s.heroId}|${series}`)
     if (pin !== undefined) rank = pin
     else if (tier === 'Basic') rank = tierRank.get('Basic')
     else if (tier === 'Legend') rank = tierRank.get('Legend')
