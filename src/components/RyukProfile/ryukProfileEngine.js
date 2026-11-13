@@ -263,6 +263,7 @@ export function defaultLayout(pieces, opts = {}) {
     tileSize: 162,                    // largest size; shrinks by itself when many items are added
     gap: 7,
     groupDX: 0, groupDY: 0,           // moves collector panel + square tiles together
+    tileOff: {},                      // extra move of single effect tiles: { index: { dx, dy } }
     showEffects: (pieces.effects || []).map(() => true),
     showExtras: (pieces.extras || []).map(() => true),
     diamonds: { show: !!pieces.diamonds, scale: 1.9, dx: 0, dy: 0 },   // the number boxes (diamonds + weekly pass) move together
@@ -317,7 +318,8 @@ export function computeBoxes(pieces, L) {
   const firstRowY = H - 22 - rowsH + L.groupDY;
   tileList.forEach((img, i) => {
     const r = Math.floor(i / perRow), c = i % perRow;
-    boxes.push({ id: 'tile' + i, group: 'group', img, x: x0 + c * step, y: firstRowY + r * step, w: S, h: S });
+    const off = L.tileOff?.[i] || { dx: 0, dy: 0 };          // each effect can be moved on its own
+    boxes.push({ id: 'tile' + i, group: 'tile:' + i, img, x: x0 + c * step + off.dx, y: firstRowY + r * step + off.dy, w: S, h: S });
   });
   const aboveTiles = n ? firstRowY - 2 * B - GAP : H - 22 + L.groupDY;   // bottom edge for what sits on top
 
@@ -396,24 +398,22 @@ function sideGrid(list, W, L, B, GAP) {
   const x0 = W - 22 - areaW + (L.side?.dx ?? 0), y0 = 60 + (L.side?.dy ?? 0);
   const ar = list.map((im) => im.width / im.height);
   const pad = 2 * B + GAP;
-  // break into rows for a given height; null if something can't fit
-  const layoutFor = (h) => {
-    const rows = [[]];
-    let x = 0;
-    for (let i = 0; i < ar.length; i++) {
-      const w = ar[i] * h;
-      if (w + 2 * B > areaW) return null;
-      const need = (rows[rows.length - 1].length ? pad : 2 * B) + w;
-      if (x + need > areaW) { rows.push([i]); x = 2 * B + w; } else { rows[rows.length - 1].push(i); x += need; }
+  // up to 3 pictures: one row; more: 2 rows (more rows only if 2 can't hold them)
+  const n = ar.length;
+  const layoutRows = (R) => {
+    const per = Math.ceil(n / R), rows = [];
+    for (let i = 0; i < n; i += per) rows.push(Array.from({ length: Math.min(per, n - i) }, (_, k) => i + k));
+    // biggest height that fits: every row within the width, all rows within the height
+    let h = (areaH - 2 * B - (rows.length - 1) * pad) / rows.length;
+    for (const r of rows) {
+      const arSum = r.reduce((a, i) => a + ar[i], 0);
+      h = Math.min(h, (areaW - 2 * B - (r.length - 1) * pad) / arSum);
     }
-    const usedH = rows.length * h + (rows.length - 1) * pad + 2 * B;
-    return usedH <= areaH ? { rows, h, usedH } : null;
+    h = Math.min(h, 480 * sz);                   // one or two cards don't grow huge
+    return { rows, h: Math.max(20, h), usedH: rows.length * Math.max(20, h) + (rows.length - 1) * pad + 2 * B };
   };
-  let lo = 20, hi = areaH, best = layoutFor(lo) || { rows: [ar.map((_, i) => i)], h: lo, usedH: lo };
-  for (let k = 0; k < 30; k++) {
-    const mid = (lo + hi) / 2, r = layoutFor(mid);
-    if (r) { best = r; lo = mid } else hi = mid;
-  }
+  let best = layoutRows(n <= 3 ? 1 : 2);
+  for (let R = 3; n > 3 && R <= n && best.h < 150; R++) { const r = layoutRows(R); if (r.h > best.h) best = r; else break; }
   const out = [];
   let y = y0 + Math.max(0, (areaH - best.usedH) / 2) + B;
   best.rows.forEach((r) => {
@@ -523,7 +523,8 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   const boxes = computeBoxes(pieces, L);
   // clean up profile text that peeks out beside the tile rows
   const tiles = boxes.filter((b) => b.id.startsWith('tile'));
-  if (tiles.length && L.groupDX === 0 && L.groupDY === 0) {
+  const tilesMoved = Object.values(L.tileOff || {}).some((o) => o && (o.dx || o.dy));
+  if (tiles.length && L.groupDX === 0 && L.groupDY === 0 && !tilesMoved) {
     const rows = [...new Set(tiles.map((b) => b.y))].sort((p, q) => p - q);
     const ends = rows.map((ry) => Math.max(...tiles.filter((b) => b.y === ry).map((b) => b.x + b.w)) + 10);
     const lastEnd = ends[ends.length - 1];

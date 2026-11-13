@@ -31,7 +31,10 @@
 .rp-card { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; min-width: 0; }
 .rp-card h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); }
 .rp-slider { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
-.rp-slider input { width: 100%; accent-color: #c9a66b; }
+.rp-track { position: relative; height: 34px; touch-action: pan-y; cursor: ew-resize; }
+.rp-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--surface-3); }
+.rp-track i { position: absolute; left: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: #c9a66b; }
+.rp-track b { position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #e2c79a; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 .rp-check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
 .rp-check input { width: 17px; height: 17px; accent-color: #c9a66b; }
 .rp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }

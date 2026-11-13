@@ -245,7 +245,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     const g = hitTest(pieces, view, p.x, p.y)
     if (!g) return
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    drag.current = { g, p, start: g === 'group' ? { dx: layout.groupDX, dy: layout.groupDY } : { ...layout[g] } }
+    const tileI = g.startsWith('tile:') ? +g.slice(5) : -1
+    drag.current = { g, p, tileI, start: g === 'group' ? { dx: layout.groupDX, dy: layout.groupDY } : tileI >= 0 ? { ...(layout.tileOff?.[tileI] || { dx: 0, dy: 0 }) } : { ...layout[g] } }
     setActive(g)
   }
   const onMove = (e) => {
@@ -254,6 +255,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     const p = toLayoutXY(e)
     const dx = Math.round(d.start.dx + p.x - d.p.x), dy = Math.round(d.start.dy + p.y - d.p.y)
     if (d.g === 'group') setLayout((l) => ({ ...l, groupDX: dx, groupDY: dy }))
+    else if (d.tileI >= 0) setLayout((l) => ({ ...l, tileOff: { ...(l.tileOff || {}), [d.tileI]: { dx, dy } } }))
     else setLayout((l) => ({ ...l, [d.g]: { ...l[d.g], dx, dy } }))
   }
   const onUp = () => { drag.current = null; setActive(null) }
@@ -394,7 +396,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           <>
             <div className="rp-stage">
               <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
-              <span className="rp-tip">Drag the yellow boxes</span>
+              <span className="rp-tip">Drag the yellow boxes · each effect moves on its own</span>
             </div>
 
             <div className="rp-controls">
@@ -483,13 +485,37 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   )
 }
 
-function Slider({ id, label, min, max, step = 1, value, onChange, invert = false }) {
+// A slider that only changes when you drag it sideways: tapping it or
+// scrolling the page over it never changes the value by mistake.
+function Slider({ label, min, max, step = 1, value, onChange, invert = false }) {
+  const track = useRef(null)
+  const g = useRef(null)
   const v = invert ? max + min - value : value
+  const pct = (v - min) / (max - min) * 100
+  const snap = (n) => Math.min(max, Math.max(min, Math.round(n / step) * step))
+  const down = (e) => { g.current = { x: e.clientX, y: e.clientY, v, on: false, id: e.pointerId } }
+  const move = (e) => {
+    const s = g.current
+    if (!s) return
+    const dx = e.clientX - s.x, dy = e.clientY - s.y
+    if (!s.on) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { g.current = null; return }   // the page is scrolling
+      if (Math.abs(dx) < 8) return
+      s.on = true
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+    const w = track.current.getBoundingClientRect().width || 1
+    const n = snap(s.v + dx / w * (max - min))
+    onChange(invert ? max + min - n : n)
+  }
+  const up = () => { g.current = null }
   return (
-    <label className="rp-slider" htmlFor={id}>
+    <div className="rp-slider">
       <span>{label}</span>
-      <input id={id} type="range" min={min} max={max} step={step} value={v}
-        onChange={(e) => { const n = Number(e.target.value); onChange(invert ? max + min - n : n) }} />
-    </label>
+      <div className="rp-track" ref={track} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
+        <i style={{ width: `${pct}%` }} />
+        <b style={{ left: `${pct}%` }} />
+      </div>
+    </div>
   )
 }
