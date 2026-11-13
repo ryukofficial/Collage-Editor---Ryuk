@@ -253,13 +253,21 @@ export function extractPieces(src) {
     pieces.circles = BOX.statCircles.map(([cx, cy]) => cropTo(S, mapRect(S, [cx - r, cy - r, cx + r, cy + r], 'left')));
   }
   pieces.skin = src.skin;
+  pieces.skin2 = src.skin2 || null;
   return pieces;
 }
 
 // ---------- default layout ----------
+const skinDefaults = (sk) => ({
+  zoom: sk && sk.height > sk.width ? 1.0 : 1.15, focusX: 0.47,
+  offsetY: sk && sk.height > sk.width ? 0.12 : 0.3, centerFromRight: 560,
+});
+
 export function defaultLayout(pieces, opts = {}) {
   return {
-    skin: { zoom: pieces.skin && pieces.skin.height > pieces.skin.width ? 1.0 : 1.15, focusX: 0.47, offsetY: pieces.skin && pieces.skin.height > pieces.skin.width ? 0.12 : 0.3, centerFromRight: 466 },
+    skin: skinDefaults(pieces.skin),
+    skin2: skinDefaults(pieces.skin2),
+    duo: { split: 0.5, soft: 320, swap: false },   // two skins: where they meet and how softly
     tileSize: 162,                    // largest size; shrinks by itself when many items are added
     gap: 7,
     groupDX: 0, groupDY: 0,           // moves collector panel + square tiles together
@@ -450,26 +458,56 @@ function drawCircle(g, b) {
 }
 
 // ---------- draw ----------
+// The skin art area on the right (starts a little left of the old 1146 px).
+export const ART_W = 1240;
+
+// one skin, scaled to cover `boxW` × H, with its focus point on `targetX` (layer coordinates)
+function skinLayer(sk, S, CW, H, boxW, targetX, minLeft = -Infinity, maxRight = Infinity) {
+  const s = Math.max(H / sk.height, boxW / sk.width) * S.zoom;
+  const sw = sk.width * s, sh = sk.height * s;
+  let x = targetX - S.focusX * sw;                       // where the picture's left edge goes
+  x = Math.min(x, minLeft === -Infinity ? 0 : minLeft);  // the picture must cover its part
+  x = Math.max(x, (maxRight === Infinity ? CW : maxRight) - sw);
+  const top = Math.max(0, (sh - H) * S.offsetY);
+  const layer = canvas(CW, H), lg = layer.getContext('2d');
+  lg.imageSmoothingQuality = 'high';
+  lg.drawImage(sk, x, -top, sw, sh);
+  return layer;
+}
+
+const smooth = (g, x0, x1, from, to) => {             // smoothstep gradient between x0 and x1
+  const gr = g.createLinearGradient(x0, 0, x1, 0);
+  for (let i = 0; i <= 12; i++) { const t = i / 12, k = t * t * (3 - 2 * t); gr.addColorStop(t, `rgba(0,0,0,${from + (to - from) * k})`); }
+  return gr;
+};
+
 function drawSkin(g, pieces, L) {
   const W = pieces.W, H = REF_H;
-  const X0 = W - 1146, CW = W - X0;
-  const sk = pieces.skin;
-  const s = Math.max(H / sk.height, CW / sk.width) * L.skin.zoom; // always fill the right side
-  const sw = sk.width * s, sh = sk.height * s;
-  const target = W - L.skin.centerFromRight;
-  let left = L.skin.focusX * sw - (target - X0);
-  left = Math.max(0, Math.min(left, sw - CW));
-  const top = Math.max(0, (sh - H) * L.skin.offsetY);
-
-  const layer = canvas(CW, H);
+  const X0 = W - ART_W, CW = W - X0;
+  let layer;
+  if (pieces.skin2) {
+    // two skins: the first on the left, the second on the right, melting into each other
+    const d = L.duo || {};
+    const seam = CW * (d.split ?? 0.5), soft = d.soft ?? 320;
+    const first = d.swap ? pieces.skin2 : pieces.skin, second = d.swap ? pieces.skin : pieces.skin2;
+    const S1 = d.swap ? L.skin2 : L.skin, S2 = d.swap ? L.skin : L.skin2;
+    const right = skinLayer(second, S2, CW, H, CW - seam + soft / 2, seam + (CW - seam) * 0.5, seam - soft / 2, CW);
+    const left = skinLayer(first, S1, CW, H, seam + soft / 2, seam * 0.55, 0, seam + soft / 2);
+    const lg = left.getContext('2d');
+    lg.globalCompositeOperation = 'destination-in';
+    lg.fillStyle = smooth(lg, seam - soft / 2, seam + soft / 2, 1, 0);
+    lg.fillRect(0, 0, CW, H);
+    layer = right;
+    layer.getContext('2d').drawImage(left, 0, 0);
+  } else {
+    const sk = pieces.skin;
+    const target = CW - L.skin.centerFromRight;
+    layer = skinLayer(sk, L.skin, CW, H, CW, target, 0, CW);
+  }
+  // soft left fade into the profile (smoothstep over 280px)
   const lg = layer.getContext('2d');
-  lg.imageSmoothingQuality = 'high';
-  lg.drawImage(sk, -left, -top, sw, sh);
-  // soft left fade (smoothstep over 260px)
-  const grad = lg.createLinearGradient(0, 0, 260, 0);
-  for (let i = 0; i <= 10; i++) { const t = i / 10; grad.addColorStop(t, `rgba(0,0,0,${t * t * (3 - 2 * t)})`); }
   lg.globalCompositeOperation = 'destination-in';
-  lg.fillStyle = grad;
+  lg.fillStyle = smooth(lg, 0, 280, 0, 1);
   lg.fillRect(0, 0, CW, H);
   g.drawImage(layer, X0, 0);
 
@@ -480,7 +518,7 @@ function drawSkin(g, pieces, L) {
   gr = vg.createLinearGradient(0, H - 60, 0, H); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.25)');
   vg.fillStyle = gr; vg.fillRect(0, H - 60, W, 60);
   vg.globalCompositeOperation = 'destination-in';
-  gr = vg.createLinearGradient(1250, 0, 1500, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+  gr = vg.createLinearGradient(W - ART_W + 100, 0, W - ART_W + 350, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
   vg.fillStyle = gr; vg.fillRect(0, 0, W, H);
   g.drawImage(v, 0, 0);
 }

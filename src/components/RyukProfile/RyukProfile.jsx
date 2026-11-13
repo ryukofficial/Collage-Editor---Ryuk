@@ -11,6 +11,7 @@ import './RyukProfile.css'
 const SLOTS = [
   { key: 'profile', label: 'Profile screenshot', hint: 'Profile page in the game', required: true },
   { key: 'skin', label: 'Skin art', hint: 'Splash art of the skin to show on the right' },
+  { key: 'skin2', label: 'Second skin art', hint: 'Optional: a second skin, blended with the first one (duo look)' },
   { key: 'collection', label: 'Collection', hint: 'Collection → Collectible (collector badge on the right)' },
   { key: 'stats', label: 'Statistics', hint: 'Battlefield → Statistics (Matches, Win Rate, MVP circles)' },
   { key: 'weekly', label: 'Weekly pass', hint: 'Recharge → Weekly Diamond Pass (days + hours left)' },
@@ -49,6 +50,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const drag = useRef(null)
   const raf = useRef(0)
   const lastSkin = useRef(null)
+  const lastSkin2 = useRef(null)
   const hadWeekly = useRef(false)
   const hadCoa = useRef(false)
 
@@ -166,6 +168,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         const p = extractPieces(imgs)
         const sameSkin = lastSkin.current === files.skin
         lastSkin.current = files.skin
+        const sameSkin2 = lastSkin2.current === files.skin2
+        lastSkin2.current = files.skin2
         const keepWeekly = hadWeekly.current && !!p.weekly   // read now: the update below runs later
         const keepCoa = hadCoa.current && !!p.coa
         setPieces(p)
@@ -176,6 +180,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           return {
             ...fresh,
             skin: sameSkin ? old.skin : fresh.skin,
+            skin2: sameSkin2 && old.skin2 ? old.skin2 : fresh.skin2,
+            duo: old.duo ?? fresh.duo,
             tileSize: old.tileSize, groupDX: old.groupDX, groupDY: old.groupDY, rank: old.rank, cards: old.cards ?? fresh.cards,
             diamonds: { ...fresh.diamonds, scale: old.diamonds.scale, dx: old.diamonds.dx, dy: old.diamonds.dy },
             weekly: keepWeekly ? old.weekly : fresh.weekly,
@@ -412,13 +418,34 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                 {pieces.extras?.some((x) => x.wide) && <Slider id="rp-card-s" label="Item cards" min={80} max={220} value={layout.cards.height} onChange={(v) => set('cards.height', v)} />}
               </div>
 
-              {pieces.skin && (
+              {pieces.skin && !pieces.skin2 && (
               <div className="rp-card">
                 <h3>Skin</h3>
-                <Slider id="rp-skin-x" label="Left / right" min={150} max={900} value={layout.skin.centerFromRight} onChange={(v) => set('skin.centerFromRight', v)} invert />
-                <Slider id="rp-skin-f" label="Focus" min={0.1} max={0.9} step={0.01} value={layout.skin.focusX} onChange={(v) => set('skin.focusX', v)} />
-                <Slider id="rp-skin-z" label="Zoom" min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
-                <Slider id="rp-skin-y" label="Up / down" min={0} max={1} step={0.01} value={layout.skin.offsetY} onChange={(v) => set('skin.offsetY', v)} />
+                <Slider label="Left / right" min={150} max={1000} value={layout.skin.centerFromRight} onChange={(v) => set('skin.centerFromRight', v)} invert />
+                <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout.skin.focusX} onChange={(v) => set('skin.focusX', v)} />
+                <Slider label="Zoom" min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
+                <Slider label="Up / down" min={0} max={1} step={0.01} value={layout.skin.offsetY} onChange={(v) => set('skin.offsetY', v)} />
+              </div>
+              )}
+
+              {pieces.skin && pieces.skin2 && (
+              <div className="rp-card">
+                <h3>Two skins</h3>
+                <Slider label="Where they meet" min={0.3} max={0.7} step={0.01} value={layout.duo.split} onChange={(v) => set('duo.split', v)} />
+                <Slider label="Blend softness" min={80} max={600} value={layout.duo.soft} onChange={(v) => set('duo.soft', v)} />
+                <button type="button" className="rp-link" onClick={() => set('duo.swap', !layout.duo.swap)}>⇄ Swap left and right skin</button>
+                <h3 style={{ marginTop: 14 }}>Left skin</h3>
+                {(() => { const k = layout.duo.swap ? 'skin2' : 'skin'; return (<>
+                  <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout[k].focusX} onChange={(v) => set(`${k}.focusX`, v)} />
+                  <Slider label="Zoom" min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
+                  <Slider label="Up / down" min={0} max={1} step={0.01} value={layout[k].offsetY} onChange={(v) => set(`${k}.offsetY`, v)} />
+                </>) })()}
+                <h3 style={{ marginTop: 14 }}>Right skin</h3>
+                {(() => { const k = layout.duo.swap ? 'skin' : 'skin2'; return (<>
+                  <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout[k].focusX} onChange={(v) => set(`${k}.focusX`, v)} />
+                  <Slider label="Zoom" min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
+                  <Slider label="Up / down" min={0} max={1} step={0.01} value={layout[k].offsetY} onChange={(v) => set(`${k}.offsetY`, v)} />
+                </>) })()}
               </div>
               )}
 
