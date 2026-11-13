@@ -1807,7 +1807,8 @@
       },
       {
         "name": "KOF",
-        "tier": "Grand"
+        "tier": "Grand",
+        "series": "KOF"
       },
       {
         "name": "Dimension Walker",
