@@ -29,6 +29,48 @@ function Tile({ c, on, tone, onToggle }) {
   )
 }
 
+// One screenshot, big, with every name that was read marked on it.
+// Tap a mark (or a skin below) to tick / untick it.
+function ShotViewer({ shot, url, picked, toggle, onClose, onCloser, busy }) {
+  const [size, setSize] = useState(null)
+  const marks = [...shot.sure.map(m => ({ ...m, kind: 'sure' })), ...shot.maybe.map(m => ({ ...m, kind: 'maybe' }))].filter(m => m.box)
+  const list = [...shot.sure.map(m => ({ ...m, group: 'sure' })), ...shot.maybe.filter(m => !m.key.startsWith('?')).map(m => ({ ...m, group: 'maybe' }))]
+  return (
+    <Sheet title={`Screenshot ${shot.file + 1}`} subtitle={`${shot.sure.length} found · ${shot.maybe.length} maybe · tap a mark to tick or untick`} onClose={onClose} full wide back
+      footer={<div className="row">
+        <button className="btn btn-ghost" disabled={busy} onClick={onCloser}>{busy ? <Spinner /> : <ZoomIn size={16} />} Look closer</button>
+        <div className="grow" />
+        <button className="btn btn-primary" onClick={onClose}>Done</button>
+      </div>}>
+      <div style={{ position: 'relative', width: '100%', borderRadius: 12, overflow: 'hidden', background: 'var(--surface-2)' }}>
+        <img src={url} alt="" style={{ width: '100%', display: 'block' }} onLoad={e => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
+        {size && marks.map((m, i) => {
+          const on = picked.has(m.key), ask = m.key.startsWith('?')
+          const pad = 4
+          return (
+            <button key={i} onClick={() => !ask && toggle(m.key)} title={`${m.heroName} — ${m.skinName}`}
+              style={{
+                position: 'absolute',
+                left: `${(m.box.x0 - pad) / size.w * 100}%`, top: `${(m.box.y0 - pad) / size.h * 100}%`,
+                width: `${(m.box.x1 - m.box.x0 + 2 * pad) / size.w * 100}%`, height: `${(m.box.y1 - m.box.y0 + 2 * pad) / size.h * 100}%`,
+                border: `2px ${m.kind === 'maybe' ? 'dashed' : 'solid'} ${on ? '#7fb38a' : m.kind === 'maybe' ? '#d4a35a' : '#d9776f'}`,
+                background: on ? 'rgba(127,179,138,.18)' : 'rgba(0,0,0,.15)', borderRadius: 5,
+              }} />
+          )
+        })}
+      </div>
+      <div className="row tiny muted" style={{ gap: 14, margin: '10px 0 14px', flexWrap: 'wrap' }}>
+        <span><b style={{ color: '#7fb38a' }}>■</b> ticked</span>
+        <span><b style={{ color: '#d9776f' }}>□</b> found, not ticked</span>
+        <span><b style={{ color: '#d4a35a' }}>┅</b> maybe</span>
+      </div>
+      {list.length > 0
+        ? <div className="skin-grid">{list.map(c => <Tile key={c.key} c={c} tone={c.group} on={picked.has(c.key)} onToggle={toggle} />)}</div>
+        : <p className="small muted">No skin names were read on this screenshot. Try "Look closer", or add missing skins by name.</p>}
+    </Sheet>
+  )
+}
+
 export default function AutoCollageSheet({ onClose, onOpenWallet }) {
   const wallet = useWallet()
   const [shots, setShots] = useState([])                 // File[]
@@ -43,8 +85,9 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
   const [info, setInfo] = useState(null)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
-  const [open, setOpen] = useState({ maybe: true, shots: false, details: false })
+  const [open, setOpen] = useState({ maybe: true, shots: true, details: false })
   const [rescanning, setRescanning] = useState(-1)
+  const [viewing, setViewing] = useState(-1)
   const paidFor = useRef(false)
   const ctrl = useRef(null)
   const input = useRef(null)
@@ -101,7 +144,7 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
       applyResult(res)
       setPerShot(res.shots); setReport(res.report); setInfo(res.info)
       const nothing = !res.matches.length && !res.possible.length && !res.ambiguous.length
-      setOpen(o => ({ ...o, details: nothing, shots: nothing }))
+      setOpen(o => ({ ...o, details: nothing }))
       setPhase('results')
     } catch (err) {
       if (err?.name === 'AbortError') { setPhase('pick'); return }
@@ -220,6 +263,11 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
         </div>
       )}
 
+      {phase === 'results' && viewing >= 0 && perShot.find(x => x.file === viewing) && (
+        <ShotViewer shot={perShot.find(x => x.file === viewing)} url={urls[viewing]} picked={picked} toggle={toggle}
+          busy={rescanning >= 0} onCloser={() => rescan(viewing)} onClose={() => setViewing(-1)} />
+      )}
+
       {phase === 'results' && (
         <>
           {info && info.words < 15 && <div className="note warn" style={{ marginBottom: 14 }}>Hardly any text could be read. Make sure the screenshots show the skin names clearly.</div>}
@@ -276,11 +324,14 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
             </button>
             {open.shots && perShot.map(s => (
               <div key={s.file} className="row" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
-                <div style={{ width: 44, height: 64, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--surface-2)' }}>{urls[s.file] && <img src={urls[s.file]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div>
-                <div className="grow">
-                  <div className="small" style={{ fontWeight: 700 }}>Screenshot {s.file + 1}</div>
-                  <div className="tiny muted">{s.failed ? 'could not be opened' : `${s.sure.length} found · ${s.maybe.length} maybe`}</div>
-                </div>
+                <button className="row grow" style={{ textAlign: 'left', minWidth: 0 }} disabled={s.failed} onClick={() => setViewing(s.file)}>
+                  <div style={{ width: 44, height: 64, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--surface-2)' }}>{urls[s.file] && <img src={urls[s.file]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div>
+                  <div className="grow">
+                    <div className="small" style={{ fontWeight: 700 }}>Screenshot {s.file + 1}</div>
+                    <div className="tiny muted">{s.failed ? 'could not be opened' : `${s.sure.length} found · ${s.maybe.length} maybe`}</div>
+                    {!s.failed && <div className="tiny" style={{ color: 'var(--pink)', fontWeight: 600, marginTop: 2 }}>Tap to check</div>}
+                  </div>
+                </button>
                 <button className="btn btn-ghost btn-sm" disabled={rescanning >= 0} onClick={() => rescan(s.file)}>
                   {rescanning === s.file ? <Spinner /> : <ZoomIn size={15} />} Look closer
                 </button>
