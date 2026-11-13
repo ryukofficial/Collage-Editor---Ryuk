@@ -173,9 +173,9 @@ export default function AdminPanel({ onClose }) {
             onClick={() => { setBulkMode(b => !b); clearSelection() }}
             style={{
               background: bulkMode ? 'var(--surface-2)' : 'var(--surface-2)',
-              border: `1px solid ${bulkMode ? '#ff3d77' : 'var(--line-2)'}`,
+              border: `1px solid ${bulkMode ? '#c9a66b' : 'var(--line-2)'}`,
               borderRadius: '12px', padding: '7px 12px',
-              color: bulkMode ? '#ff3d77' : 'var(--text-2)',
+              color: bulkMode ? '#c9a66b' : 'var(--text-2)',
               fontWeight: 700, fontSize: '12px', cursor: 'pointer',
             }}
           >
@@ -203,7 +203,7 @@ export default function AdminPanel({ onClose }) {
             style={{
               background: publishStatus === 'success' ? '#065f46'
                 : publishStatus === 'error' ? '#3a0a0a'
-                : '#ff3d77',
+                : '#c9a66b',
               border: `1px solid ${publishStatus === 'success' ? '#34d399' : publishStatus === 'error' ? '#ef4444' : 'transparent'}`,
               borderRadius: '12px', padding: '7px 14px',
               color: '#fff', fontWeight: 700, fontSize: '12px',
@@ -242,9 +242,9 @@ export default function AdminPanel({ onClose }) {
               style={{
                 flexShrink: 0,
                 background: isActive ? (c?.bg || 'var(--surface-2)') : 'var(--surface-2)',
-                border: `1px solid ${isActive ? (c?.border || '#ff3d77') : 'var(--line-2)'}`,
+                border: `1px solid ${isActive ? (c?.border || '#c9a66b') : 'var(--line-2)'}`,
                 borderRadius: '7px', padding: '4px 10px',
-                color: isActive ? (c?.text || '#ff3d77') : 'var(--text-3)',
+                color: isActive ? (c?.text || '#c9a66b') : 'var(--text-3)',
                 fontSize: '11px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
             >
@@ -353,7 +353,7 @@ export default function AdminPanel({ onClose }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   background: isSelected ? 'var(--surface-2)' : 'var(--bg-2)',
-                  border: `1px solid ${isSelected ? '#ff3d77' : currentTier ? colors.border + '55' : 'var(--surface-2)'}`,
+                  border: `1px solid ${isSelected ? '#c9a66b' : currentTier ? colors.border + '55' : 'var(--surface-2)'}`,
                   borderRadius: '10px', padding: '10px 12px',
                   transition: 'all 0.15s',
                   cursor: 'default',
@@ -369,8 +369,8 @@ export default function AdminPanel({ onClose }) {
                     }}
                     style={{
                       width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                      border: `2px solid ${isSelected ? '#ff3d77' : 'var(--text-3)'}`,
-                      background: isSelected ? '#ff3d77' : 'transparent',
+                      border: `2px solid ${isSelected ? '#c9a66b' : 'var(--text-3)'}`,
+                      background: isSelected ? '#c9a66b' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer',
                     }}

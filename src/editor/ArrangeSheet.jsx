@@ -73,7 +73,7 @@ export default function ArrangeSheet({ onClose }) {
             boxShadow: sel === i ? 'var(--glow)' : 'none', background: 'var(--surface-2)',
           }}>
             <Thumb item={it} />
-            <span style={{ position: 'absolute', top: 4, left: 4, fontSize: cols > 8 ? 9 : 10.5, fontWeight: 800, padding: '1px 5px', borderRadius: 5, background: i === 0 ? 'rgba(34,197,94,.9)' : 'rgba(0,0,0,.65)', color: '#fff' }}>{i === 0 ? '1st' : i + 1}</span>
+            <span style={{ position: 'absolute', top: 4, left: 4, fontSize: cols > 8 ? 9 : 10.5, fontWeight: 800, padding: '1px 5px', borderRadius: 5, background: i === 0 ? 'rgba(201,166,107,.92)' : 'rgba(0,0,0,.65)', color: i === 0 ? '#1b150c' : '#fff' }}>{i === 0 ? '1st' : i + 1}</span>
             {sel !== null && sel !== i && <span style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.12)' }} />}
           </button>
         ))}

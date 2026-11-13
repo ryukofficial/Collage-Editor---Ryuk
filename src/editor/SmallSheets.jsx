@@ -6,7 +6,7 @@ import { useCollage, uid } from '../lib/store.js'
 import { blobGet, blobSet } from '../lib/db.js'
 import { measure } from '../lib/images.js'
 
-const SWATCHES = ['#000000', '#0b0b12', '#ffffff', '#111827', '#1e1b4b', '#3b0764', '#4c0519', '#052e16', '#0c4a6e', '#7c2d12', '#ff3d77', '#f5c842']
+const SWATCHES = ['#000000', '#0b0b12', '#ffffff', '#111827', '#1e1b4b', '#3b0764', '#4c0519', '#052e16', '#0c4a6e', '#7c2d12', '#c9a66b', '#f5c842']
 
 export function BackgroundSheet({ onClose }) {
   const bg = useCollage(s => s.bg)

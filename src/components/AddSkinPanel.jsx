@@ -115,7 +115,7 @@ function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) 
 const field = { width: '100%', boxSizing: 'border-box', background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
 const small = { ...field, padding: '7px 9px', fontSize: '13px' }
 const label = { display: 'block', color: 'var(--text-2)', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
-const btn = (on = true) => ({ width: '100%', background: on ? '#ff3d77' : '#5a2236', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
+const btn = (on = true) => ({ width: '100%', background: on ? '#c9a66b' : '#5a2236', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
 
 export default function AddSkinPanel({ onClose }) {
   const heroes = useMemo(() => [...skinsData].sort((a, b) => a.name.localeCompare(b.name)), [])
@@ -138,7 +138,7 @@ export default function AddSkinPanel({ onClose }) {
             {[['add', '➕ Add skins'], ['series', '🏷 Change series']].map(([k, t]) => (
               <button key={k} onClick={() => !busy && setTab(k)}
                 style={{ flex: 1, padding: '9px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-                  background: tab === k ? '#ff3d77' : 'var(--surface-2)', color: '#fff', border: `1px solid ${tab === k ? '#ff3d77' : 'var(--line-2)'}` }}>{t}</button>
+                  background: tab === k ? '#c9a66b' : 'var(--surface-2)', color: '#fff', border: `1px solid ${tab === k ? '#c9a66b' : 'var(--line-2)'}` }}>{t}</button>
             ))}
           </div>
         </div>
@@ -316,7 +316,7 @@ function ChangeSeries({ heroes, password, busy, setBusy }) {
         const isNew = v.trim() && !SERIES_NAMES.some(s => s.toLowerCase() === v.trim().toLowerCase())
         const dirty = v.trim() !== x.series
         return (
-          <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#ff3d77' : 'var(--line-2)'}`, borderRadius: '10px' }}>
+          <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#c9a66b' : 'var(--line-2)'}`, borderRadius: '10px' }}>
             <p style={{ margin: '0 0 6px', color: '#fff', fontSize: '13px', fontWeight: 600 }}>{x.hero} · <span style={{ color: 'var(--text-2)', fontWeight: 400 }}>{x.skin}</span></p>
             <div style={{ display: 'flex', gap: '6px' }}>
               <SeriesInput value={v} disabled={busy} onChange={val => setEdits(s => ({ ...s, [x.key]: val }))} placeholder="No series" style={small} />

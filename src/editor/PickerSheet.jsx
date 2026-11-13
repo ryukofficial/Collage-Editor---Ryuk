@@ -23,7 +23,7 @@ function SkinTile({ s, on, onToggle }) {
 }
 
 function Grid({ list, picked, toggle }) {
-  return <div className="skin-grid">{list.map(s => <SkinTile key={s.id} s={s} on={picked.has(s.id)} onToggle={toggle} />)}</div>
+  return <div className="skin-grid dense">{list.map(s => <SkinTile key={s.id} s={s} on={picked.has(s.id)} onToggle={toggle} />)}</div>
 }
 
 // skins of a tier, grouped by series (a series goes with the tier most of its skins have)
@@ -76,6 +76,7 @@ export default function PickerSheet({ onClose, startTab = 'heroes' }) {
   }, [q])
   const heroSkins = useMemo(() => hero ? (hero.skins || []).map(sk => ALL_SKINS.find(s => s.id === skinId(hero.id, sk.name))).filter(Boolean) : [], [hero])
   const groups = useMemo(() => (tab === 'tiers' ? tierGroups(tier) : []), [tab, tier])
+  const tierCounts = useMemo(() => (tab === 'tiers' ? Object.fromEntries(TIERS.map(t => [t, tierGroups(t).reduce((n, [, l]) => n + l.length, 0)])) : {}), [tab])
   const found = useMemo(() => (tab === 'search' ? searchSkins(q, 120) : []), [tab, q])
 
   const add = async () => {
@@ -141,23 +142,35 @@ export default function PickerSheet({ onClose, startTab = 'heroes' }) {
 
       {ready && tab === 'tiers' && (
         <>
-          <div className="tabs" style={{ marginBottom: 14 }}>
-            {TIERS.map(t => <button key={t} className={`chip ${tier === t ? 'on' : ''}`} onClick={() => setTier(t)}>{TIER_STYLE[t].icon} {t}</button>)}
+          <div className="tabs" style={{ marginBottom: 12 }}>
+            {TIERS.map(t => {
+              const st = TIER_STYLE[t], on = tier === t
+              return (
+                <button key={t} className="tier-tab" onClick={() => { setTier(t); setClosed({}) }}
+                  style={on ? { background: `${st.color}1f`, borderColor: `${st.color}99`, color: st.color } : undefined}>
+                  <span>{st.icon}</span>{t}{tierCounts[t] > 0 && <span className="cnt" style={on ? { background: `${st.color}33`, color: st.color } : undefined}>{tierCounts[t]}</span>}
+                </button>
+              )
+            })}
           </div>
           {!groups.length && <p className="muted small" style={{ textAlign: 'center', padding: 30 }}>No {tier} skins yet.</p>}
-          {groups.map(([name, list]) => (
-            <div key={name} style={{ marginBottom: 18 }}>
-              <div className="row" style={{ marginBottom: 10 }}>
-                <button className="row grow" style={{ gap: 8, textAlign: 'left' }} onClick={() => setClosed(c => ({ ...c, [name]: !c[name] }))}>
-                  {closed[name] ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                  <span className="h3" style={{ color: name === 'Other' ? 'var(--text-2)' : TIER_STYLE[tier].color }}>{name === 'Other' ? 'Other skins' : `${name}`}</span>
-                  <span className="badge">{list.length}</span>
-                </button>
-                <button className="chip" onClick={() => toggleAll(list)}>Select all</button>
+          {groups.map(([name, list]) => {
+            const other = name === 'Other', st = TIER_STYLE[tier], col = other ? 'var(--text-2)' : st.color
+            return (
+              <div key={name} style={{ marginBottom: 16 }}>
+                <div className="series-head" style={other ? undefined : { background: `${st.color}14`, borderColor: `${st.color}55` }}>
+                  <button className="row grow" style={{ gap: 8, textAlign: 'left' }} onClick={() => setClosed(c => ({ ...c, [name]: !c[name] }))}>
+                    <span style={{ fontSize: 14 }}>{other ? '🎮' : st.icon}</span>
+                    <span className="t" style={{ color: col }}>{other ? 'Other' : `${name} Series`}</span>
+                    <span className="cnt" style={{ background: other ? 'var(--surface-3)' : `${st.color}2e`, color: col }}>{list.length}</span>
+                    <ChevronDown size={15} color={col} style={{ transform: closed[name] ? 'rotate(-90deg)' : 'none', transition: 'transform .2s' }} />
+                  </button>
+                  <button className="sel" onClick={() => toggleAll(list)}>Select all</button>
+                </div>
+                {!closed[name] && <Grid list={list} picked={picked} toggle={toggle} />}
               </div>
-              {!closed[name] && <Grid list={list} picked={picked} toggle={toggle} />}
-            </div>
-          ))}
+            )
+          })}
         </>
       )}
 

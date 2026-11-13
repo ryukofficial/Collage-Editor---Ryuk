@@ -1,6 +1,6 @@
 // Home: start a collage in one tap.
 import { useEffect, useRef, useState } from 'react'
-import { Menu, ScanSearch, Plus, Layers, Upload, Contact, FolderOpen, Scissors, Zap, Wallet, ChevronRight, Gem } from 'lucide-react'
+import { Menu, ScanSearch, Plus, Layers, Upload, Contact, FolderOpen, Scissors, Wallet, ChevronRight, Gem } from 'lucide-react'
 import { useCollage } from './lib/store.js'
 import { makeThumb } from './lib/projects.js'
 import { loadThumb } from './lib/images.js'
@@ -22,12 +22,11 @@ export default function Home({ open, onContinue, onMenu, onUpload, onBrand }) {
   }, [items, bg])
 
   const tiles = [
-    { icon: Plus, title: 'Pick skins', sub: 'By hero', color: '#ff3d77', on: () => open('picker', 'heroes') },
-    { icon: Layers, title: 'By tier', sub: 'Legend, Grand, series…', color: '#c084fc', on: () => open('picker', 'tiers') },
-    { icon: Upload, title: 'Upload', sub: 'Your own pictures', color: '#38bdf8', on: () => file.current.click() },
-    { icon: Contact, title: 'Ryuk Profile', sub: 'Profile showcase edit', color: '#f5c842', on: () => open('profile') },
-    { icon: Scissors, title: 'Cut skins', sub: 'From a screenshot', color: '#34d399', on: () => open('cut') },
-    { icon: Zap, title: 'HD enhance', sub: 'Any picture ×2', color: '#f5a524', on: () => open('enhance') },
+    { icon: Plus, title: 'Pick skins', sub: 'By hero', color: '#c9a66b', on: () => open('picker', 'heroes') },
+    { icon: Layers, title: 'By tier', sub: 'Legend, Grand, series…', color: '#a7b09a', on: () => open('picker', 'tiers') },
+    { icon: Upload, title: 'Upload', sub: 'Your own pictures', color: '#9aaab4', on: () => file.current.click() },
+    { icon: Contact, title: 'Ryuk Profile', sub: 'Profile showcase edit', color: '#cfa77f', on: () => open('profile') },
+    { icon: Scissors, title: 'Cut skins', sub: 'From a screenshot', color: '#9cae96', on: () => open('cut') },
   ]
 
   return (
@@ -37,7 +36,7 @@ export default function Home({ open, onContinue, onMenu, onUpload, onBrand }) {
         <div className="brand grow" onClick={onBrand}>Ryuk <b>Creates</b></div>
         {walletEnabled && (
           <button className="wallet-pill" onClick={() => open('wallet')}>
-            <Wallet size={16} color="#ff8fb0" />{wallet.user ? `₹${wallet.balance ?? '…'}` : 'Log in'}
+            <Wallet size={16} color="#e2c79a" />{wallet.user ? `₹${wallet.balance ?? '…'}` : 'Log in'}
           </button>
         )}
       </div>
@@ -54,7 +53,7 @@ export default function Home({ open, onContinue, onMenu, onUpload, onBrand }) {
 
           <button className="hero-card" onClick={() => open('auto')}>
             <div className="tiles">{Array.from({ length: 16 }, (_, i) => <i key={i} />)}</div>
-            <span className="badge pink" style={{ alignSelf: 'flex-start', marginBottom: 10, background: 'rgba(255,61,119,.22)' }}><ScanSearch size={12} style={{ marginRight: 5 }} /> AUTO COLLAGE{walletEnabled ? ` · ₹${AUTO_COLLAGE_PRICE}` : ''}</span>
+            <span className="badge pink" style={{ alignSelf: 'flex-start', marginBottom: 10, background: 'rgba(201,166,107,.14)' }}><ScanSearch size={12} style={{ marginRight: 5 }} /> AUTO COLLAGE{walletEnabled ? ` · ₹${AUTO_COLLAGE_PRICE}` : ''}</span>
             <div className="h1" style={{ maxWidth: 320 }}>Your whole collection,<br /><span className="grad-text">one tap.</span></div>
             <div className="small" style={{ color: 'var(--text-2)', marginTop: 8, maxWidth: 330 }}>Upload screenshots of your skins — every skin is found and placed for you.</div>
           </button>
@@ -74,9 +73,9 @@ export default function Home({ open, onContinue, onMenu, onUpload, onBrand }) {
             <ChevronRight size={18} className="muted" />
           </button>
 
-          <a className="list-item card" style={{ marginTop: 10, background: 'linear-gradient(135deg, rgba(56,189,248,.10), rgba(124,92,255,.10))' }} href="https://ryukofficial.in" target="_blank" rel="noopener noreferrer">
-            <span className="li-icon" style={{ color: '#7dd3fc' }}><Gem size={19} /></span>
-            <span className="grow"><span className="h3">Recharge Diamonds</span><br /><span className="small muted">ryukofficial.in</span></span>
+          <a className="list-item card" style={{ marginTop: 10, background: 'var(--surface)' }} href="https://ryukgames.com" target="_blank" rel="noopener noreferrer">
+            <span className="li-icon" style={{ color: 'var(--pink)' }}><Gem size={19} /></span>
+            <span className="grow"><span className="h3">Recharge Diamonds</span><br /><span className="small muted">ryukgames.com</span></span>
             <ChevronRight size={18} className="muted" />
           </a>
 

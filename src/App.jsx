@@ -2,7 +2,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { X, FolderOpen, Contact, Wallet, Shield, PlusSquare, MessageCircle, Store, Gem, Zap, Scissors } from 'lucide-react'
+import { X, FolderOpen, Contact, Wallet, Shield, PlusSquare, MessageCircle, Store, Gem, Scissors } from 'lucide-react'
 import Home from './Home.jsx'
 import Editor from './editor/Editor.jsx'
 import { useBack, Spinner } from './ui/Sheet.jsx'
@@ -22,7 +22,6 @@ const ExportSheet = lazy(() => import('./export/ExportSheet.jsx'))
 const BackgroundSheet = lazy(() => import('./editor/SmallSheets.jsx').then(m => ({ default: m.BackgroundSheet })))
 const BannerSheet = lazy(() => import('./editor/SmallSheets.jsx').then(m => ({ default: m.BannerSheet })))
 const CutSheet = lazy(() => import('./editor/ToolsSheets.jsx').then(m => ({ default: m.CutSheet })))
-const EnhanceSheet = lazy(() => import('./editor/ToolsSheets.jsx').then(m => ({ default: m.EnhanceSheet })))
 const WalletPanel = lazy(() => import('./components/WalletPanel.jsx'))
 const AdminPanel = lazy(() => import('./components/AdminPanel.jsx'))
 const AddSkinPanel = lazy(() => import('./components/AddSkinPanel.jsx'))
@@ -51,14 +50,13 @@ function Drawer({ onClose, open, admin }) {
           <Item icon={FolderOpen} title="Projects & history" sub="Saved, recent, exports" onClick={() => go('projects')} />
           <Item icon={Contact} title="Ryuk Profile" sub="Profile showcase edit" onClick={() => go('profile')} />
           <Item icon={Scissors} title="Cut skins" sub="From a screenshot" onClick={() => go('cut')} />
-          <Item icon={Zap} title="HD enhance" sub="Any picture ×2" onClick={() => go('enhance')} />
           {walletEnabled && <Item icon={Wallet} title="Wallet" sub={wallet.user ? `Balance ₹${wallet.balance ?? '…'}` : 'Log in or create an account'} onClick={() => go('wallet')} />}
           {admin && <Item icon={Shield} title="Admin panel" sub="Skin tiers, wallets" onClick={() => go('admin')} />}
           <Item icon={PlusSquare} title="Add skins / series" sub="Password protected" onClick={() => go('addskin')} />
           <div className="divider" />
-          <Item icon={MessageCircle} title="Contact developer" sub="Chat on WhatsApp" href="https://wa.me/+918453899194" color="#25D366" />
-          <Item icon={Store} title="Buy MLBB accounts" sub="WhatsApp channel" href="https://www.whatsapp.com/channel/0029Vb7BZhZ7oQhVBdxFo73a" color="#25D366" />
-          <Item icon={Gem} title="Recharge diamonds" sub="ryukofficial.in" href="https://ryukofficial.in" color="#7dd3fc" />
+          <Item icon={MessageCircle} title="Contact developer" sub="Chat on WhatsApp" href="https://wa.me/+918453899194" color="#8fb58f" />
+          <Item icon={Store} title="Buy MLBB accounts" sub="WhatsApp channel" href="https://www.whatsapp.com/channel/0029Vb7BZhZ7oQhVBdxFo73a" color="#8fb58f" />
+          <Item icon={Gem} title="Recharge diamonds" sub="ryukgames.com" href="https://ryukgames.com" color="#c9a66b" />
         </div>
         <div className="tiny muted" style={{ textAlign: 'center', padding: 14 }}>Ryuk Creates © {new Date().getFullYear()}</div>
       </nav>
@@ -123,7 +121,6 @@ export default function App() {
       case 'background': return <BackgroundSheet key={i} onClose={close} />
       case 'banner': return <BannerSheet key={i} onClose={close} />
       case 'cut': return <CutSheet key={i} onClose={close} onAdded={goEditor} />
-      case 'enhance': return <EnhanceSheet key={i} onClose={close} />
       case 'wallet': return <Legacy key={i} onClose={close}><WalletPanel onClose={close} reason={a} /></Legacy>
       case 'admin': return <Legacy key={i} onClose={close}><AdminPanel onClose={close} /></Legacy>
       case 'addskin': return <Legacy key={i} onClose={close}><AddSkinPanel onClose={close} /></Legacy>

@@ -187,8 +187,8 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
         <>
           <input ref={input} type="file" accept="image/*" multiple hidden onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
           {!shots.length ? (
-            <button className="card" onClick={() => input.current.click()} style={{ width: '100%', padding: '36px 20px', textAlign: 'center', borderStyle: 'dashed', borderColor: 'rgba(255,61,119,.4)', background: 'var(--grad-soft)' }}>
-              <ImagePlus size={36} color="#ff8fb0" />
+            <button className="card" onClick={() => input.current.click()} style={{ width: '100%', padding: '36px 20px', textAlign: 'center', borderStyle: 'dashed', borderColor: 'rgba(201,166,107,.4)', background: 'var(--grad-soft)' }}>
+              <ImagePlus size={36} color="#e2c79a" />
               <div className="h2" style={{ marginTop: 10 }}>Choose screenshots</div>
               <div className="small muted" style={{ marginTop: 6, lineHeight: 1.5 }}>Open your Collection / skins page in MLBB, take screenshots<br />where the skin names are visible, then pick them here.</div>
               {walletEnabled && <div className="badge pink" style={{ marginTop: 14 }}>₹{AUTO_COLLAGE_PRICE} · only charged when skins are added</div>}

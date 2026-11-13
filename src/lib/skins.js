@@ -8,13 +8,13 @@ import { norm } from '../scan/match.js'
 export const HEROES = skinsData
 export const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Starlight', 'Epic']
 export const TIER_STYLE = {
-  Legend:      { color: '#f5c842', icon: '👑' },
-  Grand:       { color: '#c084fc', icon: '💜' },
-  Exquisite:   { color: '#7dd3fc', icon: '💎' },
-  Deluxe:      { color: '#6ee7b7', icon: '✨' },
-  Exceptional: { color: '#fde68a', icon: '⭐' },
-  Starlight:   { color: '#c7d2fe', icon: '🌟' },
-  Epic:        { color: '#f0abfc', icon: '🔮' },
+  Legend:      { color: '#d9b66f', icon: '👑' },
+  Grand:       { color: '#b7a0c4', icon: '💜' },
+  Exquisite:   { color: '#93b4c4', icon: '💎' },
+  Deluxe:      { color: '#93bf9f', icon: '✨' },
+  Exceptional: { color: '#d3c07f', icon: '⭐' },
+  Starlight:   { color: '#a9b0cc', icon: '🌟' },
+  Epic:        { color: '#c79db6', icon: '🔮' },
 }
 
 export const skinId = (heroId, skinName) => `${heroId}__${skinName}`

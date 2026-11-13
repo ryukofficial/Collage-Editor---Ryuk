@@ -70,7 +70,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
       if (t && !t.failed) ctx.drawImage(t, x, y, CELL, CELL)
       else {
         ctx.fillStyle = '#17171f'; ctx.fillRect(x + px, y + px, CELL - 2 * px, CELL - 2 * px)
-        if (t?.failed) { ctx.fillStyle = '#ff5a5f'; ctx.font = `bold ${CELL * 0.14}px DM Sans, sans-serif`; ctx.textAlign = 'center'; ctx.fillText('offline', x + CELL / 2, y + CELL / 2) }
+        if (t?.failed) { ctx.fillStyle = '#d9776f'; ctx.font = `bold ${CELL * 0.14}px DM Sans, sans-serif`; ctx.textAlign = 'center'; ctx.fillText('offline', x + CELL / 2, y + CELL / 2) }
         else loadThumb(it)
       }
       if (d.showNumbers && v.s * CELL > 40) {
@@ -89,11 +89,11 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
       ctx.strokeStyle = color; ctx.lineWidth = w * px
       ctx.strokeRect((i % g.cols) * CELL + w * px / 2, g.bannerH + Math.floor(i / g.cols) * CELL + w * px / 2, CELL - w * px, CELL - w * px)
     }
-    if (d.selected) ring(d.selected, '#ff3d77')
-    if (d.swapFrom) ring(d.swapFrom, '#f5c842')
+    if (d.selected) ring(d.selected, '#c9a66b')
+    if (d.swapFrom) ring(d.swapFrom, '#8c9a86')
     if (dr?.target != null) {
       const ti = dr.target
-      ctx.fillStyle = 'rgba(255,61,119,.9)'
+      ctx.fillStyle = 'rgba(201,166,107,.9)'
       ctx.fillRect((ti % g.cols) * CELL - 2 * px, g.bannerH + Math.floor(ti / g.cols) * CELL + 6 * px, 4 * px, CELL - 12 * px)
     }
     ctx.restore()
@@ -105,7 +105,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
       ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 18
       if (t && !t.failed) ctx.drawImage(t, dr.x - size / 2, dr.y - size / 2, size, size)
       ctx.shadowBlur = 0; ctx.globalAlpha = 1
-      ctx.strokeStyle = '#ff3d77'; ctx.lineWidth = 2; ctx.strokeRect(dr.x - size / 2, dr.y - size / 2, size, size)
+      ctx.strokeStyle = '#c9a66b'; ctx.lineWidth = 2; ctx.strokeRect(dr.x - size / 2, dr.y - size / 2, size, size)
     }
   }, [])
 

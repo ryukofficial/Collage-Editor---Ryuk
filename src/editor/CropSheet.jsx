@@ -63,7 +63,7 @@ export default function CropSheet({ item, onClose }) {
             </div>
           </div>
           <label className="label">Size · {Math.round(crop.s)} px</label>
-          <input type="range" min={minS} max={maxS} value={crop.s} onChange={e => resize(+e.target.value)} style={{ width: '100%', accentColor: '#ff3d77' }} />
+          <input type="range" min={minS} max={maxS} value={crop.s} onChange={e => resize(+e.target.value)} style={{ width: '100%', accentColor: '#c9a66b' }} />
         </>
       )}
     </Sheet>

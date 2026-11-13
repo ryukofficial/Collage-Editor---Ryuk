@@ -172,7 +172,7 @@ export default function ExportSheet({ onClose, onOpenWallet }) {
         <div className="col" style={{ gap: 10 }}>
           {options.map(o => (
             <button key={o.k} className={`option ${look === o.k ? 'on' : ''}`} onClick={() => choose(o.k)}>
-              <span className="li-icon" style={{ width: 40, height: 40, borderRadius: 12, display: 'grid', placeItems: 'center', background: o.k === 'free' ? 'var(--surface-2)' : 'var(--grad-soft)', color: o.k === 'free' ? 'var(--text-2)' : '#ff8fb0' }}>{o.icon}</span>
+              <span className="li-icon" style={{ width: 40, height: 40, borderRadius: 12, display: 'grid', placeItems: 'center', background: o.k === 'free' ? 'var(--surface-2)' : 'var(--grad-soft)', color: o.k === 'free' ? 'var(--text-2)' : '#e2c79a' }}>{o.icon}</span>
               <span className="grow"><span className="h3">{o.title}</span><br /><span className="small muted">{o.sub}</span></span>
               {o.price && <span className="price">{o.price}</span>}
               <span className="radio" />

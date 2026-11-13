@@ -10,7 +10,7 @@ import {
 // ── Look (same palette as the rest of the app) ───────────────────────────────
 const C = {
   bg: 'var(--bg-2)', surface: 'var(--surface)', raised: 'var(--surface-2)', border: 'var(--line-2)', divider: 'var(--line)',
-  text: '#ffffff', text2: 'var(--text-2)', text3: 'var(--text-3)', accent: '#ff3d77',
+  text: '#ffffff', text2: 'var(--text-2)', text3: 'var(--text-3)', accent: '#c9a66b',
   green: '#22c55e', amber: '#f59e0b', red: '#f87171',
 }
 const input = {
