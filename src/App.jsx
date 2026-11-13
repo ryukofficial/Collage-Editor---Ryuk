@@ -143,7 +143,7 @@ export default function App() {
       <Suspense fallback={<div className="sheet-backdrop"><Spinner size={30} /></div>}>
         {sheets.map(renderSheet)}
       </Suspense>
-      <Toaster position="top-center" toastOptions={{ className: 'toast', duration: 3000 }} containerStyle={{ zIndex: 9999 }} />
+      <Toaster position="top-center" toastOptions={{ className: 'toast', duration: 3000 }} containerStyle={{ zIndex: 9999, top: 72 }} />
     </>
   )
 }
