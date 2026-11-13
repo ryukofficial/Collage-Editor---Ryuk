@@ -1,6 +1,6 @@
 // The editor: collage preview, a top bar (undo / redo / export) and a dock of tools.
 import { useRef, useState } from 'react'
-import { Contact, ChevronLeft, Undo2, Redo2, Download, Plus, ScanSearch, Upload, LayoutGrid, UserSquare2, Palette, Trash2, Crop, ArrowUpToLine, ArrowLeftRight, X, Hash, FolderOpen } from 'lucide-react'
+import { ChevronLeft, Undo2, Redo2, Download, Plus, ScanSearch, Upload, LayoutGrid, UserSquare2, Palette, Trash2, Crop, ArrowUpToLine, ArrowLeftRight, X, Hash, FolderOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Stage from './Stage.jsx'
 import Thumb from './Thumb.jsx'
@@ -58,7 +58,6 @@ export default function Editor({ open, onHome }) {
     { icon: Upload, label: 'Upload', on: () => upload.current.click() },
     { icon: LayoutGrid, label: 'Arrange', on: () => open('arrange'), disabled: items.length < 2 },
     { icon: UserSquare2, label: banner ? 'Profile ✓' : 'Profile', on: () => open('banner') },
-    { icon: Contact, label: 'Ryuk Profile', on: () => open('profile') },
     { icon: Palette, label: 'Colour', on: () => open('background') },
     { icon: Hash, label: numbers ? 'Numbers ✓' : 'Numbers', on: () => setNumbers(n => !n) },
     { icon: FolderOpen, label: 'Projects', on: () => open('projects') },
