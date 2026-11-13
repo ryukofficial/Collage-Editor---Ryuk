@@ -5,21 +5,21 @@ import {
   useWallet, walletEnabled, signUp, logIn, logOut, refreshWallet, walletHistory,
   AUTO_COLLAGE_PRICE, walletError, cleanPhone, UPI_ID, UPI_NAME, upiLink, whatsappLink,
   adminAdjustBalance, adminFindWallet, adminRecentAdjustments,
-} from '../utils/wallet'
+} from '../lib/wallet.js'
 
 // ── Look (same palette as the rest of the app) ───────────────────────────────
 const C = {
-  bg: '#000000', surface: '#111113', raised: '#1c1c1e', border: '#2c2c2e', divider: '#232326',
-  text: '#ffffff', text2: '#c7c7cc', text3: '#8e8e93', accent: '#ff3d77',
+  bg: 'var(--bg-2)', surface: 'var(--surface)', raised: 'var(--surface-2)', border: 'var(--line-2)', divider: 'var(--line)',
+  text: '#ffffff', text2: 'var(--text-2)', text3: 'var(--text-3)', accent: '#ff3d77',
   green: '#22c55e', amber: '#f59e0b', red: '#f87171',
 }
 const input = {
   width: '100%', boxSizing: 'border-box', height: '42px', background: C.raised, border: `1px solid ${C.border}`,
-  borderRadius: '8px', color: C.text, fontSize: '15px', padding: '0 12px', outline: 'none',
+  borderRadius: '12px', color: C.text, fontSize: '15px', padding: '0 12px', outline: 'none',
 }
 const btn = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', height: '42px',
-  borderRadius: '8px', border: `1px solid ${C.border}`, background: C.raised, color: C.text,
+  borderRadius: '12px', border: `1px solid ${C.border}`, background: C.raised, color: C.text,
   fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '0 14px',
 }
 const btnPrimary = { ...btn, background: C.accent, border: `1px solid ${C.accent}`, color: '#fff' }
@@ -143,7 +143,7 @@ function AddMoney({ phone, code }) {
           ? <img src={qr} alt={`UPI QR code for ${UPI_ID}`} style={{ width: '200px', height: '200px', borderRadius: '10px', background: '#fff', padding: '6px' }} />
           : <div style={{ width: '200px', height: '200px', borderRadius: '10px', background: C.raised }} />}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: C.raised, border: `1px solid ${C.border}`, borderRadius: '8px', padding: '8px 10px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: C.raised, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '8px 10px', marginBottom: '8px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, color: C.text3, fontSize: '11px' }}>{UPI_NAME}</p>
           <p style={{ margin: '2px 0 0', color: C.text, fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{UPI_ID}</p>
@@ -300,7 +300,7 @@ export default function WalletPanel({ onClose, reason }) {
       style={{ position: 'fixed', inset: 0, zIndex: 350, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ background: C.bg, borderRadius: '16px 16px 0 0', border: `1px solid ${C.border}`, borderBottom: 'none', width: '100%', maxWidth: '520px', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: C.bg, borderRadius: '26px 26px 0 0', border: `1px solid ${C.border}`, borderBottom: 'none', width: '100%', maxWidth: '520px', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${C.divider}`, flexShrink: 0 }}>
           <p style={{ margin: 0, color: C.text, fontSize: '16px', fontWeight: 700 }}>Wallet</p>
           <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: C.text3, cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
@@ -325,7 +325,7 @@ export default function WalletPanel({ onClose, reason }) {
                 <div style={{ flex: 1 }}>
                   <p style={{ margin: 0, color: C.text3, fontSize: '12px' }}>Balance · {w.phone} · code {walletCode(w.user)}</p>
                   <p style={{ margin: '2px 0 0', color: C.text, fontSize: '28px', fontWeight: 700 }}>{w.balance == null ? '…' : rupees(w.balance)}</p>
-                  <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '12px' }}>Auto Collage costs ₹{AUTO_COLLAGE_PRICE} per scan, refunded automatically if no skin is found.</p>
+                  <p style={{ margin: '2px 0 0', color: C.text3, fontSize: '12px' }}>Auto Collage ₹{AUTO_COLLAGE_PRICE} (only when skins are added) · Ryuk exports ₹50.</p>
                 </div>
               </div>
 

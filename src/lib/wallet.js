@@ -200,69 +200,47 @@ async function api(path, { json, body, headers = {}, signal } = {}) {
 export async function walletHistory() {
   const sb = await client()
   const { data, error } = await sb.from('wallet_transactions')
-    .select('id, amount, kind, note, created_at').order('created_at', { ascending: false }).limit(30)
+    .select('id, amount, kind, note, created_at, balance_after').order('created_at', { ascending: false }).limit(30)
   if (error) throw error
   return data || []
 }
 
-// ── Paid scanning (the screenshots are read on the server) ───────────────────
-export async function startScan(pages) {
-  const out = await api('scan-start', { json: { pages } })
-  setState({ balance: out.balance })
-  return out.scan_id
+// ── Paying for Auto Collage (₹10) and Ryuk exports (₹50) ─────────────────────
+// The work happens on the phone; the server is only asked to take the money,
+// once, when the result is ready. On a dropped connection we check the wallet
+// history before trying again, so nobody is ever charged twice.
+async function latestCharge(note) {
+  try {
+    const list = await walletHistory()
+    return list.find(t => t.kind === 'charge' && (!note || t.note === note)) || null
+  } catch { return null }
 }
-// Re-read `pages` screenshots again as part of an earlier paid scan (no charge)
-export async function retryScan(scanId, pages) {
-  return api('scan-retry', { json: { scan_id: scanId, pages } })
-}
-export async function scanPage(scanId, blob, signal) {
-  return api('scan-page', { body: blob, headers: { 'Content-Type': blob.type, 'X-Scan-Id': scanId }, signal })
-}
-export async function finishScan(scanId) {
-  const out = await api('scan-finish', { json: { scan_id: scanId } })
-  if (out.balance != null) setState({ balance: out.balance })
-  return out
+async function chargeOnce(path, json, note) {
+  const before = await latestCharge(note)
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const out = await api(path, { json })
+      if (out.balance != null) setState({ balance: out.balance })
+      return out
+    } catch (err) {
+      // a real answer from the server (e.g. not enough balance): stop here
+      if (err?.code && err.code !== 'server_error' && !/failed to fetch|network|load failed|abort/i.test(err.message)) throw err
+      // the request may have gone through: look before asking again
+      const now = await latestCharge(note)
+      if (now && now.id !== before?.id) { await refreshWallet().catch(() => {}); return { balance: now.balance_after ?? state.balance } }
+      if (attempt >= 3) throw err
+      await new Promise(r => setTimeout(r, 1500 * (attempt + 1)))
+    }
+  }
 }
 
-// ── Paid "Export for editing" (₹50) ─────────────────────────────────────────
-export async function proExportStart(pieces) {
-  const out = await api('pro-export-start', { json: { pieces } })
-  setState({ balance: out.balance })
-  return out.export_id
-}
-// body = [4-byte length][preview JPEG][4-byte length][cells JSON][part PNG]
-export async function proExportPiece(exportId, preview, blob, cells, look = 'dark') {
-  const token = await accessToken()
-  const meta = new TextEncoder().encode(JSON.stringify(cells))
-  const len = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n); return b }
-  const r = await fetch('/api/pro-export-piece', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-Export-Id': exportId, 'X-Look': look },
-    body: new Blob([len(preview.size), preview, len(meta.length), meta, blob]),
-  })
-  if (!r.ok) {
-    const data = await r.json().catch(() => ({}))
-    const e = new Error(data?.error || `http_${r.status}`)
-    e.code = data?.error || (r.status === 413 ? 'too_large' : 'server_error')
-    throw e
-  }
-  let logos = []
-  try { logos = JSON.parse(r.headers.get('X-Logos') || '[]') } catch { logos = [] }
-  return { blob: await r.blob(), logos: Array.isArray(logos) ? logos : [] }
-}
-export async function proExportFinish(exportId, failed) {
-  const out = await api('pro-export-finish', { json: { export_id: exportId, failed } })
-  if (out.balance != null) setState({ balance: out.balance })
-  return out
-}
+export const PRO_EXPORT_PRICE = 50
+export const chargeAutoCollage = found => chargeOnce('scan-charge', { found }, 'Auto Collage')
+export const chargeProExport = () => chargeOnce('pro-export-charge', {}, 'Export for editing')
 
 // ── Paid Ryuk Profile HD export (₹10) ────────────────────────────────────────
 export const PROFILE_EXPORT_PRICE = 10          // shown in the app; the real price is in the database
-export async function chargeProfileExport() {
-  const out = await api('profile-export', { json: {} })
-  if (out.balance != null) setState({ balance: out.balance })
-  return out
-}
+export const chargeProfileExport = () => chargeOnce('profile-export', {}, null)
 
 // ── Admin ────────────────────────────────────────────────────────────────────
 async function rpc(fn, args) {

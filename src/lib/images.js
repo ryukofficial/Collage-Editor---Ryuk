@@ -109,7 +109,28 @@ export function loadThumb(item) {
 }
 
 // call when an item's crop or picture changed
-export function dropThumb(id) { const t = thumbs.get(id); t?.close?.(); thumbs.delete(id) }
+export function dropThumb(id) {
+  const t = thumbs.get(id); t?.close?.(); thumbs.delete(id)
+  const u = urls.get(id); if (typeof u === 'string') URL.revokeObjectURL(u); urls.delete(id)
+}
+
+// The preview as an <img> URL (for lists like Arrange)
+const urls = new Map()
+export function thumbUrl(item) {
+  const u = urls.get(item.id)
+  if (typeof u === 'string') return u
+  if (u) return null
+  const t = thumbOf(item)
+  if (!t) { loadThumb(item); return null }
+  if (t.failed) return null
+  urls.set(item.id, true)
+  const c = OffscreenCanvasOr(t.width, t.height)
+  c.getContext('2d').drawImage(t, 0, 0)
+  const done = b => { urls.set(item.id, URL.createObjectURL(b)); listeners.forEach(fn => fn(item.id)) }
+  if (c.convertToBlob) c.convertToBlob({ type: 'image/jpeg', quality: 0.85 }).then(done).catch(() => urls.delete(item.id))
+  else c.toBlob(b => (b ? done(b) : urls.delete(item.id)), 'image/jpeg', 0.85)
+  return null
+}
 
 function OffscreenCanvasOr(w, h) {
   if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(w, h)

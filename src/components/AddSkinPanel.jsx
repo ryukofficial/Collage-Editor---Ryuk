@@ -96,10 +96,10 @@ function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) 
         onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); pick(matches[0] && !exact && (value || '').trim() && seriesScore(matches[0], value) >= 80 ? matches[0] : (value || '').trim()) } }} />
       {open && !disabled && (matches.length > 0 || (value || '').trim()) && (
-        <div style={{ position: 'absolute', left: 0, right: 0, top: '100%', marginTop: '4px', zIndex: 5, background: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: '240px', overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: '100%', marginTop: '4px', zIndex: 5, background: 'var(--surface-2)', border: '1px solid #3a3a3c', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: '240px', overflowY: 'auto' }}>
           {matches.map(s => (
             <button key={s} type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(s)}
-              style={{ display: 'block', width: '100%', textAlign: 'left', background: s === value ? '#2c2c2e' : 'none', border: 'none', borderBottom: '1px solid #2c2c2e', color: '#fff', fontSize: '13px', padding: '9px 11px', cursor: 'pointer' }}>{s}</button>
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: s === value ? 'var(--line-2)' : 'none', border: 'none', borderBottom: '1px solid var(--line-2)', color: '#fff', fontSize: '13px', padding: '9px 11px', cursor: 'pointer' }}>{s}</button>
           ))}
           {(value || '').trim() && !exact && (
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(value.trim())}
@@ -112,9 +112,9 @@ function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) 
     </div>
   )
 }
-const field = { width: '100%', boxSizing: 'border-box', background: '#1c1c1e', border: '1px solid #2c2c2e', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
+const field = { width: '100%', boxSizing: 'border-box', background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
 const small = { ...field, padding: '7px 9px', fontSize: '13px' }
-const label = { display: 'block', color: '#c7c7cc', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
+const label = { display: 'block', color: 'var(--text-2)', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
 const btn = (on = true) => ({ width: '100%', background: on ? '#ff3d77' : '#5a2236', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
 
 export default function AddSkinPanel({ onClose }) {
@@ -126,10 +126,10 @@ export default function AddSkinPanel({ onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 260, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       onClick={e => { if (e.target === e.currentTarget && !busy) onClose() }}>
-      <div style={{ background: '#111113', borderRadius: '16px 16px 0 0', border: '1px solid #2c2c2e', borderBottom: 'none', width: '100%', maxWidth: '640px', height: '94vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: '1px solid #232326' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: '26px 26px 0 0', border: '1px solid var(--line-2)', borderBottom: 'none', width: '100%', maxWidth: '640px', height: '94vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: '1px solid var(--line)' }}>
           <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#fff' }}>🛠 Skin library</p>
-          <button onClick={onClose} disabled={busy} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} disabled={busy} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ padding: '10px 16px 0' }}>
@@ -138,7 +138,7 @@ export default function AddSkinPanel({ onClose }) {
             {[['add', '➕ Add skins'], ['series', '🏷 Change series']].map(([k, t]) => (
               <button key={k} onClick={() => !busy && setTab(k)}
                 style={{ flex: 1, padding: '9px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-                  background: tab === k ? '#ff3d77' : '#1c1c1e', color: '#fff', border: `1px solid ${tab === k ? '#ff3d77' : '#2c2c2e'}` }}>{t}</button>
+                  background: tab === k ? '#ff3d77' : 'var(--surface-2)', color: '#fff', border: `1px solid ${tab === k ? '#ff3d77' : 'var(--line-2)'}` }}>{t}</button>
             ))}
           </div>
         </div>
@@ -224,13 +224,13 @@ function AddSkins({ heroes, password, busy, setBusy }) {
     <>
       <label style={label}>Skin pictures (pick one or many)</label>
       <input ref={fileRef} type="file" accept="image/*" multiple disabled={busy} onChange={e => addFiles(e.target.files || [])} style={{ ...field, padding: '8px' }} />
-      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '6px 0 0' }}>
+      <p style={{ color: 'var(--text-3)', fontSize: '11px', margin: '6px 0 0' }}>
         Tip: name the files like "Alice Divine Owl.jpg" and the hero and skin fill in by themselves. Up to 50 at once.
       </p>
 
       {rows.length > 1 && (
         <div style={{ display: 'flex', gap: '6px', marginTop: '12px', alignItems: 'center' }}>
-          <span style={{ color: '#c7c7cc', fontSize: '12px', flexShrink: 0 }}>Set all:</span>
+          <span style={{ color: 'var(--text-2)', fontSize: '12px', flexShrink: 0 }}>Set all:</span>
           <select defaultValue="" onChange={e => { if (e.target.value !== '') setAll({ tier: e.target.value === '-' ? '' : e.target.value }); e.target.value = '' }} style={small} disabled={busy}>
             <option value="">Tier…</option><option value="-">— none —</option>
             {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -245,8 +245,8 @@ function AddSkins({ heroes, password, busy, setBusy }) {
         const isNewHero = r.hero.trim() && !heroes.some(h => h.name.toLowerCase() === r.hero.trim().toLowerCase())
         const isNewSeries = r.series.trim() && !SERIES_NAMES.some(s => s.toLowerCase() === r.series.trim().toLowerCase())
         return (
-          <div key={r.id} style={{ display: 'flex', gap: '10px', marginTop: '12px', padding: '10px', background: '#17171a', border: `1px solid ${r.status === 'error' ? '#ff6b6b' : r.status === 'uploaded' ? '#22c55e' : '#2c2c2e'}`, borderRadius: '12px' }}>
-            <img src={r.preview} alt="" style={{ width: '78px', height: '78px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
+          <div key={r.id} style={{ display: 'flex', gap: '10px', marginTop: '12px', padding: '10px', background: '#17171a', border: `1px solid ${r.status === 'error' ? '#ff6b6b' : r.status === 'uploaded' ? '#22c55e' : 'var(--line-2)'}`, borderRadius: '12px' }}>
+            <img src={r.preview} alt="" style={{ width: '78px', height: '78px', objectFit: 'cover', borderRadius: '12px', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: '6px' }}>
               <input list="skin-lib-heroes" value={r.hero} onChange={e => upd(r.id, { hero: e.target.value })} placeholder="Hero" style={small} disabled={busy} />
               <input value={r.skin} onChange={e => upd(r.id, { skin: e.target.value })} placeholder="Skin name" style={small} disabled={busy} />
@@ -257,11 +257,11 @@ function AddSkins({ heroes, password, busy, setBusy }) {
                 </select>
                 <SeriesInput value={r.series} onChange={v => upd(r.id, { series: v })} placeholder="Series (or new)" style={small} disabled={busy} />
               </div>
-              <p style={{ margin: 0, fontSize: '11px', color: r.error || p ? '#ff6b6b' : '#8e8e93' }}>
+              <p style={{ margin: 0, fontSize: '11px', color: r.error || p ? '#ff6b6b' : 'var(--text-3)' }}>
                 {r.error || p || [isNewHero && 'New hero', isNewSeries && 'New series', r.status === 'uploading' && 'Uploading…', r.status === 'uploaded' && 'Picture saved ✓'].filter(Boolean).join(' · ')}
               </p>
             </div>
-            {!busy && <button onClick={() => remove(r.id)} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start' }}>✕</button>}
+            {!busy && <button onClick={() => remove(r.id)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start' }}>✕</button>}
           </div>
         )
       })}
@@ -270,7 +270,7 @@ function AddSkins({ heroes, password, busy, setBusy }) {
       <button onClick={save} disabled={busy} style={{ ...btn(!busy), marginTop: '16px' }}>
         {busy ? 'Saving…' : rows.length > 1 ? `Add ${rows.length} skins` : 'Add skin'}
       </button>
-      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '10px 0 0' }}>
+      <p style={{ color: 'var(--text-3)', fontSize: '11px', margin: '10px 0 0' }}>
         Name each skin exactly as in the game, so Auto Collage can read it from screenshots.
       </p>
     </>
@@ -310,14 +310,14 @@ function ChangeSeries({ heroes, password, busy, setBusy }) {
     <>
       <label style={label}>Find skins (hero, skin or series name)</label>
       <input value={q} onChange={e => setQ(e.target.value)} placeholder="e.g. Alice, Divine Owl, Soul Vessels" style={field} />
-      {q.trim() && !shown.length && <p style={{ color: '#8e8e93', fontSize: '12px' }}>No skins found.</p>}
+      {q.trim() && !shown.length && <p style={{ color: 'var(--text-3)', fontSize: '12px' }}>No skins found.</p>}
       {shown.map(x => {
         const v = edits[x.key] ?? x.series
         const isNew = v.trim() && !SERIES_NAMES.some(s => s.toLowerCase() === v.trim().toLowerCase())
         const dirty = v.trim() !== x.series
         return (
-          <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#ff3d77' : '#2c2c2e'}`, borderRadius: '10px' }}>
-            <p style={{ margin: '0 0 6px', color: '#fff', fontSize: '13px', fontWeight: 600 }}>{x.hero} · <span style={{ color: '#c7c7cc', fontWeight: 400 }}>{x.skin}</span></p>
+          <div key={x.key} style={{ marginTop: '8px', padding: '9px 10px', background: '#17171a', border: `1px solid ${dirty ? '#ff3d77' : 'var(--line-2)'}`, borderRadius: '10px' }}>
+            <p style={{ margin: '0 0 6px', color: '#fff', fontSize: '13px', fontWeight: 600 }}>{x.hero} · <span style={{ color: 'var(--text-2)', fontWeight: 400 }}>{x.skin}</span></p>
             <div style={{ display: 'flex', gap: '6px' }}>
               <SeriesInput value={v} disabled={busy} onChange={val => setEdits(s => ({ ...s, [x.key]: val }))} placeholder="No series" style={small} />
               {v && <button disabled={busy} onClick={() => setEdits(s => ({ ...s, [x.key]: '' }))} style={{ ...small, width: 'auto', cursor: 'pointer' }}>None</button>}
@@ -331,7 +331,7 @@ function ChangeSeries({ heroes, password, busy, setBusy }) {
       <button onClick={save} disabled={busy} style={{ ...btn(!busy), marginTop: '16px' }}>
         {busy ? 'Saving…' : `Save ${changed.length || ''} change${changed.length === 1 ? '' : 's'}`}
       </button>
-      <p style={{ color: '#8e8e93', fontSize: '11px', margin: '10px 0 0' }}>
+      <p style={{ color: 'var(--text-3)', fontSize: '11px', margin: '10px 0 0' }}>
         Type a name nobody used before to make a new series. Skins of the same series stay together in Auto Collage.
       </p>
     </>

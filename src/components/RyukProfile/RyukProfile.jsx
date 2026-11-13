@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob } from './ryukProfileEngine'
-import { useWallet, walletEnabled, walletError, chargeProfileExport, PROFILE_EXPORT_PRICE } from '../../utils/wallet'
+import { useWallet, walletEnabled, walletError, chargeProfileExport, PROFILE_EXPORT_PRICE } from '../../lib/wallet.js'
 import './RyukProfile.css'
 
 const SLOTS = [
