@@ -355,7 +355,6 @@ export const COLLAGE_ORDER = [
   'Mistbenders',
   'Metro Zero',
   'MLBB × Star Wars Collab',
-  'MLBB × Transformers Collab',
   'MLBB × Sanrio Collab',
   'Neobeasts',
   'Nexus Sea',
@@ -365,9 +364,10 @@ export const COLLAGE_ORDER = [
   'Zenith',
   'Kung Fu Panda Collab',
   'KOF',
+  'MLBB × Transformers Collab',
   'Eternal Seasons',
   { tier: 'Grand' },                             // other Grand skins
-  'All Star',
+  'All Star',                                    // Hanabi, Yu Zhong
   'Beyond the Clouds',
   ['515 eParty', STUN],
   'Champion',
@@ -381,7 +381,7 @@ export const COLLAGE_ORDER = [
   'MPL',
   'Christmas',
   "Valentine's",
-  'ALLSTAR',
+  'ALLSTAR',                                     // Estes, Fredrinn, Melissa
   'Bronze Saints',
   'M Series',
   'MSC',
@@ -397,8 +397,7 @@ export const COLLAGE_ORDER = [
   'Lightborn',
   'S.A.B.E.R. Squad',
   'V.E.N.O.M. Squad',
-  { tier: 'Deluxe' },                            // all other Deluxe skins (Atomic Pop, Myth…)
-  { tier: '' },                                  // Elite, Basic, no tier yet…
+  { tier: 'Deluxe' },                            // all other Deluxe skins
   'Rising',
   'Anniversary',
   'AS',
@@ -406,9 +405,13 @@ export const COLLAGE_ORDER = [
   'Golden Month',
   'MCGG',
   'Neymar Collab',
+  'Atomic Pop',
+  'Myth',
   'Summer',
   'Special',
   { tier: ['Exceptional', 'Starlight'] },        // the other Exceptional skins = Starlight
+  { tier: ['', 'Elite', 'Common'] },            // Elite, and skins with no tier yet
+  { tier: 'Basic' },                             // Basic skins: always last
 ]
 
 const TIER_ALIASES = { expectional: 'Exceptional' }
@@ -442,7 +445,7 @@ function seriesTiers(tierOf) {
   return out
 }
 
-const KNOWN_TIERS = new Set(['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Starlight'])
+const KNOWN_TIERS = new Set(['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Starlight', 'Basic'])
 
 // Sorts skins ({ heroId, skinName }) into the Auto Collage order. The input
 // order is kept inside each group (pass them in screenshot order).
@@ -466,6 +469,7 @@ export function sortForCollage(skins) {
     let rank
     const pin = pinRank.get(`${s.heroId}|${series}`)
     if (pin !== undefined) rank = pin
+    else if (tier === 'Basic') rank = tierRank.get('Basic')
     else if (tier === 'Legend') rank = tierRank.get('Legend')
     else if (series && seriesRank.has(series)) rank = seriesRank.get(series)
     else if (tier === 'Starlight') rank = tierRank.get('Starlight')

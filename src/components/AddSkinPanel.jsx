@@ -11,7 +11,7 @@ import { useMemo, useRef, useState } from 'react'
 import skinsData from '../../skins.json'
 import { SERIES_NAMES, getSeries } from '../lib/skinSeries'
 
-const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
+const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Elite', 'Basic', 'Common']
 const ERRORS = {
   wrong_password: 'Wrong password.',
   skin_exists: 'That hero already has a skin with this name.',
@@ -84,9 +84,11 @@ function seriesScore(name, query) {
 // the list makes a new series.
 function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) {
   const [open, setOpen] = useState(false)
-  const matches = useMemo(() => SERIES_NAMES
-    .map(s => [s, seriesScore(s, value || '')]).filter(([, sc]) => sc > 0)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8).map(([s]) => s), [value])
+  // empty box: every series (scroll to pick); typing: the closest matches
+  const matches = useMemo(() => (!(value || '').trim()
+    ? [...SERIES_NAMES].sort((a, b) => a.localeCompare(b))
+    : SERIES_NAMES.map(s => [s, seriesScore(s, value || '')]).filter(([, sc]) => sc > 0)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8).map(([s]) => s)), [value])
   const exact = SERIES_NAMES.some(s => s.toLowerCase() === (value || '').trim().toLowerCase())
   const pick = s => { (onPick || onChange)(s); setOpen(false) }
   return (
@@ -115,7 +117,7 @@ function SeriesInput({ value, onChange, onPick, placeholder, disabled, style }) 
 const field = { width: '100%', boxSizing: 'border-box', background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: '10px', padding: '9px 11px', color: '#fff', fontSize: '14px', outline: 'none' }
 const small = { ...field, padding: '7px 9px', fontSize: '13px' }
 const label = { display: 'block', color: 'var(--text-2)', fontSize: '12px', fontWeight: 600, margin: '12px 0 6px' }
-const btn = (on = true) => ({ width: '100%', background: on ? '#c9a66b' : '#5a2236', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
+const btn = (on = true) => ({ width: '100%', background: on ? '#c9a66b' : 'var(--surface-3)', border: 'none', borderRadius: '10px', color: on ? '#1b150c' : 'var(--text-3)', fontSize: '15px', fontWeight: 700, padding: '12px', cursor: on ? 'pointer' : 'default' })
 
 export default function AddSkinPanel({ onClose }) {
   const heroes = useMemo(() => [...skinsData].sort((a, b) => a.name.localeCompare(b.name)), [])
@@ -138,7 +140,7 @@ export default function AddSkinPanel({ onClose }) {
             {[['add', '➕ Add skins'], ['series', '🏷 Change series']].map(([k, t]) => (
               <button key={k} onClick={() => !busy && setTab(k)}
                 style={{ flex: 1, padding: '9px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-                  background: tab === k ? '#c9a66b' : 'var(--surface-2)', color: '#fff', border: `1px solid ${tab === k ? '#c9a66b' : 'var(--line-2)'}` }}>{t}</button>
+                  background: tab === k ? '#c9a66b' : 'var(--surface-2)', color: tab === k ? '#1b150c' : '#fff', border: `1px solid ${tab === k ? '#c9a66b' : 'var(--line-2)'}` }}>{t}</button>
             ))}
           </div>
         </div>
@@ -229,13 +231,13 @@ function AddSkins({ heroes, password, busy, setBusy }) {
       </p>
 
       {rows.length > 1 && (
-        <div style={{ display: 'flex', gap: '6px', marginTop: '12px', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-2)', fontSize: '12px', flexShrink: 0 }}>Set all:</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px', marginTop: '12px', alignItems: 'center' }}>
+          <span style={{ color: 'var(--text-2)', fontSize: '12px', gridRow: 'span 2' }}>Set all:</span>
           <select defaultValue="" onChange={e => { if (e.target.value !== '') setAll({ tier: e.target.value === '-' ? '' : e.target.value }); e.target.value = '' }} style={small} disabled={busy}>
             <option value="">Tier…</option><option value="-">— none —</option>
             {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <SeriesInput value={allSeries} onChange={setAllSeries} placeholder="Series…" style={small} disabled={busy}
+          <SeriesInput value={allSeries} onChange={setAllSeries} placeholder="Series for all — tap to pick" style={small} disabled={busy}
             onPick={s => { setAll({ series: s }); setAllSeries('') }} />
         </div>
       )}
@@ -250,13 +252,11 @@ function AddSkins({ heroes, password, busy, setBusy }) {
             <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: '6px' }}>
               <input list="skin-lib-heroes" value={r.hero} onChange={e => upd(r.id, { hero: e.target.value })} placeholder="Hero" style={small} disabled={busy} />
               <input value={r.skin} onChange={e => upd(r.id, { skin: e.target.value })} placeholder="Skin name" style={small} disabled={busy} />
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <select value={r.tier} onChange={e => upd(r.id, { tier: e.target.value })} style={small} disabled={busy}>
-                  <option value="">Tier: none</option>
-                  {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <SeriesInput value={r.series} onChange={v => upd(r.id, { series: v })} placeholder="Series (or new)" style={small} disabled={busy} />
-              </div>
+              <select value={r.tier} onChange={e => upd(r.id, { tier: e.target.value })} style={small} disabled={busy}>
+                <option value="">Tier: none</option>
+                {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <SeriesInput value={r.series} onChange={v => upd(r.id, { series: v })} placeholder="Series (tap to pick)" style={small} disabled={busy} />
               <p style={{ margin: 0, fontSize: '11px', color: r.error || p ? '#ff6b6b' : 'var(--text-3)' }}>
                 {r.error || p || [isNewHero && 'New hero', isNewSeries && 'New series', r.status === 'uploading' && 'Uploading…', r.status === 'uploaded' && 'Picture saved ✓'].filter(Boolean).join(' · ')}
               </p>

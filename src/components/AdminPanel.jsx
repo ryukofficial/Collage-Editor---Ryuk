@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import skinsData from '../../skins.json'
 import { adminSaveTiers } from '../lib/wallet.js'
 
-const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
+const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Elite', 'Basic', 'Common']
 
 const TIER_COLORS = {
   Legend:      { bg: '#2a1a00', border: '#f5c842', text: '#f5c842' },

@@ -36,7 +36,7 @@ const SALT = 'b0c93008082116c5dcdd7ff99fea8cbd'
 const HASH = 'bdd5bd81e462a88633041777bc786c6b0c8e958e31aabf518e62a83cbbd19406'
 const SCRYPT = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
 
-const TIERS = ['', 'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
+const TIERS = ['', 'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Elite', 'Basic', 'Common']
 const NAME_RE = /^[\p{L}\p{N} .,'&!?:()×\-]{1,60}$/u
 const REPO_FULL_AT = 990            // GitHub lists at most 1000 files per folder
 const MAX_BATCH = 50
