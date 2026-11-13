@@ -9,7 +9,7 @@
 // series, or none.
 import { useMemo, useRef, useState } from 'react'
 import skinsData from '../../skins.json'
-import { SERIES_NAMES, getSeries } from '../utils/skinSeries'
+import { SERIES_NAMES, getSeries } from '../lib/skinSeries'
 
 const TIERS = ['Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Common']
 const ERRORS = {

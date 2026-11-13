@@ -24,7 +24,7 @@
 import crypto from 'node:crypto'
 import sharp from 'sharp'
 import { handler, readJson, send, httpError } from './_http.js'
-import { ASSET_REPOS } from '../src/utils/assetRepos.js'
+import { ASSET_REPOS } from '../src/lib/skinIndex.js'
 
 const TOKEN = () => process.env.GITHUB_TOKEN || ''
 const REPO = () => process.env.GITHUB_REPO || 'ryukofficial/Collage-Editor---Ryuk'
