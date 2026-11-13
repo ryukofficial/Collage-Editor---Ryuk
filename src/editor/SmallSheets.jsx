@@ -54,7 +54,7 @@ export function BannerSheet({ onClose, onRyukProfile }) {
       {!banner && (
         <button className="card" onClick={() => input.current.click()} style={{ width: '100%', padding: '30px 20px', textAlign: 'center', borderStyle: 'dashed' }}>
           <Upload size={30} color="var(--pink)" /><div className="h3" style={{ marginTop: 10 }}>Add your profile picture</div>
-          <div className="small muted" style={{ marginTop: 4 }}>A profile screenshot or a Ryuk Profile edit</div>
+          <div className="small muted" style={{ marginTop: 4 }}>Pick it from your gallery</div>
         </button>
       )}
       {url && <img src={url} alt="" style={{ width: '100%', borderRadius: 12 }} />}
