@@ -181,7 +181,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             ...fresh,
             skin: sameSkin ? old.skin : fresh.skin,
             skin2: sameSkin2 && old.skin2 ? old.skin2 : fresh.skin2,
-            duo: old.duo ?? fresh.duo,
+            duo: old.duo && old.duo.split >= 0.35 && old.duo.soft <= 420 ? old.duo : fresh.duo, artW: old.artW ?? fresh.artW,
             tileSize: old.tileSize, groupDX: old.groupDX, groupDY: old.groupDY, rank: old.rank, cards: old.cards ?? fresh.cards,
             diamonds: { ...fresh.diamonds, scale: old.diamonds.scale, dx: old.diamonds.dx, dy: old.diamonds.dy },
             weekly: keepWeekly ? old.weekly : fresh.weekly,
@@ -421,6 +421,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               {pieces.skin && !pieces.skin2 && (
               <div className="rp-card">
                 <h3>Skin</h3>
+                <Slider label="Art width" min={900} max={1500} value={layout.artW || 1240} onChange={(v) => set('artW', v)} />
                 <Slider label="Left / right" min={150} max={1000} value={layout.skin.centerFromRight} onChange={(v) => set('skin.centerFromRight', v)} invert />
                 <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout.skin.focusX} onChange={(v) => set('skin.focusX', v)} />
                 <Slider label="Zoom" min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
@@ -431,8 +432,9 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               {pieces.skin && pieces.skin2 && (
               <div className="rp-card">
                 <h3>Two skins</h3>
-                <Slider label="Where they meet" min={0.3} max={0.7} step={0.01} value={layout.duo.split} onChange={(v) => set('duo.split', v)} />
-                <Slider label="Blend softness" min={80} max={600} value={layout.duo.soft} onChange={(v) => set('duo.soft', v)} />
+                <Slider label="Art width" min={900} max={1500} value={layout.artW || 1240} onChange={(v) => set('artW', v)} />
+                <Slider label="Where they meet" min={0.35} max={0.75} step={0.01} value={layout.duo.split} onChange={(v) => set('duo.split', v)} />
+                <Slider label="Blend softness" min={60} max={420} value={layout.duo.soft} onChange={(v) => set('duo.soft', v)} />
                 <button type="button" className="rp-link" onClick={() => set('duo.swap', !layout.duo.swap)}>⇄ Swap left and right skin</button>
                 <h3 style={{ marginTop: 14 }}>Left skin</h3>
                 {(() => { const k = layout.duo.swap ? 'skin2' : 'skin'; return (<>

@@ -267,7 +267,8 @@ export function defaultLayout(pieces, opts = {}) {
   return {
     skin: skinDefaults(pieces.skin),
     skin2: skinDefaults(pieces.skin2),
-    duo: { split: 0.5, soft: 320, swap: false },   // two skins: where they meet and how softly
+    duo: { split: 0.56, soft: 220, swap: false },  // two skins: where they meet and how softly
+    artW: ART_W,                                   // how wide the skin art area is (from the right edge)
     tileSize: 162,                    // largest size; shrinks by itself when many items are added
     gap: 7,
     groupDX: 0, groupDY: 0,           // moves collector panel + square tiles together
@@ -483,31 +484,42 @@ const smooth = (g, x0, x1, from, to) => {             // smoothstep gradient bet
 
 function drawSkin(g, pieces, L) {
   const W = pieces.W, H = REF_H;
-  const X0 = W - ART_W, CW = W - X0;
+  const artW = L.artW || ART_W;
+  const X0 = W - artW, CW = W - X0;
+  const duo = !!pieces.skin2;
+  const FADE = duo ? 170 : 280;                         // soft edge into the profile
   let layer;
-  if (pieces.skin2) {
-    // two skins: the first on the left, the second on the right, melting into each other
+  if (duo) {
+    // two skins side by side, each fully shown, melting into each other where they meet
     const d = L.duo || {};
-    const seam = CW * (d.split ?? 0.5), soft = d.soft ?? 320;
+    const seam = CW * (d.split ?? 0.56), soft = d.soft ?? 220;
     const first = d.swap ? pieces.skin2 : pieces.skin, second = d.swap ? pieces.skin : pieces.skin2;
     const S1 = d.swap ? L.skin2 : L.skin, S2 = d.swap ? L.skin : L.skin2;
-    const right = skinLayer(second, S2, CW, H, CW - seam + soft / 2, seam + (CW - seam) * 0.5, seam - soft / 2, CW);
-    const left = skinLayer(first, S1, CW, H, seam + soft / 2, seam * 0.55, 0, seam + soft / 2);
+    const leftEnd = seam + soft / 2, rightStart = seam - soft / 2;
+    const right = skinLayer(second, S2, CW, H, CW - rightStart, (rightStart + CW) / 2, rightStart, CW);
+    const left = skinLayer(first, S1, CW, H, leftEnd, (FADE * 0.6 + leftEnd) / 2, 0, leftEnd);
     const lg = left.getContext('2d');
     lg.globalCompositeOperation = 'destination-in';
-    lg.fillStyle = smooth(lg, seam - soft / 2, seam + soft / 2, 1, 0);
+    lg.fillStyle = smooth(lg, rightStart, leftEnd, 1, 0);
     lg.fillRect(0, 0, CW, H);
     layer = right;
-    layer.getContext('2d').drawImage(left, 0, 0);
+    const rg = layer.getContext('2d');
+    // the right skin fades out where it meets the left one, so neither covers the other
+    rg.globalCompositeOperation = 'destination-in';
+    rg.fillStyle = smooth(rg, rightStart, leftEnd, 0, 1);
+    rg.fillRect(0, 0, CW, H);
+    rg.globalCompositeOperation = 'destination-over';
+    rg.drawImage(left, 0, 0);
+    rg.globalCompositeOperation = 'source-over';
   } else {
     const sk = pieces.skin;
     const target = CW - L.skin.centerFromRight;
     layer = skinLayer(sk, L.skin, CW, H, CW, target, 0, CW);
   }
-  // soft left fade into the profile (smoothstep over 280px)
+  // soft left fade into the profile
   const lg = layer.getContext('2d');
   lg.globalCompositeOperation = 'destination-in';
-  lg.fillStyle = smooth(lg, 0, 280, 0, 1);
+  lg.fillStyle = smooth(lg, 0, FADE, 0, 1);
   lg.fillRect(0, 0, CW, H);
   g.drawImage(layer, X0, 0);
 
@@ -518,7 +530,7 @@ function drawSkin(g, pieces, L) {
   gr = vg.createLinearGradient(0, H - 60, 0, H); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.25)');
   vg.fillStyle = gr; vg.fillRect(0, H - 60, W, 60);
   vg.globalCompositeOperation = 'destination-in';
-  gr = vg.createLinearGradient(W - ART_W + 100, 0, W - ART_W + 350, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+  gr = vg.createLinearGradient(W - (L.artW || ART_W) + 100, 0, W - (L.artW || ART_W) + 350, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
   vg.fillStyle = gr; vg.fillRect(0, 0, W, H);
   g.drawImage(v, 0, 0);
 }
