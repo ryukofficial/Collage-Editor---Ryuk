@@ -1,7 +1,7 @@
 // The collage preview: a light, fast canvas that only draws what is on screen,
-// so 1000+ skins stay smooth. Pinch / scroll to zoom, drag to move around,
+// so 1000+ skins stay smooth. Always fitted to the screen; pinch to zoom in,
 // tap a skin to select it, long-press a skin and drag it to a new place.
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useCollage, gridOf } from '../lib/store.js'
 import { thumbOf, loadThumb, onThumb } from '../lib/images.js'
 import { blobGet } from '../lib/db.js'
@@ -22,6 +22,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
   const bannerBmp = useRef({ id: null, bmp: null })
   const drag = useRef(null)          // { id, from, x, y, target }
   const raf = useRef(0)
+  const [zoomed, setZoomed] = useState(false)
 
   const geom = () => {
     const n = data.current.items.length
@@ -43,7 +44,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
     ctx.save()
     ctx.translate(v.tx, v.ty)
     ctx.scale(v.s, v.s)
-    ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 30 / v.s
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 10 / v.s
     ctx.fillStyle = d.bg; ctx.fillRect(0, 0, g.W, g.H)
     ctx.shadowBlur = 0
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'
@@ -111,14 +112,26 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
 
   const redraw = useCallback(() => { if (!raf.current) raf.current = requestAnimationFrame(draw) }, [draw])
 
-  const fit = useCallback(() => {
+  // The collage always fills the space it has (it can't be zoomed out or
+  // pushed away). Pinch to zoom in for a closer look; double-tap or "Fit" to go back.
+  const PAD = 12
+  const fitScale = () => { const v = st.current, g = geom(); return Math.min((v.w - PAD * 2) / g.W, (v.h - PAD * 2) / g.H) }
+  const clampView = () => {
     const v = st.current, g = geom()
+    const fs = fitScale()
+    v.s = Math.max(fs, Math.min(Math.max(fs, 8), v.s))
+    const cw = g.W * v.s, ch = g.H * v.s
+    v.tx = cw <= v.w - PAD * 2 ? (v.w - cw) / 2 : Math.min(PAD, Math.max(v.w - PAD - cw, v.tx))
+    v.ty = ch <= v.h - PAD * 2 ? (v.h - ch) / 2 : Math.min(PAD, Math.max(v.h - PAD - ch, v.ty))
+    const z = v.s > fs * 1.02
+    v.userMoved = z
+    setZoomed(z)
+  }
+  const fit = useCallback(() => {
+    const v = st.current
     if (!v.w || !v.h) return
-    const pad = 16
-    v.s = Math.min((v.w - pad * 2) / g.W, (v.h - pad * 2) / g.H)
-    v.tx = (v.w - g.W * v.s) / 2
-    v.ty = Math.max(pad, (v.h - g.H * v.s) / 2)
-    v.userMoved = false
+    v.s = fitScale()
+    clampView()
     redraw()
   }, [redraw])
 
@@ -172,7 +185,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
       }
       return i < g.n ? i : null
     }
-    const clampScale = s => { const g = geom(), v = st.current; const fitS = Math.min(v.w / g.W, v.h / g.H); return Math.max(fitS * 0.4, Math.min(8, s)) }
+    const clampScale = s => Math.max(fitScale(), Math.min(8, s))
 
     const down = e => {
       el.setPointerCapture(e.pointerId)
@@ -213,6 +226,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
         // scroll when the finger is near the edge
         const edge = 40
         if (p.y < edge) v.ty += 6; else if (p.y > v.h - edge) v.ty -= 6
+        clampView()
         redraw()
         return
       }
@@ -222,14 +236,14 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
         const s = clampScale(pinch.s * d / pinch.d)
         const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2
         const cx = (pinch.mx - pinch.tx) / pinch.s, cy = (pinch.my - pinch.ty) / pinch.s
-        v.s = s; v.tx = mx - cx * s; v.ty = my - cy * s; v.userMoved = true
+        v.s = s; v.tx = mx - cx * s; v.ty = my - cy * s; clampView()
         redraw()
         return
       }
       if (pts.size === 1 && start) {
         const dx = p.x - start.x, dy = p.y - start.y
         if (!moved && Math.hypot(dx, dy) > 8) { moved = true; clearTimeout(lpTimer) }
-        if (moved) { v.tx = start.tx + dx; v.ty = start.ty + dy; v.userMoved = true; redraw() }
+        if (moved) { v.tx = start.tx + dx; v.ty = start.ty + dy; clampView(); redraw() }
       }
     }
     const up = e => {
@@ -265,7 +279,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
       const v = st.current, p = pos(e)
       const s = clampScale(v.s * Math.exp(-e.deltaY * 0.0015))
       const cx = (p.x - v.tx) / v.s, cy = (p.y - v.ty) / v.s
-      v.s = s; v.tx = p.x - cx * s; v.ty = p.y - cy * s; v.userMoved = true
+      v.s = s; v.tx = p.x - cx * s; v.ty = p.y - cy * s; clampView()
       redraw()
     }
     el.addEventListener('pointerdown', down)
@@ -289,7 +303,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
     <div className="stage" ref={wrap}>
       <canvas ref={cv} />
       <div className="stage-hud">
-        <button className="chip" onClick={fit}>Fit</button>
+        {zoomed && <button className="chip" onClick={fit}>Fit</button>}
       </div>
     </div>
   )

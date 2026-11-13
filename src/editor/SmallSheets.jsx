@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Trash2, Replace } from 'lucide-react'
+import { Trash2, Replace, Upload, Contact } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Sheet } from '../ui/Sheet.jsx'
 import { useCollage, uid } from '../lib/store.js'
@@ -26,7 +26,7 @@ export function BackgroundSheet({ onClose }) {
   )
 }
 
-export function BannerSheet({ onClose }) {
+export function BannerSheet({ onClose, onRyukProfile }) {
   const banner = useCollage(s => s.banner)
   const [url, setUrl] = useState(null)
   const input = useRef(null)
@@ -45,14 +45,26 @@ export function BannerSheet({ onClose }) {
     } catch { toast.error("That picture couldn't be opened") }
   }
   return (
-    <Sheet title="Profile banner" subtitle="Sits on top of the collage, as wide as the grid" onClose={onClose}
-      footer={<div className="row">
+    <Sheet title="Profile" subtitle="Your profile picture sits on top of the collage, as wide as the grid" onClose={onClose}
+      footer={banner ? <div className="row">
         <button className="btn btn-danger" onClick={() => { useCollage.getState().setBanner(null); onClose() }}><Trash2 size={16} /> Remove</button>
         <div className="grow" />
-        <button className="btn btn-primary" onClick={() => input.current.click()}><Replace size={16} /> Replace</button>
-      </div>}>
+        <button className="btn btn-primary" onClick={() => input.current.click()}><Replace size={16} /> Change</button>
+      </div> : null}>
+      {!banner && (
+        <button className="card" onClick={() => input.current.click()} style={{ width: '100%', padding: '30px 20px', textAlign: 'center', borderStyle: 'dashed' }}>
+          <Upload size={30} color="var(--pink)" /><div className="h3" style={{ marginTop: 10 }}>Add your profile picture</div>
+          <div className="small muted" style={{ marginTop: 4 }}>A profile screenshot or a Ryuk Profile edit</div>
+        </button>
+      )}
       {url && <img src={url} alt="" style={{ width: '100%', borderRadius: 12 }} />}
       {banner && <p className="small muted" style={{ marginTop: 10 }}>{banner.w} × {banner.h} px · never shrunk: if it is wider than the grid, the skins are drawn bigger instead.</p>}
+      {onRyukProfile && (
+        <button className="list-item card" style={{ marginTop: 12 }} onClick={onRyukProfile}>
+          <span className="li-icon" style={{ color: 'var(--pink)' }}><Contact size={19} /></span>
+          <span className="grow"><b>Make a Ryuk Profile edit</b><br /><span className="small muted">Skin splash, collector frame, rank — then add it here</span></span>
+        </button>
+      )}
       <input ref={input} type="file" accept="image/*" hidden onChange={e => { replace(e.target.files?.[0]); e.target.value = '' }} />
     </Sheet>
   )

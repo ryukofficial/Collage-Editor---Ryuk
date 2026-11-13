@@ -1,6 +1,6 @@
 // The editor: collage preview, a top bar (undo / redo / export) and a dock of tools.
 import { useRef, useState } from 'react'
-import { ChevronLeft, Undo2, Redo2, Download, Plus, ScanSearch, Upload, LayoutGrid, UserSquare2, Palette, Trash2, Crop, ArrowUpToLine, ArrowLeftRight, X, Hash, FolderOpen } from 'lucide-react'
+import { Contact, ChevronLeft, Undo2, Redo2, Download, Plus, ScanSearch, Upload, LayoutGrid, UserSquare2, Palette, Trash2, Crop, ArrowUpToLine, ArrowLeftRight, X, Hash, FolderOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Stage from './Stage.jsx'
 import Thumb from './Thumb.jsx'
@@ -48,7 +48,7 @@ export default function Editor({ open, onHome }) {
       const blobId = uid()
       await blobSet(blobId, f)
       useCollage.getState().setBanner({ blobId, w, h, name: f.name })
-      toast.success('Profile banner added on top')
+      toast.success('Profile picture added on top')
     } catch { toast.error("That picture couldn't be opened") }
   }
 
@@ -57,7 +57,8 @@ export default function Editor({ open, onHome }) {
     { icon: ScanSearch, label: 'Auto', on: () => open('auto') },
     { icon: Upload, label: 'Upload', on: () => upload.current.click() },
     { icon: LayoutGrid, label: 'Arrange', on: () => open('arrange'), disabled: items.length < 2 },
-    { icon: UserSquare2, label: banner ? 'Banner ✓' : 'Banner', on: () => (banner ? open('banner') : bannerInput.current.click()) },
+    { icon: UserSquare2, label: banner ? 'Profile ✓' : 'Profile', on: () => open('banner') },
+    { icon: Contact, label: 'Ryuk Profile', on: () => open('profile') },
     { icon: Palette, label: 'Colour', on: () => open('background') },
     { icon: Hash, label: numbers ? 'Numbers ✓' : 'Numbers', on: () => setNumbers(n => !n) },
     { icon: FolderOpen, label: 'Projects', on: () => open('projects') },
@@ -70,7 +71,7 @@ export default function Editor({ open, onHome }) {
         <button className="icon-btn" onClick={onHome} aria-label="Home"><ChevronLeft size={20} /></button>
         <div className="grow" style={{ minWidth: 0 }}>
           <div className="h3 ellipsis">{name || 'My collage'}</div>
-          <div className="tiny muted">{items.length} skin{items.length === 1 ? '' : 's'}{banner ? ' · banner' : ''}</div>
+          <div className="tiny muted">{items.length} skin{items.length === 1 ? '' : 's'}{banner ? ' · profile' : ''}</div>
         </div>
         <button className="icon-btn" disabled={!past} onClick={undo} aria-label="Undo"><Undo2 size={18} /></button>
         <button className="icon-btn" disabled={!future} onClick={redo} aria-label="Redo"><Redo2 size={18} /></button>

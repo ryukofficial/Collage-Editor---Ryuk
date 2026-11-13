@@ -119,7 +119,7 @@ export default function App() {
       case 'projects': return <ProjectsSheet key={i} onClose={close} onOpened={goEditor} />
       case 'export': return <ExportSheet key={i} onClose={close} onOpenWallet={toWallet} />
       case 'background': return <BackgroundSheet key={i} onClose={close} />
-      case 'banner': return <BannerSheet key={i} onClose={close} />
+      case 'banner': return <BannerSheet key={i} onClose={close} onRyukProfile={() => open('profile')} />
       case 'cut': return <CutSheet key={i} onClose={close} onAdded={goEditor} />
       case 'wallet': return <Legacy key={i} onClose={close}><WalletPanel onClose={close} reason={a} /></Legacy>
       case 'admin': return <Legacy key={i} onClose={close}><AdminPanel onClose={close} /></Legacy>
