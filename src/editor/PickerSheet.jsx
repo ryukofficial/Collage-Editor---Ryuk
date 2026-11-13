@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, Check, ChevronRight, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Sheet, Spinner } from '../ui/Sheet.jsx'
-import { HEROES, ALL_SKINS, TIERS, TIER_STYLE, skinId, loadSkinIndex, skinPicture, searchSkins, tierOverrides } from '../lib/skins.js'
-import { getSeries } from '../lib/skinSeries.js'
+import { HEROES, ALL_SKINS, SKIN_BY_ID, TIERS, TIER_STYLE, skinId, loadSkinIndex, skinPicture, searchSkins, tierOverrides } from '../lib/skins.js'
+import { getSeries, seriesOrder, sortForCollage } from '../lib/skinSeries.js'
 import { skinsToItems } from '../lib/add.js'
 import { useCollage } from '../lib/store.js'
 
@@ -46,7 +46,7 @@ function tierGroups(tier) {
     if (!groups.has(g)) groups.set(g, [])
     groups.get(g).push(s)
   }
-  return [...groups.entries()].sort(([a], [b]) => (a === 'Other') - (b === 'Other') || a.localeCompare(b))
+  return [...groups.entries()].sort(([a], [b]) => (a === 'Other') - (b === 'Other') || seriesOrder(a) - seriesOrder(b) || a.localeCompare(b))
 }
 
 export default function PickerSheet({ onClose, startTab = 'heroes' }) {
@@ -80,8 +80,9 @@ export default function PickerSheet({ onClose, startTab = 'heroes' }) {
   const found = useMemo(() => (tab === 'search' ? searchSkins(q, 120) : []), [tab, q])
 
   const add = async () => {
-    const ids = [...picked]
-    if (!ids.length) return
+    if (!picked.size) return
+    // added in the collage order (Roger Prime first, then Legend, Collector…)
+    const ids = sortForCollage([...picked].map(id => SKIN_BY_ID.get(id)).filter(Boolean)).map(s => s.id)
     setAdding({ done: 0, total: ids.length })
     const { items, failed } = await skinsToItems(ids, done => setAdding({ done, total: ids.length }))
     useCollage.getState().add(items)

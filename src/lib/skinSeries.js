@@ -318,10 +318,12 @@ export function getSeries(heroId, skinName) {
 // ═════════════════════════════════════════════════════════════════════════════
 // Auto Collage order
 //
-// The order Auto Collage lays skins out in. It only affects Auto Collage; the
-// canvas can still be rearranged by hand afterwards.
+// The collage order: used by Auto Collage, by "Add skins" (the skins you pick
+// are added in this order, and series are listed in this order) and by
+// Arrange → "Sort by series & tier". The collage can still be rearranged by hand.
 //
 // Each line is one group, top to bottom. A group is either
+//   - picked skins    { hero: 'roger', series: 'Prime' } (that hero's skins of that series)
 //   - a tier          { tier: 'Legend' }
 //   - one or more series names exactly as written in SERIES_MAP_RAW above
 //   - a special rule  (STUN skins are the "S.T.U.N. …" skins of 515 eParty)
@@ -330,58 +332,83 @@ export function getSeries(heroId, skinName) {
 // ═════════════════════════════════════════════════════════════════════════════
 const STUN = 'S.T.U.N.'
 export const COLLAGE_ORDER = [
+  // picked skins that always come first (when they're in the collage)
+  { hero: 'roger', series: 'Prime' },            // Roger Prime
+  { hero: 'nana', series: 'MPL' },               // Nana MPL
+  { hero: 'paquito', series: 'Licensed' },       // Manny Pacquiao
+  { hero: 'clint', series: 'M Series' },         // Clint M series
+  { hero: 'aldous', series: 'M Series' },        // Aldous M series
   { tier: 'Legend' },
   'Collector',
   'Heavenly Artifact',
-  'KOF',
+  'Abyss',
+  'Dawning Stars',
+  'Double 11',
+  'Ducati',
+  'The Exorcists',
+  'Gold Saints',                                 // Saint Seiya
+  'HUNTER×HUNTER Collab',
+  'Jujutsu Kaisen Collab',
+  'Attack on Titan Collab',
+  'Kishin Densetsu',
+  'MLBB × NARUTO Collab',
+  'Mistbenders',
+  'Metro Zero',
   'MLBB × Star Wars Collab',
   'MLBB × Transformers Collab',
   'MLBB × Sanrio Collab',
-  'Gold Saints',
-  'Jujutsu Kaisen Collab',
-  'Attack on Titan Collab',
-  'HUNTER×HUNTER Collab',
-  'MLBB × NARUTO Collab',
-  'Kung Fu Panda Collab',
-  'Kishin Densetsu',
   'Neobeasts',
+  'Nexus Sea',
   'Soul Vessels',
-  { tier: 'Grand' },                     // the rest of the Grand skins
+  'Street Fighter',
+  'The Aspirants',
+  'Zenith',
+  'Kung Fu Panda Collab',
+  'KOF',
+  'Eternal Seasons',
+  { tier: 'Grand' },                             // other Grand skins
+  'All Star',
   'Beyond the Clouds',
-  'Annual Starlight',
+  ['515 eParty', STUN],
   'Champion',
-  STUN,
-  { tier: 'Exquisite' },                 // the other Exquisite skins = Lucky Box
+  'Annual Starlight',
+  'Prime',
   'Zodiac',
-  'MPL',
+  { tier: 'Exquisite' },                         // the other Exquisite skins = Lucky Box
+  "Valentine's Premium",
+  'FMVP',
   'Lunar Fest',
-  'Lightborn',
-  'V.E.N.O.M. Squad',
-  'S.A.B.E.R. Squad',
+  'MPL',
   'Christmas',
-  'Halloween',
-  'Atomic Pop',
-  'Create',
-  'Anniversary',
-  'AS',
-  'Neymar Collab',
-  ["Valentine's", "Valentine's Premium"],
-  'SpongeBob SquarePants Collab',
-  'Shadow Covenant',
-  'Rolling Tides',
-  'P.ACE',
-  'Rising',
-  'Myth',
+  "Valentine's",
+  'ALLSTAR',
+  'Bronze Saints',
+  'M Series',
   'MSC',
   'Mystic Meow',
-  'M Series',
-  'FMVP',
-  'Bronze Saints',
-  ['All Star', 'ALLSTAR'],
-  { tier: 'Deluxe' },
-  { tier: '' },                          // everything else (Elite, Basic, no tier yet…)
-  'Special',                             // always second last
-  { tier: ['Exceptional', 'Starlight'] },// always last: the other Exceptional skins = Starlight
+  'P.ACE',
+  'Rolling Tides',
+  'Halloween',
+  'Licensed',
+  'Shadow Covenant',
+  'SpongeBob SquarePants Collab',
+  'Blazing Bounties',
+  'Dragon Tamer',
+  'Lightborn',
+  'S.A.B.E.R. Squad',
+  'V.E.N.O.M. Squad',
+  { tier: 'Deluxe' },                            // all other Deluxe skins (Atomic Pop, Myth…)
+  { tier: '' },                                  // Elite, Basic, no tier yet…
+  'Rising',
+  'Anniversary',
+  'AS',
+  'Create',
+  'Golden Month',
+  'MCGG',
+  'Neymar Collab',
+  'Summer',
+  'Special',
+  { tier: ['Exceptional', 'Starlight'] },        // the other Exceptional skins = Starlight
 ]
 
 const TIER_ALIASES = { expectional: 'Exceptional' }
@@ -424,9 +451,10 @@ export function sortForCollage(skins) {
   const tierOf = (heroId, skinName) => cleanTier(overrides[`${heroId}__${skinName}`] || _baseTier.get(`${heroId}__${skinName}`))
   const bySeriesTier = seriesTiers(tierOf)
 
-  const seriesRank = new Map(), tierRank = new Map()
+  const seriesRank = new Map(), tierRank = new Map(), pinRank = new Map()
   COLLAGE_ORDER.forEach((g, i) => {
-    if (typeof g === 'object' && !Array.isArray(g)) for (const t of [].concat(g.tier)) tierRank.set(t, i)
+    if (g && g.hero) pinRank.set(`${g.hero}|${g.series}`, i)
+    else if (typeof g === 'object' && !Array.isArray(g)) for (const t of [].concat(g.tier)) tierRank.set(t, i)
     else for (const name of [].concat(g)) seriesRank.set(name, i)
   })
 
@@ -436,7 +464,9 @@ export function sortForCollage(skins) {
     if (series === '515 eParty' && s.skinName.startsWith(STUN)) series = STUN
 
     let rank
-    if (tier === 'Legend') rank = tierRank.get('Legend')
+    const pin = pinRank.get(`${s.heroId}|${series}`)
+    if (pin !== undefined) rank = pin
+    else if (tier === 'Legend') rank = tierRank.get('Legend')
     else if (series && seriesRank.has(series)) rank = seriesRank.get(series)
     else if (tier === 'Starlight') rank = tierRank.get('Starlight')
     else {
@@ -460,4 +490,10 @@ export function sortForCollage(skins) {
     (firstSeen.get(`${a.rank}|${a.series}`) - firstSeen.get(`${b.rank}|${b.series}`)) ||
     (a.index - b.index))
   return placed.map(p => p.s)
+}
+
+// Position of a series in COLLAGE_ORDER (for listing series in the picker).
+export function seriesOrder(name) {
+  const i = COLLAGE_ORDER.findIndex(g => (typeof g === 'string' || Array.isArray(g)) && [].concat(g).includes(name))
+  return i < 0 ? 9999 : i
 }
