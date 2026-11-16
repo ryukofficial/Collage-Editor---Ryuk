@@ -1923,7 +1923,8 @@
       },
       {
         "name": "Fashion Expert",
-        "tier": "Exceptional"
+        "tier": "Exceptional",
+        "series": "Summer"
       },
       {
         "name": "Christmas Carnival",
