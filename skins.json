@@ -63,7 +63,8 @@
       },
       {
         "name": "Marvelous Maestro",
-        "tier": "Deluxe"
+        "tier": "Deluxe",
+        "series": "Anniversary"
       }
     ]
   },
