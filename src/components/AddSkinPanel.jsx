@@ -16,7 +16,7 @@ const ERRORS = {
   wrong_password: 'Wrong password.',
   skin_exists: 'That hero already has a skin with this name.',
   repos_full: 'The skin picture library is full. Create the next mlbb-assets repo and add it to src/utils/assetRepos.js.',
-  not_configured: 'GITHUB_TOKEN is missing in Vercel, so changes can’t be saved.',
+  not_configured: 'Add skins is switched off: ADD_SKIN_PASSWORD or GITHUB_TOKEN is missing in Vercel.',
   bad_image: 'That picture could not be read. Try a JPG or PNG.',
   invalid_request: 'Check the names: letters, numbers and simple punctuation only.',
   too_large: 'The picture is too big.',

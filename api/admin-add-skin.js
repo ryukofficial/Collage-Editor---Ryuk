@@ -16,9 +16,8 @@
 // Changing skins.json on GitHub makes Vercel rebuild the site, so changes show up
 // about a minute later.
 //
-// The password itself is not stored anywhere: only a one-way scrypt hash of it is
-// kept below. To change it, set ADD_SKIN_PASSWORD in Vercel's Environment
-// Variables (Secret) — it then replaces the built-in one.
+// The password is the ADD_SKIN_PASSWORD environment variable in Vercel (Secret).
+// Without it (or shorter than 8 characters) the add-skin tools stay switched off.
 // Needs GITHUB_TOKEN with "Contents: Read and write" on the website repo AND on
 // the skin-picture repos.
 import crypto from 'node:crypto'
@@ -31,26 +30,20 @@ const REPO = () => process.env.GITHUB_REPO || 'ryukofficial/Collage-Editor---Ryu
 const FILE = () => process.env.GITHUB_FILE_PATH || 'skins.json'
 const API = () => process.env.GITHUB_API_BASE || 'https://api.github.com'
 
-// scrypt hash of the built-in password
-const SALT = 'b0c93008082116c5dcdd7ff99fea8cbd'
-const HASH = 'bdd5bd81e462a88633041777bc786c6b0c8e958e31aabf518e62a83cbbd19406'
-const SCRYPT = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
-
 const TIERS = ['', 'Legend', 'Grand', 'Exquisite', 'Deluxe', 'Exceptional', 'Elite', 'Basic', 'Common']
 const NAME_RE = /^[\p{L}\p{N} .,'&!?:()×\-]{1,60}$/u
 const REPO_FULL_AT = 990            // GitHub lists at most 1000 files per folder
 const MAX_BATCH = 50
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
+// The password lives only in Vercel (ADD_SKIN_PASSWORD, type Secret), never in
+// the code, so it can't be read or guessed from the public repository.
 function passwordOk(pw) {
+  const env = process.env.ADD_SKIN_PASSWORD || ''
+  if (env.length < 8) throw httpError(503, 'not_configured')
   if (typeof pw !== 'string' || pw.length < 1 || pw.length > 100) return false
-  const env = process.env.ADD_SKIN_PASSWORD
-  if (env) {
-    const a = crypto.createHash('sha256').update(pw).digest(), b = crypto.createHash('sha256').update(env).digest()
-    return crypto.timingSafeEqual(a, b)
-  }
-  const got = crypto.scryptSync(pw, SALT, 32, SCRYPT)
-  return crypto.timingSafeEqual(got, Buffer.from(HASH, 'hex'))
+  const a = crypto.createHash('sha256').update(pw).digest(), b = crypto.createHash('sha256').update(env).digest()
+  return crypto.timingSafeEqual(a, b)
 }
 
 const heroIdOf = name => name.toLowerCase().replace(/[^a-z0-9]/g, '')
