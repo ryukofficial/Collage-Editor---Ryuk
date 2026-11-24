@@ -96,3 +96,37 @@ export class PngWriter {
     return new Blob(this.parts, { type: 'image/png' })
   }
 }
+
+// Same as PngWriter, but the work happens in a Web Worker. Up to two rows of
+// skins can be waiting, so drawing and compressing run at the same time.
+export class PngWorkerWriter {
+  constructor(width, height) {
+    this.w = width; this.h = height
+    this.seq = 0; this.waiting = new Map(); this.pending = []
+    this.worker = new Worker(new URL('./pngWorker.js', import.meta.url), { type: 'module' })
+    this.worker.onmessage = ({ data }) => {
+      const p = this.waiting.get(data.id); this.waiting.delete(data.id)
+      if (!p) return
+      if (data.error) p.reject(new Error(data.error)); else p.resolve(data.blob)
+    }
+    this.worker.onerror = e => { for (const p of this.waiting.values()) p.reject(new Error(e.message || 'png_worker')); this.waiting.clear() }
+  }
+  send(msg, transfer = []) {
+    const id = ++this.seq
+    return new Promise((resolve, reject) => { this.waiting.set(id, { resolve, reject }); this.worker.postMessage({ ...msg, id }, transfer) })
+  }
+  start() { return this.send({ type: 'start', w: this.w, h: this.h }) }
+  async writeRows(rgba, rows) {
+    if (this.pending.length >= 2) await this.pending.shift()
+    const buf = rgba.byteOffset === 0 && rgba.byteLength === rgba.buffer.byteLength ? rgba.buffer : rgba.slice().buffer
+    const p = this.send({ type: 'rows', buf, rows }, [buf])
+    p.catch(() => {})
+    this.pending.push(p)
+  }
+  async finish() {
+    await Promise.all(this.pending)
+    const blob = await this.send({ type: 'finish' })
+    this.worker.terminate()
+    return blob
+  }
+}

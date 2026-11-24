@@ -9,9 +9,9 @@
 //     by the service worker), so the slow part never waits on the network
 // ─────────────────────────────────────────────────────────────────────────────
 import { gridOf, cropOf } from '../lib/store.js'
-import { itemBlob, decode } from '../lib/images.js'
+import { itemBlob, decode, cellBitmap } from '../lib/images.js'
 import { blobGet } from '../lib/db.js'
-import { PngWriter } from './png.js'
+import { PngWriter, PngWorkerWriter } from './png.js'
 
 export const PAID_MAX_CELL = 1000         // the Ryuk effect works at up to 1000 px per skin (as before)
 const MAX_CELL = 2048                     // more than Full HD per skin
@@ -64,7 +64,7 @@ export async function exportCollage(items, { bg = '#000000', banner = null, look
   const blobs = new Array(items.length), failed = []
   let got = 0
   onProgress(0, 'Getting your skins…')
-  await mapLimit(items, 6, async (it, i) => {
+  await mapLimit(items, 12, async (it, i) => {
     check()
     try { blobs[i] = await itemBlob(it, { signal, retries: 6 }) } catch (err) { if (err?.name === 'AbortError') throw err }
     onProgress(0.25 * (++got / items.length), `Getting your skins… ${got} / ${items.length}`)
@@ -84,8 +84,8 @@ export async function exportCollage(items, { bg = '#000000', banner = null, look
     fx = await createEffect(items.map(it => it.key || null), look)
   }
 
-  const png = new PngWriter(Wo, Ho)
-  await png.start()
+  let png
+  try { png = new PngWorkerWriter(Wo, Ho); await png.start() } catch { png = new PngWriter(Wo, Ho); await png.start() }
   const logosAll = []
   let rowsDone = 0
   const totalWork = rows + (bannerH ? 1 : 0)
@@ -139,25 +139,46 @@ export async function exportCollage(items, { bg = '#000000', banner = null, look
     let fill = [br, bgG, bb]
     if (fx) { const px = await fx.pixels(new Uint8ClampedArray([br, bgG, bb, 255]), 1, 1); fill = [px[0], px[1], px[2]] }
 
-    // 4. the skins, one row at a time
+    // 4. the skins, one row at a time. Each row's pictures are decoded at cell
+    //    size in parallel (off the main thread), the next row while this one is written.
+    const decodeRow = r => {
+      const out = []
+      for (let col = 0; col < cols; col++) {
+        const i = r * cols + col
+        if (i >= items.length) break
+        out.push({ i, col, bmp: blobs[i] ? cellBitmap(blobs[i], items[i], c).catch(() => null) : Promise.resolve(null) })
+      }
+      return out
+    }
+    const fast = !fx && !hd && Wo <= 16384 && Wo * c <= 40e6
+    const rowCanvas = fast ? canvas(Wo, c) : null
     const cellCanvas = canvas(c, c)
+    let next = decodeRow(0)
     for (let r = 0; r < rows; r++) {
       check()
+      const cellsInRow = next
+      next = r + 1 < rows ? decodeRow(r + 1) : null
+      for (const cell of cellsInRow) cell.bmp = await cell.bmp
+      for (const cell of cellsInRow) if (!cell.bmp && blobs[cell.i]) failed.push(items[cell.i].name || `#${cell.i + 1}`)
+
+      if (fast) {
+        // no effect, no HD: draw the whole row and read it once
+        const x = ctxOf(rowCanvas)
+        x.fillStyle = bg; x.fillRect(0, 0, Wo, c)
+        for (const { col, bmp } of cellsInRow) if (bmp) { x.drawImage(bmp, col * c, 0); bmp.close?.() }
+        await png.writeRows(x.getImageData(0, 0, Wo, c).data, c)
+        step(`Row ${r + 1} of ${rows}`)
+        continue
+      }
+
       const band = new Uint8ClampedArray(Wo * co * 4)
       for (let i = 0; i < band.length; i += 4) { band[i] = fill[0]; band[i + 1] = fill[1]; band[i + 2] = fill[2]; band[i + 3] = 255 }
-      const cellsInRow = []
-      for (let col = 0; col < cols; col++) { const i = r * cols + col; if (i < items.length) cellsInRow.push({ i, col }) }
-
-      // decode + draw each skin at full size (in order: canvases are shared)
       const drawn = []
-      for (const { i, col } of cellsInRow) {
-        if (!blobs[i]) { drawn.push(null); continue }
-        let bmp
-        try { bmp = await decode(blobs[i]) } catch { failed.push(items[i].name || `#${i + 1}`); drawn.push(null); continue }
-        const cr = cropOf(items[i], bmp.width, bmp.height)
+      for (const { i, col, bmp } of cellsInRow) {
+        if (!bmp) { drawn.push(null); continue }
         const x = ctxOf(cellCanvas)
         x.fillStyle = bg; x.fillRect(0, 0, c, c)
-        x.drawImage(bmp, cr.x, cr.y, cr.s, cr.s, 0, 0, c, c)
+        x.drawImage(bmp, 0, 0)
         bmp.close?.()
         drawn.push({ i, col, data: x.getImageData(0, 0, c, c).data })
       }
@@ -180,7 +201,6 @@ export async function exportCollage(items, { bg = '#000000', banner = null, look
           src.width = src.height = up.width = up.height = 1
         }
         for (const [lx, ly, lw, lh] of d.logos) logosAll.push([d.col * co + lx * k, bHo + r * co + ly * k, lw * k, lh * k])
-        // copy the cell into the row
         const x0 = d.col * co * 4
         for (let y = 0; y < co; y++) band.set(px.subarray(y * co * 4, (y + 1) * co * 4), y * Wo * 4 + x0)
       }

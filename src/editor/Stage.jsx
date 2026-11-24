@@ -44,9 +44,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
     ctx.save()
     ctx.translate(v.tx, v.ty)
     ctx.scale(v.s, v.s)
-    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 10 / v.s
     ctx.fillStyle = d.bg; ctx.fillRect(0, 0, g.W, g.H)
-    ctx.shadowBlur = 0
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'
 
     if (g.bannerH) {
@@ -140,7 +138,7 @@ export default function Stage({ onTap, swapFrom, showNumbers }) {
     const el = wrap.current
     const ro = new ResizeObserver(() => {
       const v = st.current
-      v.w = el.clientWidth; v.h = el.clientHeight; v.dpr = Math.min(3, window.devicePixelRatio || 1)
+      v.w = el.clientWidth; v.h = el.clientHeight; v.dpr = Math.min(2, window.devicePixelRatio || 1)
       cv.current.width = Math.round(v.w * v.dpr); cv.current.height = Math.round(v.h * v.dpr)
       if (!v.userMoved) fit(); else redraw()
     })

@@ -9,7 +9,17 @@ import { blobGet } from './db.js'
 const inflight = new Map()
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
+// pictures already downloaded this visit (up to ~200 MB), so the export never waits on the network again
+const mem = new Map()
+let memBytes = 0
+function remember(url, b) {
+  if (mem.has(url)) return
+  mem.set(url, b); memBytes += b.size
+  for (const [k, v] of mem) { if (memBytes <= 200e6) break; mem.delete(k); memBytes -= v.size }
+}
+
 export async function fetchBlob(url, { retries = 5, timeout = 25000, signal } = {}) {
+  if (mem.has(url)) return mem.get(url)
   if (inflight.has(url)) return inflight.get(url)
   const p = (async () => {
     let lastErr
@@ -25,6 +35,7 @@ export async function fetchBlob(url, { retries = 5, timeout = 25000, signal } = 
         if (!r.ok) throw new Error(`http_${r.status}`)
         const b = await r.blob()
         if (!b.size) throw new Error('empty')
+        remember(url, b)
         return b
       } catch (err) {
         lastErr = err
@@ -78,7 +89,7 @@ export function thumbOf(item) {
 
 let running = 0
 const waiting = []
-function slot() { return running < 6 ? (running++, Promise.resolve()) : new Promise(r => waiting.push(r)) }
+function slot() { return running < 10 ? (running++, Promise.resolve()) : new Promise(r => waiting.push(r)) }
 function free() { running--; const n = waiting.shift(); if (n) { running++; n() } }
 
 export function loadThumb(item) {
@@ -87,16 +98,7 @@ export function loadThumb(item) {
     await slot()
     try {
       const blob = await itemBlob(item)
-      const full = await decode(blob)
-      const side = Math.min(full.width, full.height)
-      const c = item.crop || { x: (full.width - side) / 2, y: (full.height - side) / 2, s: side }
-      const size = Math.min(THUMB, Math.round(c.s))
-      const cv = new OffscreenCanvasOr(size, size)
-      const ctx = cv.getContext('2d')
-      ctx.imageSmoothingQuality = 'high'
-      ctx.drawImage(full, c.x, c.y, c.s, c.s, 0, 0, size, size)
-      full.close?.()
-      const bmp = await createImageBitmap(cv)
+      const bmp = await cellBitmap(blob, item, THUMB, true)
       thumbs.set(item.id, bmp)
       listeners.forEach(fn => fn(item.id))
     } catch (err) {
@@ -143,4 +145,28 @@ export async function measure(blob) {
   const out = { w: b.width, h: b.height }
   b.close?.()
   return out
+}
+
+// The square part of a picture used in the collage, decoded straight at the
+// wanted size (the browser does it off the main thread). `max`: only shrink.
+export async function cellBitmap(blob, item, size, max = false) {
+  const w = item.w, h = item.h
+  const side = Math.min(w, h)
+  const c = item.crop || { x: (w - side) / 2, y: (h - side) / 2, s: side }
+  const out = Math.max(1, Math.round(max ? Math.min(size, c.s) : size))
+  try {
+    if (!w || !h) throw new Error('size unknown')
+    return await createImageBitmap(blob, Math.round(c.x), Math.round(c.y), Math.round(c.s), Math.round(c.s),
+      { resizeWidth: out, resizeHeight: out, resizeQuality: 'high' })
+  } catch {
+    // older browsers: decode, then draw
+    const full = await decode(blob)
+    const fs = Math.min(full.width, full.height)
+    const cc = item.crop || { x: (full.width - fs) / 2, y: (full.height - fs) / 2, s: fs }
+    const cv = OffscreenCanvasOr(out, out), x = cv.getContext('2d')
+    x.imageSmoothingQuality = 'high'
+    x.drawImage(full, cc.x, cc.y, cc.s, cc.s, 0, 0, out, out)
+    full.close?.()
+    return createImageBitmap(cv)
+  }
 }
