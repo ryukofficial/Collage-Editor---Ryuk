@@ -416,6 +416,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
 
         {pieces && view && (
           <>
+            {msg && <p className="rp-msg" style={{ marginTop: 14 }}>{msg}</p>}
             <div className="rp-stage">
               <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
               <div className="rp-movemode">

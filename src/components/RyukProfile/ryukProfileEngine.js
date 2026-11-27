@@ -120,7 +120,8 @@ function selectedEffect(img) {
 // edges, so we look for long horizontal and vertical lines on the right part of
 // the screen and pair them into card-shaped boxes. Half-visible cards are skipped.
 function heroCards(img) {
-  if (img.width < img.height) throw new Error('Favourite heroes screenshots must be in landscape, like the game.');
+  // a hero card that was already cut out (not a whole screenshot): use it as it is
+  if (img.width < img.height * 1.6) return [cropTo(img, { x: 0, y: 0, w: img.width, h: img.height })];
   const k = REF_H / img.height, W = Math.round(img.width * k), H = REF_H;
   const c = canvas(W, H), g = c.getContext('2d', { willReadFrequently: true });
   g.drawImage(img, 0, 0, W, H);
@@ -165,6 +166,27 @@ function heroCards(img) {
     }
   });
   return cards.map(([x1, y1, x2, y2]) => cropTo(c, { x: x1 - 2, y: y1 - 2, w: x2 - x1 + 4, h: y2 - y1 + 4 }));
+}
+
+// A tiny grey thumbnail of a picture, to tell whether two cards are the same.
+function signature(im) {
+  // the middle of the card (portrait + name), shrunk to 8×8 grey pixels
+  const c = canvas(8, 8), g = c.getContext('2d', { willReadFrequently: true });
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(im, im.width * 0.15, im.height * 0.1, im.width * 0.7, im.height * 0.55, 0, 0, 8, 8);
+  const d = g.getImageData(0, 0, 8, 8).data, out = new Float32Array(64);
+  for (let i = 0; i < 64; i++) out[i] = (d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) / 3;
+  return out;
+}
+function dedupeCards(list) {
+  const kept = [], sigs = [];
+  for (const im of list) {
+    const s = signature(im), ar = im.width / im.height;
+    // same hero card: nearly the same middle (different heroes differ ~20, the same one ~10)
+    const dup = sigs.some(([t, a]) => Math.abs(a - ar) < 0.15 && t.reduce((n, v, i) => n + Math.abs(v - s[i]), 0) / 64 < 14);
+    if (!dup) { kept.push(im); sigs.push([s, ar]); }
+  }
+  return kept;
 }
 
 // ---------- build the pieces from the screenshots ----------
@@ -245,6 +267,8 @@ export function extractPieces(src) {
     ...(src.side || []).map((im) => cropTo(im, { x: 0, y: 0, w: im.width, h: im.height })),
     ...(src.heroes || []).flatMap(heroCards),
   ];
+  // the same hero card twice (overlapping screenshots, or added again): keep one
+  pieces.side = dedupeCards(pieces.side);
   // Matches / Win Rate / MVP circles from the Statistics screen
   if (src.stats) {
     const S = src.stats;
