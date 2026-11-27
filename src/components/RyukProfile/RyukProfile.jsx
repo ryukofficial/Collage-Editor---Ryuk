@@ -36,6 +36,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [hiddenItems, setHiddenItems] = useState(() => new Set())
   const [effItems, setEffItems] = useState([])       // one Effects / Battle Emote screenshot per effect
   const [hiddenEff, setHiddenEff] = useState(() => new Set())
+  const [effPicks, setEffPicks] = useState({})        // effect screenshot id → spot picked by hand { cx, cy, s }
+  const [picking, setPicking] = useState(null)        // the effect screenshot being picked by hand
   const [heroItems, setHeroItems] = useState([])     // Battlefield → Favorite screenshots (hero cards found automatically)
   const [sideItems, setSideItems] = useState([])     // right side: skin grids and other pictures
   const [hiddenSide, setHiddenSide] = useState(() => new Set())
@@ -184,6 +186,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         imgs.extras = await Promise.all(items.map((it) => loadImage(it.file)))
         imgs.side = await Promise.all(sideItems.map((it) => loadImage(it.file)))
         imgs.effects = await Promise.all(effItems.map((it) => loadImage(it.file)))
+        imgs.effectPicks = effItems.map((it) => effPicks[it.id] || null)
         imgs.heroes = await Promise.all(heroItems.map((it) => loadImage(it.file)))
         if (cancelled) return
         const p = extractPieces(imgs)
@@ -225,7 +228,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       }
     })()
     return () => { cancelled = true }
-  }, [files, items, sideItems, effItems, heroItems]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [files, items, sideItems, effItems, heroItems, effPicks]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setLayout((l) => (l ? { ...l, immortal } : l)) }, [immortal])
 
@@ -398,8 +401,9 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           <div className="rp-items">
             {effItems.map((it, i) => (
               <span key={it.id} className="rp-item">
-                <img src={it.url} alt={`Effect screenshot ${i + 1}`} />
+                <img src={it.url} alt={`Effect screenshot ${i + 1}`} onClick={() => setPicking(it)} />
                 <button type="button" onClick={() => removeEff(it.id)} aria-label={`Remove effect ${i + 1}`}><X size={12} /></button>
+                <button type="button" className="rp-pickbtn" onClick={() => setPicking(it)}>{effPicks[it.id] ? 'Picked ✓' : 'Pick'}</button>
               </span>
             ))}
           </div>
@@ -451,8 +455,10 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             {msg && <p className="rp-msg" style={{ marginTop: 14 }}>{msg}</p>}
             {effMissed.length > 0 && (
               <p className="rp-msg" style={{ marginTop: 14 }}>
-                Effects screenshot {effMissed.join(', ')}: the effect in use wasn't found, so it's left out. Take the screenshot with the list
-                of effects open on the right, where the one in use has a yellow frame.
+                Effects screenshot {effMissed.join(', ')}: the effect in use wasn't found automatically, so it's left out.{' '}
+                {effMissed.map((n) => effItems[n - 1] && (
+                  <button key={n} type="button" className="rp-pickinline" onClick={() => setPicking(effItems[n - 1])}>Pick effect {n} by hand</button>
+                ))}
               </p>
             )}
             <div className="rp-sticky">
@@ -589,6 +595,39 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           </>
         )}
         {msg && <p className="rp-msg">{msg}</p>}
+      </div>
+      {picking && (
+        <EffectPicker key={picking.id} item={picking} pick={effPicks[picking.id]} onClose={() => setPicking(null)}
+          onDone={(pk) => { setEffPicks((m) => { const n = { ...m }; if (pk) n[picking.id] = pk; else delete n[picking.id]; return n }); setPicking(null) }} />
+      )}
+    </div>
+  )
+}
+
+// Pick the effect by hand: tap it on the screenshot, adjust the square's size.
+function EffectPicker({ item, pick, onDone, onClose }) {
+  const [p, setP] = useState(pick || { cx: 0.8, cy: 0.4, s: 0.2 })
+  const [ratio, setRatio] = useState(16 / 9)
+  const box = useRef(null)
+  const place = (e) => {
+    const r = box.current.getBoundingClientRect()
+    setP((o) => ({ ...o, cx: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), cy: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }))
+  }
+  const sw = p.s / ratio   // square side as a fraction of the width
+  return (
+    <div className="rp-picker" role="dialog" aria-label="Pick the effect">
+      <div className="rp-picker-in">
+        <p className="rp-picker-t">Tap the effect you use. Make the square fit it with the slider.</p>
+        <div ref={box} className="rp-picker-img" onPointerDown={place}>
+          <img src={item.url} alt="Effects screenshot" draggable={false} onLoad={(e) => setRatio(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)} />
+          <span className="rp-picker-sq" style={{ left: `${(p.cx - sw / 2) * 100}%`, top: `${(p.cy - p.s / 2) * 100}%`, width: `${sw * 100}%`, height: `${p.s * 100}%` }} />
+        </div>
+        <Slider label="Square size" min={0.05} max={0.6} step={0.005} value={p.s} onChange={(v) => setP((o) => ({ ...o, s: v }))} />
+        <div className="rp-picker-b">
+          {pick && <button type="button" onClick={() => onDone(null)}>Automatic</button>}
+          <button type="button" onClick={onClose}>Cancel</button>
+          <button type="button" className="on" onClick={() => onDone(p)}>Use this</button>
+        </div>
       </div>
     </div>
   )

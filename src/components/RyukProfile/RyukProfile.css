@@ -75,3 +75,14 @@
 .rp-stats label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-3); min-width: 0; }
 .rp-stats input { width: 100%; height: 38px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--bg); color: #fff; padding: 0 10px; font-size: 15px; font-weight: 700; }
 .rp-stats input:focus { outline: none; border-color: #ffd628; }
+.rp-item .rp-pickbtn { top: auto; bottom: 3px; right: 3px; left: 3px; width: auto; height: 20px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,.78); color: #ffd628; }
+.rp-pickinline { display: inline-block; margin: 6px 6px 0 0; padding: 7px 12px; border-radius: 999px; border: 1px solid #ffd628; background: transparent; color: #ffd628; font-weight: 700; font-size: 13px; cursor: pointer; }
+.rp-picker { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.82); display: grid; place-items: center; padding: 16px; }
+.rp-picker-in { width: 100%; max-width: 900px; background: var(--surface, #1a1816); border: 1px solid var(--line-2, #333); border-radius: 16px; padding: 14px; }
+.rp-picker-t { margin: 0 0 10px; font-size: 14px; color: var(--text-2, #ddd); }
+.rp-picker-img { position: relative; touch-action: none; user-select: none; cursor: crosshair; border-radius: 8px; overflow: hidden; }
+.rp-picker-img img { display: block; width: 100%; height: auto; pointer-events: none; }
+.rp-picker-sq { position: absolute; border: 3px solid #ffd628; box-shadow: 0 0 0 9999px rgba(0,0,0,.45); border-radius: 4px; pointer-events: none; }
+.rp-picker-b { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.rp-picker-b button { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line-2, #444); background: transparent; color: var(--text-2, #ddd); font-weight: 700; cursor: pointer; }
+.rp-picker-b button.on { background: #ffd628; border-color: #ffd628; color: #1a1400; }

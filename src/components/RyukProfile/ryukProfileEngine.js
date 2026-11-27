@@ -88,7 +88,9 @@ function selectedEffect(img) {
   const s = img.height / REF_H;
   const inGrid = findYellowFrame(img, mapRect(img, BOX.effectArea, 'right'));
   // 2) anywhere on the right part of the screen (other screens, other layouts)
-  const found = inGrid || findYellowFrame(img, { x: img.width * 0.4, y: 0, w: img.width * 0.6, h: img.height });
+  const right = { x: img.width * 0.4, y: 0, w: img.width * 0.6, h: img.height };
+  // 3) any yellow outline (rounded or curved frames, emote wheel slots)
+  const found = inGrid || findYellowFrame(img, right) || findYellowOutline(img, right);
   if (!found) return null;                     // no yellow frame: don't guess (that gave map pieces before)
   const inset = 7 * s;
   return cropTo(img, { x: found.x + inset, y: found.y + inset, w: found.w - 2 * inset, h: found.h - 2 * inset });
@@ -131,6 +133,44 @@ function findYellowFrame(img, area) {
       const score = cover * 1000 + w;                                       // the clearest, then the biggest
       if (!best || score > best.score) best = { score, x: xa1, y: ya, w, h };
     }
+  }
+  if (!best) return null;
+  return { x: area.x + best.x * s, y: area.y + best.y * s, w: best.w * s, h: best.h * s };
+}
+
+// A looser search: the biggest yellow outline (a ring of yellow, not a solid
+// yellow button) of item size. Catches rounded, curved or thin frames.
+function findYellowOutline(img, area) {
+  const s = img.height / REF_H;
+  const aw = Math.max(1, Math.round(area.w / s)), ah = Math.max(1, Math.round(area.h / s));
+  const c = canvas(aw, ah), g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, area.x, area.y, area.w, area.h, 0, 0, aw, ah);
+  const d = g.getImageData(0, 0, aw, ah).data;
+  const Y = new Uint8Array(aw * ah);
+  for (let i = 0; i < aw * ah; i++) {
+    const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
+    Y[i] = r > 185 && gg > 135 && b < 140 && r - b > 80 && r >= gg ? 1 : 0;
+  }
+  const seen = new Uint8Array(aw * ah), stack = new Int32Array(aw * ah);
+  let best = null;
+  for (let i0 = 0; i0 < aw * ah; i0++) {
+    if (!Y[i0] || seen[i0]) continue;
+    let top = 0, n = 0, x1 = aw, x2 = 0, y1 = ah, y2 = 0;
+    stack[top++] = i0; seen[i0] = 1;
+    while (top) {
+      const i = stack[--top], x = i % aw, y = (i / aw) | 0;
+      n++; if (x < x1) x1 = x; if (x > x2) x2 = x; if (y < y1) y1 = y; if (y > y2) y2 = y;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {   // 8 neighbours: thin diagonal lines stay joined
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= aw || yy >= ah) continue;
+        const j = yy * aw + xx;
+        if (Y[j] && !seen[j]) { seen[j] = 1; stack[top++] = j; }
+      }
+    }
+    const w = x2 - x1 + 1, h = y2 - y1 + 1;
+    if (w < 60 || h < 60 || w > 420 || h > 420 || w / h < 0.5 || w / h > 2) continue;
+    if (n / (w * h) > 0.45 || n < 2 * (w + h) * 0.5) continue;           // an outline, not a filled button
+    if (!best || w * h > best.w * best.h) best = { x: x1, y: y1, w, h };
   }
   if (!best) return null;
   return { x: area.x + best.x * s, y: area.y + best.y * s, w: best.w * s, h: best.h * s };
@@ -257,7 +297,13 @@ export function extractPieces(src) {
 
   // effects bar tiles + diamonds
   // one effect per screenshot: the item in use (yellow frame) in the grid on the right
-  pieces.effects = (src.effects || []).map(selectedEffect);
+  // or the spot the person picked by hand: { cx, cy, s } as fractions of the screenshot
+  pieces.effects = (src.effects || []).map((im, i) => {
+    const pk = src.effectPicks?.[i];
+    if (!pk) return selectedEffect(im);
+    const side = pk.s * im.height;
+    return cropTo(im, { x: pk.cx * im.width - side / 2, y: pk.cy * im.height - side / 2, w: side, h: side });
+  });
   if (src.effects?.length) pieces.diamonds = cropTo(src.effects[0], mapRect(src.effects[0], BOX.diamonds, 'right'));
   if (src.coa) {
     if (src.coa.width < src.coa.height) throw new Error('The COA screenshot must be in landscape, like the game.');
