@@ -84,35 +84,56 @@ function itemPiece(img) {
 // the grid on the right. Find that frame (long straight yellow lines) and cut
 // out what is inside it. If no frame is found, the first item of the grid is used.
 function selectedEffect(img) {
+  // 1) the usual place: the grid on the right of the Effects screen
   const s = img.height / REF_H;
-  const area = mapRect(img, BOX.effectArea, 'right');
-  const aw = Math.round(area.w / s), ah = Math.round(area.h / s);
+  const inGrid = findYellowFrame(img, mapRect(img, BOX.effectArea, 'right'));
+  // 2) anywhere on the right part of the screen (other screens, other layouts)
+  const found = inGrid || findYellowFrame(img, { x: img.width * 0.4, y: 0, w: img.width * 0.6, h: img.height });
+  if (!found) return null;                     // no yellow frame: don't guess (that gave map pieces before)
+  const inset = 7 * s;
+  return cropTo(img, { x: found.x + inset, y: found.y + inset, w: found.w - 2 * inset, h: found.h - 2 * inset });
+}
+
+// Finds a square yellow frame (the item in use) inside rectangle `area` of `img`.
+// Looks for a top and a bottom yellow line of the same length, joined by yellow
+// left and right sides, so other yellow marks on the screen are ignored.
+function findYellowFrame(img, area) {
+  const s = img.height / REF_H;
+  const aw = Math.max(1, Math.round(area.w / s)), ah = Math.max(1, Math.round(area.h / s));
   const c = canvas(aw, ah), g = c.getContext('2d', { willReadFrequently: true });
   g.drawImage(img, area.x, area.y, area.w, area.h, 0, 0, aw, ah);
   const d = g.getImageData(0, 0, aw, ah).data;
-  const yellow = new Uint8Array(aw * ah);
+  const Y = new Uint8Array(aw * ah);
   for (let i = 0; i < aw * ah; i++) {
     const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
-    yellow[i] = r > 200 && gg > 160 && b < 130 && r - b > 100 ? 1 : 0;
+    Y[i] = r > 200 && gg > 160 && b < 130 && r - b > 100 ? 1 : 0;
   }
-  const longest = (len, other, at) => {        // longest yellow run along one line
-    let best = 0, run = 0;
-    for (let k = 0; k < len; k++) { if (at(k, other)) { run++; if (run > best) best = run } else run = 0 }
-    return best;
-  };
-  const MIN = 90;                                  // a frame side is about 135 px long
-  let x1 = -1, x2 = -1, y1 = -1, y2 = -1;
-  for (let x = 0; x < aw; x++) if (longest(ah, x, (y, xx) => yellow[y * aw + xx]) >= MIN) { if (x1 < 0) x1 = x; x2 = x; }
-  for (let y = 0; y < ah; y++) if (longest(aw, y, (x, yy) => yellow[yy * aw + x]) >= MIN) { if (y1 < 0) y1 = y; y2 = y; }
-  let r;
-  if (x1 >= 0 && y1 >= 0 && x2 - x1 > 80 && y2 - y1 > 80 && x2 - x1 < 200 && y2 - y1 < 200) {
-    const inset = 7;
-    r = { x: area.x + (x1 + inset) * s, y: area.y + (y1 + inset) * s, w: (x2 - x1 - 2 * inset) * s, h: (y2 - y1 - 2 * inset) * s };
-  } else {
-    r = mapRect(img, BOX.effectFirst, 'right');
-    r = { x: r.x + 7 * s, y: r.y + 7 * s, w: r.w - 14 * s, h: r.h - 14 * s };
+  // horizontal yellow runs of 70 px or more: [y, x1, x2]
+  const runs = [];
+  for (let y = 0; y < ah; y++) {
+    let st = -1;
+    for (let x = 0; x <= aw; x++) {
+      const on = x < aw && Y[y * aw + x];
+      if (on && st < 0) st = x;
+      if (!on && st >= 0) { if (x - st >= 70) runs.push([y, st, x - 1]); st = -1; }
+    }
   }
-  return cropTo(img, r);
+  const colCover = (x, y1, y2) => { let n = 0; for (let y = y1; y <= y2; y++) for (let dx = -2; dx <= 2; dx++) { const xx = x + dx; if (xx >= 0 && xx < aw && Y[y * aw + xx]) { n++; break; } } return n / (y2 - y1 + 1); };
+  let best = null;
+  for (const [ya, xa1, xa2] of runs) {
+    for (const [yb, xb1, xb2] of runs) {
+      const h = yb - ya, w = xa2 - xa1;
+      if (h < 70 || h > 320) continue;
+      if (Math.abs(xa1 - xb1) > 6 || Math.abs(xa2 - xb2) > 6) continue;       // same left and right ends
+      if (w / h < 0.75 || w / h > 1.33) continue;                           // square-ish
+      const cover = (colCover(xa1 + 1, ya, yb) + colCover(xa2 - 1, ya, yb)) / 2;
+      if (cover < 0.75) continue;
+      const score = cover * 1000 + w;                                       // the clearest, then the biggest
+      if (!best || score > best.score) best = { score, x: xa1, y: ya, w, h };
+    }
+  }
+  if (!best) return null;
+  return { x: area.x + best.x * s, y: area.y + best.y * s, w: best.w * s, h: best.h * s };
 }
 
 // ---------- favourite heroes (Battlefield → Favorite) ----------
@@ -326,7 +347,7 @@ export function computeBoxes(pieces, L) {
   const x0 = 30 + L.groupDX;
 
   const tileList = [];
-  (pieces.effects || []).forEach((img, i) => { if (L.showEffects?.[i] !== false) tileList.push(img); });
+  (pieces.effects || []).forEach((img, i) => { if (img && L.showEffects?.[i] !== false) tileList.push(img); });
   const cardList = [];
   (pieces.extras || []).forEach((it, i) => {
     if (L.showExtras?.[i] === false) return;
@@ -421,8 +442,11 @@ export function computeBoxes(pieces, L) {
   // things that were already placed keep their spot and size when more pictures
   // are added (pins: { pictureKey: { x, y, w, h, group, g: group offset then } })
   const pins = L.pins || {}, off = L.boxOff || {};
+  const seen = {};
   for (const b of boxes) {
-    b.key = pictureKey(b.img) + ':' + b.group.split(':')[0];
+    const base = pictureKey(b.img) + ':' + b.group.split(':')[0];
+    seen[base] = (seen[base] || 0) + 1;
+    b.key = seen[base] > 1 ? `${base}#${seen[base]}` : base;      // never two boxes with one key
     const p = pins[b.key];
     if (p) {
       const go = groupOffset(L, b.group);

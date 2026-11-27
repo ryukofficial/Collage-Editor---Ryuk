@@ -64,6 +64,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     lastPush.current = 0
   }
   const [sel, setSel] = useState(null)
+  const [effMissed, setEffMissed] = useState([])
   const [moveOne, setMoveOne] = useState(true)
   const active = sel
   const canvasRef = useRef(null)
@@ -195,6 +196,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         const keepWeekly = hadWeekly.current && !!p.weekly   // read now: the update below runs later
         const keepCoa = hadCoa.current && !!p.coa
         setPieces(p)
+        const missed = (p.effects || []).map((e, i) => (e ? 0 : i + 1)).filter(Boolean)
+        setEffMissed(missed)
         setLayout((old) => {
           const fresh = defaultLayout(p, { immortal })
           if (!old) return fresh
@@ -446,6 +449,12 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         {pieces && view && (
           <>
             {msg && <p className="rp-msg" style={{ marginTop: 14 }}>{msg}</p>}
+            {effMissed.length > 0 && (
+              <p className="rp-msg" style={{ marginTop: 14 }}>
+                Effects screenshot {effMissed.join(', ')}: the effect in use wasn't found, so it's left out. Take the screenshot with the list
+                of effects open on the right, where the one in use has a yellow frame.
+              </p>
+            )}
             <div className="rp-sticky">
               <div className="rp-stage">
                 <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
