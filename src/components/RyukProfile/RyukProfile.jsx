@@ -484,7 +484,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               </div>
               {sel && sel.startsWith('box:') && (
                 <div className="rp-selsize">
-                  <Slider label="Size of this one" min={0.3} max={2.5} step={0.01} value={layout.boxScale?.[sel.slice(4)] ?? 1}
+                  <Slider label="Size of this one" scale min={0.3} max={2.5} step={0.01} value={layout.boxScale?.[sel.slice(4)] ?? 1}
                     onChange={(v) => { remember(); setLayout((l) => ({ ...l, boxScale: { ...(l.boxScale || {}), [sel.slice(4)]: v } })) }} />
                 </div>
               )}
@@ -494,13 +494,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             <div className="rp-controls">
               <div className="rp-card">
                 <h3>Sizes</h3>
-                {pieces.panel && <Slider id="rp-sz-panel" label="Collection" min={0.6} max={1.3} step={0.01} value={layout.sizes.panel} onChange={(v) => set('sizes.panel', v)} />}
-                {pieces.circles && <Slider id="rp-st-s" label="Win rate circles" min={0.6} max={1.4} step={0.01} value={layout.stats.size} onChange={(v) => set('stats.size', v)} />}
-                {pieces.diamonds && layout.diamonds.show && <Slider id="rp-sz-dia" label="Diamonds" min={0.5} max={2} step={0.01} value={layout.sizes.diamonds} onChange={(v) => set('sizes.diamonds', v)} />}
-                {pieces.coa && layout.coa.show && <Slider id="rp-sz-coa" label="COA" min={0.5} max={2} step={0.01} value={layout.sizes.coa} onChange={(v) => set('sizes.coa', v)} />}
-                {pieces.weekly && layout.weekly.show && <Slider id="rp-sz-wk" label="Weekly pass" min={0.6} max={2.5} step={0.01} value={layout.sizes.weekly} onChange={(v) => set('sizes.weekly', v)} />}
+                {pieces.panel && <Slider id="rp-sz-panel" label="Collection" scale min={0.6} max={1.3} step={0.01} value={layout.sizes.panel} onChange={(v) => set('sizes.panel', v)} />}
+                {pieces.circles && <Slider id="rp-st-s" label="Win rate circles" scale min={0.6} max={1.4} step={0.01} value={layout.stats.size} onChange={(v) => set('stats.size', v)} />}
+                {pieces.diamonds && layout.diamonds.show && <Slider id="rp-sz-dia" label="Diamonds" scale min={0.5} max={2} step={0.01} value={layout.sizes.diamonds} onChange={(v) => set('sizes.diamonds', v)} />}
+                {pieces.coa && layout.coa.show && <Slider id="rp-sz-coa" label="COA" scale min={0.5} max={2} step={0.01} value={layout.sizes.coa} onChange={(v) => set('sizes.coa', v)} />}
+                {pieces.weekly && layout.weekly.show && <Slider id="rp-sz-wk" label="Weekly pass" scale min={0.6} max={2.5} step={0.01} value={layout.sizes.weekly} onChange={(v) => set('sizes.weekly', v)} />}
                 {(effCount > 0 || itemCount > 0) && <Slider id="rp-tile-s" label="Effects (max)" min={100} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />}
-                {pieces.side?.length > 0 && <Slider id="rp-side-s" label="All hero cards" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />}
+                {pieces.side?.length > 0 && <Slider id="rp-side-s" label="All hero cards" scale min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />}
                 {pieces.extras?.some((x) => x.wide) && <Slider id="rp-card-s" label="Item cards" min={80} max={220} value={layout.cards.height} onChange={(v) => set('cards.height', v)} />}
               </div>
 
@@ -510,7 +510,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                 <Slider label="Art width" min={900} max={1500} value={layout.artW || 1240} onChange={(v) => set('artW', v)} />
                 <Slider label="Left / right" min={150} max={1000} value={layout.skin.centerFromRight} onChange={(v) => set('skin.centerFromRight', v)} invert />
                 <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout.skin.focusX} onChange={(v) => set('skin.focusX', v)} />
-                <Slider label="Zoom" min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
+                <Slider label="Zoom" scale min={1} max={2} step={0.01} value={layout.skin.zoom} onChange={(v) => set('skin.zoom', v)} />
                 <Slider label="Up / down" min={0} max={1} step={0.01} value={layout.skin.offsetY} onChange={(v) => set('skin.offsetY', v)} />
               </div>
               )}
@@ -525,13 +525,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                 <h3 style={{ marginTop: 14 }}>Left skin</h3>
                 {(() => { const k = layout.duo.swap ? 'skin2' : 'skin'; return (<>
                   <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout[k].focusX} onChange={(v) => set(`${k}.focusX`, v)} />
-                  <Slider label="Zoom" min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
+                  <Slider label="Zoom" scale min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
                   <Slider label="Up / down" min={0} max={1} step={0.01} value={layout[k].offsetY} onChange={(v) => set(`${k}.offsetY`, v)} />
                 </>) })()}
                 <h3 style={{ marginTop: 14 }}>Right skin</h3>
                 {(() => { const k = layout.duo.swap ? 'skin' : 'skin2'; return (<>
                   <Slider label="Focus" min={0.1} max={0.9} step={0.01} value={layout[k].focusX} onChange={(v) => set(`${k}.focusX`, v)} />
-                  <Slider label="Zoom" min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
+                  <Slider label="Zoom" scale min={1} max={2} step={0.01} value={layout[k].zoom} onChange={(v) => set(`${k}.zoom`, v)} />
                   <Slider label="Up / down" min={0} max={1} step={0.01} value={layout[k].offsetY} onChange={(v) => set(`${k}.offsetY`, v)} />
                 </>) })()}
               </div>
@@ -635,7 +635,7 @@ function EffectPicker({ item, pick, onDone, onClose }) {
 
 // A slider that only changes when you drag it sideways: tapping it or
 // scrolling the page over it never changes the value by mistake.
-function Slider({ label, min, max, step = 1, value, onChange, invert = false }) {
+function Slider({ label, min, max, step = 1, value, onChange, invert = false, scale = false }) {
   const track = useRef(null)
   const g = useRef(null)
   const v = invert ? max + min - value : value
@@ -664,6 +664,7 @@ function Slider({ label, min, max, step = 1, value, onChange, invert = false }) 
         <i style={{ width: `${pct}%` }} />
         <b style={{ left: `${pct}%` }} />
       </div>
+      <em className="rp-pct">{Math.round(scale ? value * 100 : pct)}%</em>
     </div>
   )
 }

@@ -44,7 +44,7 @@
 .rp-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
 .rp-card { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; min-width: 0; }
 .rp-card h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); }
-.rp-slider { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
+.rp-slider { display: grid; grid-template-columns: 100px 1fr 46px; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0; }
 .rp-track { position: relative; height: 34px; touch-action: pan-y; cursor: ew-resize; }
 .rp-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--surface-3); }
 .rp-track i { position: absolute; left: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: #c9a66b; }
@@ -86,3 +86,4 @@
 .rp-picker-b { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 .rp-picker-b button { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line-2, #444); background: transparent; color: var(--text-2, #ddd); font-weight: 700; cursor: pointer; }
 .rp-picker-b button.on { background: #ffd628; border-color: #ffd628; color: #1a1400; }
+.rp-pct { font-style: normal; font-size: 12px; font-weight: 700; color: #e2c79a; text-align: right; font-variant-numeric: tabular-nums; }

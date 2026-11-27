@@ -494,6 +494,7 @@ export function computeBoxes(pieces, L) {
     seen[base] = (seen[base] || 0) + 1;
     b.key = seen[base] > 1 ? `${base}#${seen[base]}` : base;      // never two boxes with one key
     const p = pins[b.key];
+    b.auto = { x: b.x, y: b.y, w: b.w, h: b.h };
     if (p) {
       const go = groupOffset(L, b.group);
       b.x = p.x + go.dx - p.g.dx; b.y = p.y + go.dy - p.g.dy; b.w = p.w; b.h = p.h; b.pinned = true;
@@ -504,6 +505,23 @@ export function computeBoxes(pieces, L) {
     const inFam = boxes.filter((b) => b.group === fam || b.group.startsWith(fam + ':'));
     const fixed = inFam.filter((b) => b.pinned), fresh = inFam.filter((b) => !b.pinned);
     if (!fixed.length || !fresh.length) continue;
+    if (fam === 'tile') {
+      // new effects carry on the same row, right after the last one already there
+      const last = fixed.reduce((a, b) => (b.x + b.w > a.x + a.w ? b : a));
+      const sp = 2 * B + GAP, need = fresh.length * (last.h + sp);
+      if (last.x + last.w + need <= ROW_RIGHT + 40) {
+        let x = last.x + last.w + sp;
+        for (const b of fresh) { b.x = x; b.y = last.y; b.w = last.h; b.h = last.h; x += last.h + sp; }
+      } else {
+        // no room left on the row: lay out the whole bottom row again (and what sits on it)
+        for (const b of boxes) {
+          if (b.group === 'tile' || b.group.startsWith('tile:') || b.group === 'group' || b.group === 'diamonds') {
+            if (b.pinned) { Object.assign(b, b.auto); b.pinned = false; b.unpinned = true; }
+          }
+        }
+      }
+      continue;
+    }
     const hs = fixed.map((b) => b.h).sort((a, b2) => a - b2); let h = hs[hs.length >> 1];
     const left = Math.min(...fixed.map((b) => b.x)), right = Math.max(...fixed.map((b) => b.x + b.w));
     const top = Math.min(...fixed.map((b) => b.y)), bottom = Math.max(...fixed.map((b) => b.y + b.h));
