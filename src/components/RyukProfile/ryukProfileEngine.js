@@ -418,10 +418,70 @@ export function computeBoxes(pieces, L) {
     boxes.push({ id: 'rank', group: 'rank', img: pieces.rank,
       x: BOX.rankCenter[0] - rw / 2 + L.rank.dx, y: BOX.rankCenter[1] - rh / 2 + L.rank.dy, w: rw, h: rh });
   }
-  // anything can also be moved on its own (boxOff: { boxId: { dx, dy } })
-  const off = L.boxOff || {};
-  for (const b of boxes) { const o = off[b.id]; if (o) { b.x += o.dx; b.y += o.dy; } }
+  // things that were already placed keep their spot and size when more pictures
+  // are added (pins: { pictureKey: { x, y, w, h, group, g: group offset then } })
+  const pins = L.pins || {}, off = L.boxOff || {};
+  for (const b of boxes) {
+    b.key = pictureKey(b.img) + ':' + b.group.split(':')[0];
+    const p = pins[b.key];
+    if (p) {
+      const go = groupOffset(L, b.group);
+      b.x = p.x + go.dx - p.g.dx; b.y = p.y + go.dy - p.g.dy; b.w = p.w; b.h = p.h; b.pinned = true;
+    }
+  }
+  // new pictures next to ones that stay in place: same size, in a new row beside them
+  for (const fam of ['side', 'tile', 'cards']) {
+    const inFam = boxes.filter((b) => b.group === fam || b.group.startsWith(fam + ':'));
+    const fixed = inFam.filter((b) => b.pinned), fresh = inFam.filter((b) => !b.pinned);
+    if (!fixed.length || !fresh.length) continue;
+    const hs = fixed.map((b) => b.h).sort((a, b2) => a - b2), h = hs[hs.length >> 1];
+    const left = Math.min(...fixed.map((b) => b.x)), right = Math.max(...fixed.map((b) => b.x + b.w));
+    const top = Math.min(...fixed.map((b) => b.y)), bottom = Math.max(...fixed.map((b) => b.y + b.h));
+    const gap = 14, rowW = fresh.reduce((n, b) => n + b.w * (h / b.h), 0) + gap * (fresh.length - 1);
+    let y = bottom + gap;
+    if (y + h > H - 10) y = Math.max(10, top - gap - h);            // no room below: above them
+    let x = fam === 'side' ? Math.max(10, right - rowW) : left;      // hero cards keep to the right
+    for (const b of fresh) {
+      const w = b.w * (h / b.h);
+      b.x = x; b.y = y; b.w = w; b.h = h;
+      x += w + gap;
+    }
+  }
+  for (const b of boxes) {
+    // anything can also be moved on its own (boxOff: { pictureKey: { dx, dy } })
+    const o = off[b.key];
+    if (o) { b.x += o.dx; b.y += o.dy; }
+  }
   return boxes;
+}
+
+// how far a whole group has been moved (so pinned things still follow their group)
+export function groupOffset(L, group) {
+  if (group === 'group') return { dx: L.groupDX || 0, dy: L.groupDY || 0 };
+  if (group.startsWith('tile:')) return L.tileOff?.[+group.slice(5)] || { dx: 0, dy: 0 };
+  return { dx: L[group]?.dx || 0, dy: L[group]?.dy || 0 };
+}
+
+// A short name for a picture that stays the same every time it is rebuilt.
+const keyCache = new WeakMap();
+export function pictureKey(img) {
+  if (!img) return 'none';
+  let k = keyCache.get(img);
+  if (k) return k;
+  const c = canvas(6, 6), g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0, 6, 6);
+  const d = g.getImageData(0, 0, 6, 6).data;
+  let h = `${img.width}x${img.height}`;
+  for (let i = 0; i < 36; i++) h += ((d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) >> 5).toString(36);
+  keyCache.set(img, h);
+  return h;
+}
+
+// Pin every box of the current picture where it is now.
+export function pinAll(pieces, L) {
+  const pins = { ...(L.pins || {}) };
+  for (const b of computeBoxes(pieces, L)) pins[b.key] = { x: b.x, y: b.y, w: b.w, h: b.h, group: b.group, g: { ...groupOffset(L, b.group) } };
+  return pins;
 }
 
 // Packs pictures into rows on the right side (from the skin area to the right
@@ -614,7 +674,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   // clean up profile text that peeks out beside the tile rows
   const tiles = boxes.filter((b) => b.id.startsWith('tile'));
   const tilesMoved = Object.values(L.tileOff || {}).some((o) => o && (o.dx || o.dy))
-    || Object.entries(L.boxOff || {}).some(([k, o]) => (k.startsWith('tile') || k === 'panel') && o && (o.dx || o.dy));
+    || Object.values(L.boxOff || {}).some((o) => o && (o.dx || o.dy)) || Object.keys(L.pins || {}).length > 0;
   if (tiles.length && L.groupDX === 0 && L.groupDY === 0 && !tilesMoved) {
     const rows = [...new Set(tiles.map((b) => b.y))].sort((p, q) => p - q);
     const ends = rows.map((ry) => Math.max(...tiles.filter((b) => b.y === ry).map((b) => b.x + b.w)) + 10);
@@ -664,7 +724,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   [...boxes.filter((b) => b.id !== 'stat1'), ...boxes.filter((b) => b.id === 'stat1')]
     .forEach((b) => (b.kind === 'circle' ? drawCircle(g, b) : drawFramed(g, b)));
   if (highlight) {
-    boxes.filter((b) => b.group === highlight || 'box:' + b.id === highlight).forEach((b) => {
+    boxes.filter((b) => b.group === highlight || 'box:' + b.key === highlight).forEach((b) => {
       g.save(); g.strokeStyle = '#00e5c0'; g.lineWidth = 4; g.setLineDash([14, 10]);
       g.strokeRect(b.x - 12, b.y - 12, b.w + 24, b.h + 24); g.restore();
     });
@@ -676,7 +736,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
 export function hitTest(pieces, L, x, y, one = false) {
   const boxes = computeBoxes(pieces, L).reverse();
   const b = boxes.find((bb) => x >= bb.x - 6 && x <= bb.x + bb.w + 6 && y >= bb.y - 6 && y <= bb.y + bb.h + 6);
-  return b ? (one ? 'box:' + b.id : b.group) : null;
+  return b ? (one ? 'box:' + b.key : b.group) : null;
 }
 
 export function toBlob(c, type = 'image/jpeg', q = 0.95) {

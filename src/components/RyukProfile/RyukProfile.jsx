@@ -4,7 +4,7 @@
 // wallet (free while the wallet is switched off, like Auto Collage).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
-import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob } from './ryukProfileEngine'
+import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob, pinAll } from './ryukProfileEngine'
 import { useWallet, walletEnabled, walletError, chargeProfileExport, PROFILE_EXPORT_PRICE } from '../../lib/wallet.js'
 import './RyukProfile.css'
 
@@ -45,6 +45,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [busy, setBusy] = useState(false)
   const [confirmPay, setConfirmPay] = useState(false)
   const [msg, setMsg] = useState('')
+  const lastBuilt = useRef({ pieces: null, view: null })
   const [sel, setSel] = useState(null)
   const [moveOne, setMoveOne] = useState(true)
   const active = sel
@@ -168,6 +169,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         imgs.heroes = await Promise.all(heroItems.map((it) => loadImage(it.file)))
         if (cancelled) return
         const p = extractPieces(imgs)
+        // everything already on the picture stays exactly where it is
+        const prevPins = lastBuilt.current.pieces && lastBuilt.current.view ? pinAll(lastBuilt.current.pieces, lastBuilt.current.view) : null
         const sameSkin = lastSkin.current === files.skin
         lastSkin.current = files.skin
         const sameSkin2 = lastSkin2.current === files.skin2
@@ -189,6 +192,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             weekly: keepWeekly ? old.weekly : fresh.weekly,
             side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats, sizes: old.sizes ?? fresh.sizes,
             coa: keepCoa ? old.coa : fresh.coa,
+            tileOff: old.tileOff, pins: prevPins || old.pins, boxOff: prevPins ? {} : old.boxOff,
           }
         })
         hadWeekly.current = !!p.weekly
@@ -219,6 +223,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     }
   }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide, effItems, hiddenEff])
 
+  useEffect(() => { lastBuilt.current = { pieces, view } }, [pieces, view])
+
   // draw the watermarked preview
   useEffect(() => {
     if (!pieces || !view) return
@@ -233,8 +239,11 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     return () => cancelAnimationFrame(raf.current)
   }, [pieces, view, active])
 
+  const PIN_GROUPS = { 'side.size': ['side'], tileSize: ['tile', 'group'], 'sizes.panel': ['group'], 'sizes.diamonds': ['diamonds'], 'sizes.coa': ['diamonds'], 'sizes.weekly': ['diamonds'], 'stats.size': ['stats'], 'cards.height': ['cards'] }
   const set = (path, value) => setLayout((l) => {
     const n = { ...l }
+    const drop = PIN_GROUPS[path]
+    if (drop && n.pins) n.pins = Object.fromEntries(Object.entries(n.pins).filter(([, p]) => !drop.some((g) => p.group === g || p.group.startsWith(g + ':'))))
     const keys = path.split('.')
     let o = n
     for (let i = 0; i < keys.length - 1; i++) { o[keys[i]] = { ...o[keys[i]] }; o = o[keys[i]] }
