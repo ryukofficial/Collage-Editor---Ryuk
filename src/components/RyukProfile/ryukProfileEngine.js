@@ -395,6 +395,9 @@ export function computeBoxes(pieces, L) {
     boxes.push({ id: 'rank', group: 'rank', img: pieces.rank,
       x: BOX.rankCenter[0] - rw / 2 + L.rank.dx, y: BOX.rankCenter[1] - rh / 2 + L.rank.dy, w: rw, h: rh });
   }
+  // anything can also be moved on its own (boxOff: { boxId: { dx, dy } })
+  const off = L.boxOff || {};
+  for (const b of boxes) { const o = off[b.id]; if (o) { b.x += o.dx; b.y += o.dy; } }
   return boxes;
 }
 
@@ -562,6 +565,20 @@ function drawWatermark(g, W, H) {
   g.restore();
 }
 
+// A soft copy of the background under (x, y, w, h): the area is shrunk to a few
+// pixels and blown up again, so text and thin lines melt away instead of being
+// copied (the old way repeated a strip and could draw long lines across).
+function softPatch(base, x, y, w, h) {
+  const sw = Math.max(2, Math.round(w / 60)), sh = Math.max(2, Math.round(h / 40));
+  const small = canvas(sw, sh), sg = small.getContext('2d');
+  sg.imageSmoothingQuality = 'high';
+  sg.drawImage(base, x, y, w, h, 0, 0, sw, sh);
+  const p = canvas(w, h), pg = p.getContext('2d');
+  pg.imageSmoothingQuality = 'high';
+  pg.drawImage(small, 0, 0, w, h);
+  return p;
+}
+
 // Render to a canvas. scale < 1 for a light preview; watermark for the free preview.
 export function render(pieces, L, { scale = 1, watermark = false, highlight = null } = {}) {
   const W = pieces.W, H = REF_H;
@@ -573,13 +590,14 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   const boxes = computeBoxes(pieces, L);
   // clean up profile text that peeks out beside the tile rows
   const tiles = boxes.filter((b) => b.id.startsWith('tile'));
-  const tilesMoved = Object.values(L.tileOff || {}).some((o) => o && (o.dx || o.dy));
+  const tilesMoved = Object.values(L.tileOff || {}).some((o) => o && (o.dx || o.dy))
+    || Object.entries(L.boxOff || {}).some(([k, o]) => (k.startsWith('tile') || k === 'panel') && o && (o.dx || o.dy));
   if (tiles.length && L.groupDX === 0 && L.groupDY === 0 && !tilesMoved) {
     const rows = [...new Set(tiles.map((b) => b.y))].sort((p, q) => p - q);
     const ends = rows.map((ry) => Math.max(...tiles.filter((b) => b.y === ry).map((b) => b.x + b.w)) + 10);
     const lastEnd = ends[ends.length - 1];
     // the "Recent Visits" thumbnails at the bottom
-    for (let x = lastEnd; x < 800; x += 40) g.drawImage(pieces.base, 805, 935, 40, 85, x, 935, 40, 85);
+    if (lastEnd < 800) g.drawImage(softPatch(pieces.base, lastEnd, 935, 800 - lastEnd, 85), lastEnd, 935);
     // rows that run into "Heroes / Skins / Matches Played / Likes": clear that
     // whole corner instead of leaving cut-off words between and beside the tiles
     if (Math.max(...ends) > 940) {
@@ -592,8 +610,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
       // low down (Matches Played / Likes) the whole line is cleared; higher up only beside the tiles
       const x1 = py >= 900 ? 800 : Math.max(800, Math.min(...ends));
       const pw = 1340 - x1, ph = REF_H - 4 - py;
-      const patch = canvas(pw, ph), pg = patch.getContext('2d');
-      for (let x = 0; x < pw; x += 40) pg.drawImage(pieces.base, 850, 925, 40, 125, x, 0, 40, ph);
+      const patch = softPatch(pieces.base, x1, py, pw, ph), pg = patch.getContext('2d');
       // feather the top and right edges so the patch melts into the art around it
       pg.globalCompositeOperation = 'destination-in';
       const gx = pg.createLinearGradient(0, 0, pw, 0);
@@ -613,8 +630,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
     const hits = [[815, 862], [862, 905], [928, 972], [972, 1020]].filter(([t, b2]) => b2 > nt && t < nb);
     if (hits.length) {
       const px = 900, py = hits[0][0] - 6, pw = 1340 - px, ph = hits[hits.length - 1][1] + 6 - py;
-      const patch = canvas(pw, ph), pg = patch.getContext('2d');
-      for (let x = 0; x < pw; x += 40) pg.drawImage(pieces.base, 850, 925, 40, 125, x, 0, 40, ph);
+      const patch = softPatch(pieces.base, px, py, pw, ph), pg = patch.getContext('2d');
       pg.globalCompositeOperation = 'destination-in';
       const gx = pg.createLinearGradient(0, 0, pw, 0);
       gx.addColorStop(0, 'rgba(0,0,0,0)'); gx.addColorStop(30 / pw, '#000'); gx.addColorStop(1 - 90 / pw, '#000'); gx.addColorStop(1, 'rgba(0,0,0,0)');
@@ -625,7 +641,7 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   [...boxes.filter((b) => b.id !== 'stat1'), ...boxes.filter((b) => b.id === 'stat1')]
     .forEach((b) => (b.kind === 'circle' ? drawCircle(g, b) : drawFramed(g, b)));
   if (highlight) {
-    boxes.filter((b) => b.group === highlight).forEach((b) => {
+    boxes.filter((b) => b.group === highlight || 'box:' + b.id === highlight).forEach((b) => {
       g.save(); g.strokeStyle = '#00e5c0'; g.lineWidth = 4; g.setLineDash([14, 10]);
       g.strokeRect(b.x - 12, b.y - 12, b.w + 24, b.h + 24); g.restore();
     });
@@ -634,10 +650,10 @@ export function render(pieces, L, { scale = 1, watermark = false, highlight = nu
   return out;
 }
 
-export function hitTest(pieces, L, x, y) {
+export function hitTest(pieces, L, x, y, one = false) {
   const boxes = computeBoxes(pieces, L).reverse();
   const b = boxes.find((bb) => x >= bb.x - 6 && x <= bb.x + bb.w + 6 && y >= bb.y - 6 && y <= bb.y + bb.h + 6);
-  return b ? b.group : null;
+  return b ? (one ? 'box:' + b.id : b.group) : null;
 }
 
 export function toBlob(c, type = 'image/jpeg', q = 0.95) {

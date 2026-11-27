@@ -45,7 +45,9 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [busy, setBusy] = useState(false)
   const [confirmPay, setConfirmPay] = useState(false)
   const [msg, setMsg] = useState('')
-  const [active, setActive] = useState(null)
+  const [sel, setSel] = useState(null)
+  const [moveOne, setMoveOne] = useState(true)
+  const active = sel
   const canvasRef = useRef(null)
   const drag = useRef(null)
   const raf = useRef(0)
@@ -245,26 +247,40 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     const r = canvasRef.current.getBoundingClientRect()
     return { x: (e.clientX - r.left) / r.width * pieces.W, y: (e.clientY - r.top) / r.height * 1080 }
   }
+  // where a thing is now (its offset), for a group ('group', 'side'…) or one item ('box:tile0')
+  const offsetOf = (l, g) => {
+    if (g.startsWith('box:')) return { ...(l.boxOff?.[g.slice(4)] || { dx: 0, dy: 0 }) }
+    if (g === 'group') return { dx: l.groupDX, dy: l.groupDY }
+    if (g.startsWith('tile:')) return { ...(l.tileOff?.[+g.slice(5)] || { dx: 0, dy: 0 }) }
+    return { dx: l[g]?.dx ?? 0, dy: l[g]?.dy ?? 0 }
+  }
+  const withOffset = (l, g, dx, dy) => {
+    if (g.startsWith('box:')) return { ...l, boxOff: { ...(l.boxOff || {}), [g.slice(4)]: { dx, dy } } }
+    if (g === 'group') return { ...l, groupDX: dx, groupDY: dy }
+    if (g.startsWith('tile:')) return { ...l, tileOff: { ...(l.tileOff || {}), [+g.slice(5)]: { dx, dy } } }
+    return { ...l, [g]: { ...l[g], dx, dy } }
+  }
   const onDown = (e) => {
     if (!pieces || !layout) return
     const p = toLayoutXY(e)
-    const g = hitTest(pieces, view, p.x, p.y)
-    if (!g) return
+    const g = hitTest(pieces, view, p.x, p.y, moveOne)
+    if (!g) { setSel(null); return }
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    const tileI = g.startsWith('tile:') ? +g.slice(5) : -1
-    drag.current = { g, p, tileI, start: g === 'group' ? { dx: layout.groupDX, dy: layout.groupDY } : tileI >= 0 ? { ...(layout.tileOff?.[tileI] || { dx: 0, dy: 0 }) } : { ...layout[g] } }
-    setActive(g)
+    drag.current = { g, p, start: offsetOf(layout, g) }
+    setSel(g)
   }
   const onMove = (e) => {
     const d = drag.current
     if (!d) return
     const p = toLayoutXY(e)
-    const dx = Math.round(d.start.dx + p.x - d.p.x), dy = Math.round(d.start.dy + p.y - d.p.y)
-    if (d.g === 'group') setLayout((l) => ({ ...l, groupDX: dx, groupDY: dy }))
-    else if (d.tileI >= 0) setLayout((l) => ({ ...l, tileOff: { ...(l.tileOff || {}), [d.tileI]: { dx, dy } } }))
-    else setLayout((l) => ({ ...l, [d.g]: { ...l[d.g], dx, dy } }))
+    setLayout((l) => withOffset(l, d.g, Math.round(d.start.dx + p.x - d.p.x), Math.round(d.start.dy + p.y - d.p.y)))
   }
-  const onUp = () => { drag.current = null; setActive(null) }
+  const onUp = () => { drag.current = null }
+  // arrow buttons: move the selected thing a few pixels (hold to keep moving)
+  const nudge = (ax, ay) => sel && setLayout((l) => { const o = offsetOf(l, sel); return withOffset(l, sel, o.dx + ax * 4, o.dy + ay * 4) })
+  const holdRef = useRef(null)
+  const holdStart = (ax, ay) => { nudge(ax, ay); clearInterval(holdRef.current); holdRef.current = setInterval(() => nudge(ax, ay), 70) }
+  const holdStop = () => clearInterval(holdRef.current)
 
   const reset = () => pieces && setLayout(defaultLayout(pieces, { immortal }))
 
@@ -402,8 +418,21 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
           <>
             <div className="rp-stage">
               <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
-              <span className="rp-tip">Drag the yellow boxes · each effect moves on its own</span>
+              <div className="rp-movemode">
+                <button className={moveOne ? 'on' : ''} onClick={() => { setMoveOne(true); setSel(null) }}>Move one</button>
+                <button className={!moveOne ? 'on' : ''} onClick={() => { setMoveOne(false); setSel(null) }}>Move group</button>
+              </div>
+              {sel && (
+                <div className="rp-pad" onPointerUp={holdStop} onPointerLeave={holdStop} onPointerCancel={holdStop}>
+                  <button className="u" onPointerDown={() => holdStart(0, -1)} aria-label="Up">▲</button>
+                  <button className="l" onPointerDown={() => holdStart(-1, 0)} aria-label="Left">◀</button>
+                  <button className="x" onClick={() => setSel(null)} aria-label="Done">✓</button>
+                  <button className="r" onPointerDown={() => holdStart(1, 0)} aria-label="Right">▶</button>
+                  <button className="d" onPointerDown={() => holdStart(0, 1)} aria-label="Down">▼</button>
+                </div>
+              )}
             </div>
+            <p className="rp-hint">Tap a yellow box to select it, then drag it or use the arrows.</p>
 
             <div className="rp-controls">
               <div className="rp-card">
