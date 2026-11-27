@@ -170,20 +170,19 @@ function heroCards(img) {
 
 // A tiny grey thumbnail of a picture, to tell whether two cards are the same.
 function signature(im) {
-  // the middle of the card (portrait + name), shrunk to 8×8 grey pixels
-  const c = canvas(8, 8), g = c.getContext('2d', { willReadFrequently: true });
+  const c = canvas(16, 16), g = c.getContext('2d', { willReadFrequently: true });
   g.imageSmoothingQuality = 'high';
-  g.drawImage(im, im.width * 0.15, im.height * 0.1, im.width * 0.7, im.height * 0.55, 0, 0, 8, 8);
-  const d = g.getImageData(0, 0, 8, 8).data, out = new Float32Array(64);
-  for (let i = 0; i < 64; i++) out[i] = (d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2]) / 3;
+  g.drawImage(im, 0, 0, im.width, im.height, 0, 0, 16, 16);
+  const d = g.getImageData(0, 0, 16, 16).data, out = new Float32Array(768);
+  for (let i = 0; i < 256; i++) { out[i * 3] = d[i * 4]; out[i * 3 + 1] = d[i * 4 + 1]; out[i * 3 + 2] = d[i * 4 + 2]; }
   return out;
 }
+// Only the very same card twice (same picture added again) is dropped.
 function dedupeCards(list) {
   const kept = [], sigs = [];
   for (const im of list) {
     const s = signature(im), ar = im.width / im.height;
-    // same hero card: nearly the same middle (different heroes differ ~20, the same one ~10)
-    const dup = sigs.some(([t, a]) => Math.abs(a - ar) < 0.15 && t.reduce((n, v, i) => n + Math.abs(v - s[i]), 0) / 64 < 14);
+    const dup = sigs.some(([t, a]) => Math.abs(a - ar) < 0.03 && t.reduce((n, v, i) => n + Math.abs(v - s[i]), 0) / 768 < 3);
     if (!dup) { kept.push(im); sigs.push([s, ar]); }
   }
   return kept;

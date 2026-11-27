@@ -22,16 +22,17 @@
 .rp-slot-hint { font-size: 11px; color: var(--text-3); line-height: 1.3; }
 
 .rp-empty { color: var(--text-3); font-size: 14px; margin: 20px 0; }
-.rp-stage { position: sticky; top: 0; z-index: 20; margin: 16px 0 6px; border-radius: 14px; overflow: hidden; background: var(--surface); box-shadow: 0 8px 18px rgba(0,0,0,.55); }
-.rp-hint { margin: 0 0 10px; font-size: 12px; color: var(--text-3); }
-.rp-movemode { position: absolute; top: 6px; left: 6px; display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: rgba(0,0,0,.7); }
+.rp-sticky { position: sticky; top: 0; z-index: 20; margin: 16px 0 10px; background: var(--bg); padding-bottom: 6px; box-shadow: 0 10px 14px -8px rgba(0,0,0,.7); }
+.rp-stage { position: relative; border-radius: 14px; overflow: hidden; background: var(--surface); }
+.rp-hint { font-size: 11.5px; color: var(--text-3); }
+.rp-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; min-height: 34px; }
+.rp-movemode { display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: var(--surface-2); flex-shrink: 0; }
 .rp-movemode button { border: 0; padding: 3px 7px; border-radius: 7px; font: inherit; font-size: 10px; font-weight: 700; color: var(--text-3); background: transparent; }
 .rp-movemode button.on { background: #c9a66b; color: #1b150c; }
-.rp-pad { position: absolute; right: 6px; bottom: 6px; display: grid; grid-template-columns: repeat(3, 28px); grid-template-rows: repeat(3, 28px); gap: 2px; touch-action: none; }
-.rp-pad button { border: 0; border-radius: 8px; padding: 0; background: rgba(0,0,0,.72); color: #e2c79a; font-size: 11px; user-select: none; -webkit-user-select: none; }
+.rp-pad { display: flex; gap: 4px; touch-action: none; }
+.rp-pad button { border: 0; border-radius: 9px; padding: 0; width: 30px; height: 30px; background: var(--surface-2); color: #e2c79a; font-size: 13px; user-select: none; -webkit-user-select: none; }
 .rp-pad button:active { background: #c9a66b; color: #1b150c; }
-.rp-pad .u { grid-column: 2; grid-row: 1; } .rp-pad .l { grid-column: 1; grid-row: 2; } .rp-pad .x { grid-column: 2; grid-row: 2; font-size: 13px; }
-.rp-pad .r { grid-column: 3; grid-row: 2; } .rp-pad .d { grid-column: 2; grid-row: 3; }
+.rp-pad .x { width: auto; padding: 0 10px; background: #c9a66b; color: #1b150c; font-weight: 700; font-size: 12px; }
 .rp-stage canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
 .rp-stage canvas:active { cursor: grabbing; }
 .rp-tip-old { position: absolute; top: 8px; right: 8px; padding: 3px 9px; border-radius: 999px; font-size: 11px; background: rgba(0,0,0,.65); color: var(--text-2); pointer-events: none; }
@@ -70,4 +71,3 @@
 .rp-stats label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-3); min-width: 0; }
 .rp-stats input { width: 100%; height: 38px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--bg); color: #fff; padding: 0 10px; font-size: 15px; font-weight: 700; }
 .rp-stats input:focus { outline: none; border-color: #ffd628; }
-.rp-hint { margin: 4px 0 6px; font-size: 11.5px; color: var(--text-3); line-height: 1.35; }

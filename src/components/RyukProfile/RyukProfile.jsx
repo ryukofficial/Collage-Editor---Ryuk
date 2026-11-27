@@ -417,23 +417,27 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
         {pieces && view && (
           <>
             {msg && <p className="rp-msg" style={{ marginTop: 14 }}>{msg}</p>}
-            <div className="rp-stage">
-              <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
-              <div className="rp-movemode">
-                <button className={moveOne ? 'on' : ''} onClick={() => { setMoveOne(true); setSel(null) }}>Move one</button>
-                <button className={!moveOne ? 'on' : ''} onClick={() => { setMoveOne(false); setSel(null) }}>Move group</button>
+            <div className="rp-sticky">
+              <div className="rp-stage">
+                <canvas ref={canvasRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
               </div>
-              {sel && (
-                <div className="rp-pad" onPointerUp={holdStop} onPointerLeave={holdStop} onPointerCancel={holdStop}>
-                  <button className="u" onPointerDown={() => holdStart(0, -1)} aria-label="Up">▲</button>
-                  <button className="l" onPointerDown={() => holdStart(-1, 0)} aria-label="Left">◀</button>
-                  <button className="x" onClick={() => setSel(null)} aria-label="Done">✓</button>
-                  <button className="r" onPointerDown={() => holdStart(1, 0)} aria-label="Right">▶</button>
-                  <button className="d" onPointerDown={() => holdStart(0, 1)} aria-label="Down">▼</button>
+              {/* controls sit under the picture, never on top of it */}
+              <div className="rp-bar" onPointerUp={holdStop} onPointerLeave={holdStop} onPointerCancel={holdStop}>
+                <div className="rp-movemode">
+                  <button className={moveOne ? 'on' : ''} onClick={() => { setMoveOne(true); setSel(null) }}>Move one</button>
+                  <button className={!moveOne ? 'on' : ''} onClick={() => { setMoveOne(false); setSel(null) }}>Move group</button>
                 </div>
-              )}
+                {sel ? (
+                  <div className="rp-pad">
+                    <button onPointerDown={() => holdStart(-1, 0)} aria-label="Left">◀</button>
+                    <button onPointerDown={() => holdStart(0, -1)} aria-label="Up">▲</button>
+                    <button onPointerDown={() => holdStart(0, 1)} aria-label="Down">▼</button>
+                    <button onPointerDown={() => holdStart(1, 0)} aria-label="Right">▶</button>
+                    <button className="x" onClick={() => setSel(null)} aria-label="Done">Done</button>
+                  </div>
+                ) : <span className="rp-hint">Tap a yellow box to move it</span>}
+              </div>
             </div>
-            <p className="rp-hint">Tap a yellow box to select it, then drag it or use the arrows.</p>
 
             <div className="rp-controls">
               <div className="rp-card">
