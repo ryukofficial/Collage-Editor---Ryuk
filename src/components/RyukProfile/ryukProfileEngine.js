@@ -434,10 +434,14 @@ export function computeBoxes(pieces, L) {
     const inFam = boxes.filter((b) => b.group === fam || b.group.startsWith(fam + ':'));
     const fixed = inFam.filter((b) => b.pinned), fresh = inFam.filter((b) => !b.pinned);
     if (!fixed.length || !fresh.length) continue;
-    const hs = fixed.map((b) => b.h).sort((a, b2) => a - b2), h = hs[hs.length >> 1];
+    const hs = fixed.map((b) => b.h).sort((a, b2) => a - b2); let h = hs[hs.length >> 1];
     const left = Math.min(...fixed.map((b) => b.x)), right = Math.max(...fixed.map((b) => b.x + b.w));
     const top = Math.min(...fixed.map((b) => b.y)), bottom = Math.max(...fixed.map((b) => b.y + b.h));
-    const gap = 14, rowW = fresh.reduce((n, b) => n + b.w * (h / b.h), 0) + gap * (fresh.length - 1);
+    const gap = 14;
+    let rowW = fresh.reduce((n, b) => n + b.w * (h / b.h), 0) + gap * (fresh.length - 1);
+    // hero cards / grids stay on the right side: shrink the new row if it would reach the profile
+    const minX = fam === 'side' ? pieces.W * 0.52 : 10;
+    if (fam === 'side' && right - rowW < minX) { const f = (right - minX) / rowW; h *= f; rowW *= f; }
     let y = bottom + gap;
     if (y + h > H - 10) y = Math.max(10, top - gap - h);            // no room below: above them
     let x = fam === 'side' ? Math.max(10, right - rowW) : left;      // hero cards keep to the right
@@ -448,6 +452,9 @@ export function computeBoxes(pieces, L) {
     }
   }
   for (const b of boxes) {
+    // one item can be made bigger or smaller on its own (boxScale: { pictureKey: factor })
+    const sc = L.boxScale?.[b.key];
+    if (sc && sc !== 1) { const cx = b.x + b.w / 2, cy = b.y + b.h / 2; b.w *= sc; b.h *= sc; b.x = cx - b.w / 2; b.y = cy - b.h / 2; }
     // anything can also be moved on its own (boxOff: { pictureKey: { dx, dy } })
     const o = off[b.key];
     if (o) { b.x += o.dx; b.y += o.dy; }

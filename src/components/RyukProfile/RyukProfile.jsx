@@ -46,6 +46,23 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   const [confirmPay, setConfirmPay] = useState(false)
   const [msg, setMsg] = useState('')
   const lastBuilt = useRef({ pieces: null, view: null })
+  // undo: earlier layouts (a drag, a nudge, a slider move… each is one step)
+  const history = useRef([]), lastPush = useRef(0), layoutNow = useRef(null)
+  const [canUndo, setCanUndo] = useState(false)
+  const remember = (force = false) => {
+    const now = Date.now()
+    if (!layoutNow.current || (!force && now - lastPush.current < 700)) return
+    lastPush.current = now
+    history.current.push(layoutNow.current)
+    if (history.current.length > 60) history.current.shift()
+    setCanUndo(true)
+  }
+  const undo = () => {
+    const prev = history.current.pop()
+    if (prev) setLayout(prev)
+    setCanUndo(history.current.length > 0)
+    lastPush.current = 0
+  }
   const [sel, setSel] = useState(null)
   const [moveOne, setMoveOne] = useState(true)
   const active = sel
@@ -192,7 +209,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
             weekly: keepWeekly ? old.weekly : fresh.weekly,
             side: old.side ?? fresh.side, stats: old.stats ?? fresh.stats, sizes: old.sizes ?? fresh.sizes,
             coa: keepCoa ? old.coa : fresh.coa,
-            tileOff: old.tileOff, pins: prevPins || old.pins, boxOff: prevPins ? {} : old.boxOff,
+            tileOff: old.tileOff, pins: prevPins || old.pins, boxOff: prevPins ? {} : old.boxOff, boxScale: prevPins ? {} : old.boxScale,
           }
         })
         hadWeekly.current = !!p.weekly
@@ -224,6 +241,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   }, [layout, pieces, items, hiddenItems, sideItems, hiddenSide, effItems, hiddenEff])
 
   useEffect(() => { lastBuilt.current = { pieces, view } }, [pieces, view])
+  useEffect(() => { layoutNow.current = layout }, [layout])
 
   // draw the watermarked preview
   useEffect(() => {
@@ -240,7 +258,8 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   }, [pieces, view, active])
 
   const PIN_GROUPS = { 'side.size': ['side'], tileSize: ['tile', 'group'], 'sizes.panel': ['group'], 'sizes.diamonds': ['diamonds'], 'sizes.coa': ['diamonds'], 'sizes.weekly': ['diamonds'], 'stats.size': ['stats'], 'cards.height': ['cards'] }
-  const set = (path, value) => setLayout((l) => {
+  const set = (path, value) => { remember(); setLayoutPath(path, value) }
+  const setLayoutPath = (path, value) => setLayout((l) => {
     const n = { ...l }
     const drop = PIN_GROUPS[path]
     if (drop && n.pins) n.pins = Object.fromEntries(Object.entries(n.pins).filter(([, p]) => !drop.some((g) => p.group === g || p.group.startsWith(g + ':'))))
@@ -275,6 +294,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     const g = hitTest(pieces, view, p.x, p.y, moveOne)
     if (!g) { setSel(null); return }
     e.currentTarget.setPointerCapture?.(e.pointerId)
+    remember(true)
     drag.current = { g, p, start: offsetOf(layout, g) }
     setSel(g)
   }
@@ -288,10 +308,10 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
   // arrow buttons: move the selected thing a few pixels (hold to keep moving)
   const nudge = (ax, ay) => sel && setLayout((l) => { const o = offsetOf(l, sel); return withOffset(l, sel, o.dx + ax * 4, o.dy + ay * 4) })
   const holdRef = useRef(null)
-  const holdStart = (ax, ay) => { nudge(ax, ay); clearInterval(holdRef.current); holdRef.current = setInterval(() => nudge(ax, ay), 70) }
+  const holdStart = (ax, ay) => { remember(true); nudge(ax, ay); clearInterval(holdRef.current); holdRef.current = setInterval(() => nudge(ax, ay), 70) }
   const holdStop = () => clearInterval(holdRef.current)
 
-  const reset = () => pieces && setLayout(defaultLayout(pieces, { immortal }))
+  const reset = () => { if (!pieces) return; remember(true); setLayout(defaultLayout(pieces, { immortal })) }
 
   const exportPreview = async () => {
     if (!pieces) return
@@ -436,6 +456,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                   <button className={moveOne ? 'on' : ''} onClick={() => { setMoveOne(true); setSel(null) }}>Move one</button>
                   <button className={!moveOne ? 'on' : ''} onClick={() => { setMoveOne(false); setSel(null) }}>Move group</button>
                 </div>
+                <button className="rp-undo" onClick={undo} disabled={!canUndo} aria-label="Undo">↶ Undo</button>
                 {sel ? (
                   <div className="rp-pad">
                     <button onPointerDown={() => holdStart(-1, 0)} aria-label="Left">◀</button>
@@ -446,6 +467,13 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                   </div>
                 ) : <span className="rp-hint">Tap a yellow box to move it</span>}
               </div>
+              {sel && sel.startsWith('box:') && (
+                <div className="rp-selsize">
+                  <Slider label="Size of this one" min={0.3} max={2.5} step={0.01} value={layout.boxScale?.[sel.slice(4)] ?? 1}
+                    onChange={(v) => { remember(); setLayout((l) => ({ ...l, boxScale: { ...(l.boxScale || {}), [sel.slice(4)]: v } })) }} />
+                </div>
+              )}
+              {sel && !sel.startsWith('box:') && <p className="rp-hint" style={{ margin: '4px 2px 0' }}>Switch to “Move one” to change the size of a single item.</p>}
             </div>
 
             <div className="rp-controls">
@@ -457,7 +485,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
                 {pieces.coa && layout.coa.show && <Slider id="rp-sz-coa" label="COA" min={0.5} max={2} step={0.01} value={layout.sizes.coa} onChange={(v) => set('sizes.coa', v)} />}
                 {pieces.weekly && layout.weekly.show && <Slider id="rp-sz-wk" label="Weekly pass" min={0.6} max={2.5} step={0.01} value={layout.sizes.weekly} onChange={(v) => set('sizes.weekly', v)} />}
                 {(effCount > 0 || itemCount > 0) && <Slider id="rp-tile-s" label="Effects (max)" min={100} max={200} value={layout.tileSize} onChange={(v) => set('tileSize', v)} />}
-                {pieces.side?.length > 0 && <Slider id="rp-side-s" label="Hero cards" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />}
+                {pieces.side?.length > 0 && <Slider id="rp-side-s" label="All hero cards" min={0.6} max={1.2} step={0.01} value={layout.side.size} onChange={(v) => set('side.size', v)} />}
                 {pieces.extras?.some((x) => x.wide) && <Slider id="rp-card-s" label="Item cards" min={80} max={220} value={layout.cards.height} onChange={(v) => set('cards.height', v)} />}
               </div>
 

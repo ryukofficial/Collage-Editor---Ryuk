@@ -25,7 +25,11 @@
 .rp-sticky { position: sticky; top: 0; z-index: 20; margin: 16px 0 10px; background: var(--bg); padding-bottom: 6px; box-shadow: 0 10px 14px -8px rgba(0,0,0,.7); }
 .rp-stage { position: relative; border-radius: 14px; overflow: hidden; background: var(--surface); }
 .rp-hint { font-size: 11.5px; color: var(--text-3); }
-.rp-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; min-height: 34px; }
+.rp-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; min-height: 34px; }
+.rp-bar .rp-pad, .rp-bar > .rp-hint { margin-left: auto; }
+.rp-undo { border: 0; height: 30px; padding: 0 10px; border-radius: 9px; background: var(--surface-2); color: #e2c79a; font: inherit; font-size: 12px; font-weight: 700; }
+.rp-undo:disabled { opacity: .35; }
+.rp-selsize { margin-top: 4px; padding: 2px 12px; border-radius: 12px; background: var(--surface-2); }
 .rp-movemode { display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: var(--surface-2); flex-shrink: 0; }
 .rp-movemode button { border: 0; padding: 3px 7px; border-radius: 7px; font: inherit; font-size: 10px; font-weight: 700; color: var(--text-3); background: transparent; }
 .rp-movemode button.on { background: #c9a66b; color: #1b150c; }
