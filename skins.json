@@ -939,7 +939,8 @@
         "tier": "Grand"
       },
       {
-        "name": "10th Anniversary",
+        "name": "Starforger's Glory",
+        "file": "Chou 10th Anniversary",
         "tier": "Exceptional"
       }
     ]
@@ -2892,7 +2893,8 @@
         "tier": "Exceptional"
       },
       {
-        "name": "Ghosmo",
+        "name": "Cosmo Guard",
+        "file": "Ling Ghosmo",
         "tier": "Exceptional"
       },
       {

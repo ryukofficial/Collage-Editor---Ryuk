@@ -198,7 +198,7 @@ export const SERIES_MAP_RAW = {
   "Lady Parasol": "Special", "Ghosmo": "Special", "Lunar Scion": "Special",
   "Fists Of Light": "Special", "Classroom Charm": "Special", "Wavebreaker": "Special",
   "Extraterrestrial": "Special",
-  "Fangs of Slaughter": "Special", "Badlands Scrapper": "Special", "10th Anniversary": "Special",
+  "Fangs of Slaughter": "Special", "Badlands Scrapper": "Special", "10th Anniversary": "Special", "Starforger's Glory": "Special",
   // Collector
   "Starbound Sentry": "Collector", "Kaiju of the Deep": "Collector",
   "Aeon of Twilight": "Collector", "Adlaw's Chosen": "Collector", "Agent Z": "Collector",
