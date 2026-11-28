@@ -61,3 +61,16 @@ export function Spinner({ size = 18 }) {
 export function Progress({ value }) {
   return <div className="bar"><i style={{ width: `${Math.max(2, Math.min(100, value * 100))}%` }} /></div>
 }
+
+// "Please don't leave the website" while something important runs; the
+// browser also asks before closing or reloading the page.
+export function StayNote({ active = true, text = "Please don't leave the website until this finishes." }) {
+  useEffect(() => {
+    if (!active) return
+    const warn = e => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [active])
+  if (!active) return null
+  return <div className="note warn stay-note" role="status">⚠️ {text}</div>
+}

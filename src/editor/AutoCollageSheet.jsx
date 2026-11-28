@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, X, ScanSearch, Check, Search, Copy, ChevronDown, ChevronRight, ZoomIn, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { Sheet, Spinner, Progress } from '../ui/Sheet.jsx'
+import { Sheet, Spinner, Progress, StayNote } from '../ui/Sheet.jsx'
 import { HEROES, skinPicture, loadSkinIndex, searchSkins } from '../lib/skins.js'
 import { buildVocabulary, sortByPosition } from '../scan/match.js'
 import { sortForCollage } from '../lib/skinSeries.js'
@@ -89,6 +89,7 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
   const [rescanning, setRescanning] = useState(-1)
   const [viewing, setViewing] = useState(-1)
   const paidFor = useRef(false)
+  const adding = useRef(false)                           // one tap only: no double charge, no double skins
   const ctrl = useRef(null)
   const input = useRef(null)
 
@@ -183,16 +184,19 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
   }, [cands, shared, picked])
 
   const add = async () => {
-    if (!chosen.length) return
+    if (!chosen.length || adding.current) return
+    adding.current = true
     setError('')
+    setPhase('adding'); setProg({ percent: 0, message: walletEnabled && !paidFor.current ? `Taking ₹${AUTO_COLLAGE_PRICE} from your wallet…` : '' })
     if (walletEnabled && !paidFor.current) {
       try { await chargeAutoCollage(chosen.length); paidFor.current = true } catch (err) {
         setError(walletError(err))
         if (/insufficient_balance|not_logged_in/.test(`${err?.code} ${err?.message}`)) onOpenWallet(walletError(err))
+        setPhase('results'); adding.current = false
         return
       }
     }
-    setPhase('adding'); setProg({ percent: 0, message: '' })
+    setProg({ percent: 0, message: '' })
     const { items, failed } = await skinsToItems(chosen.map(c => c.key), done => setProg({ percent: Math.round(100 * done / chosen.length), message: `Getting skins… ${done} / ${chosen.length}` }))
     useCollage.getState().add(items)
     if (failed.length) toast.error(`${failed.length} skin(s) couldn't download. Add them again from "Add skins" when your internet is better.`, { duration: 7000 })
@@ -222,6 +226,8 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
               Add {chosen.length} skin{chosen.length === 1 ? '' : 's'}{walletEnabled && !paidFor.current ? ` · ₹${AUTO_COLLAGE_PRICE}` : ''}
             </button>
           </div>
+        ) : phase === 'adding' ? (
+          <button className="btn btn-primary btn-lg btn-block" disabled><Spinner /> Adding skins…</button>
         ) : null
       }>
       {error && <div className="note err" style={{ marginBottom: 12 }}>{error}</div>}
@@ -260,6 +266,7 @@ export default function AutoCollageSheet({ onClose, onOpenWallet }) {
           <div className="h3" style={{ textAlign: 'center', marginBottom: 12 }}>{prog.message || 'Starting…'}</div>
           <Progress value={(prog.percent || 0) / 100} />
           <div className="small muted" style={{ textAlign: 'center', marginTop: 8 }}>{prog.percent || 0}%</div>
+          <StayNote />
         </div>
       )}
 

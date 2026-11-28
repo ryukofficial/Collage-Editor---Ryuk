@@ -7,6 +7,7 @@ import { X } from 'lucide-react'
 import { loadImage, extractPieces, defaultLayout, render, hitTest, toBlob, pinAll } from './ryukProfileEngine'
 import { useWallet, walletEnabled, walletError, chargeProfileExport, PROFILE_EXPORT_PRICE } from '../../lib/wallet.js'
 import './RyukProfile.css'
+import { StayNote } from '../../ui/Sheet.jsx'
 
 const SLOTS = [
   { key: 'profile', label: 'Profile screenshot', hint: 'Profile page in the game', required: true },
@@ -324,8 +325,9 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
     download(await toBlob(render(pieces, view, { scale: 0.5, watermark: true })), `ryuk-profile-preview-${Date.now()}.jpg`)
   }
 
+  const exporting = useRef(false)
   const exportHd = async () => {
-    if (!pieces || busy) return
+    if (!pieces || busy || exporting.current) return
     setMsg('')
     if (paid) {
       if (!wallet.user) { onOpenWallet(`HD export costs ₹${price}. Log in or create an account first — your pictures stay here.`); return }
@@ -333,6 +335,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       if (!confirmPay) { setConfirmPay(true); return }
     }
     setConfirmPay(false)
+    exporting.current = true
     setBusy(true)
     try {
       // make the picture first, so nobody is charged if it fails
@@ -345,6 +348,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
       setMsg(text)
       if (paid && /insufficient_balance|not_logged_in/.test(`${err?.code} ${err?.message}`)) onOpenWallet(text)
     } finally {
+      exporting.current = false
       setBusy(false)
     }
   }
@@ -589,6 +593,7 @@ export default function RyukProfile({ onClose, onOpenWallet = () => {} }) {
               <button type="button" className="rp-btn ghost" onClick={exportPreview} disabled={busy}>Free preview (watermark)</button>
               <button type="button" className="rp-btn" onClick={exportHd} disabled={busy}>{busy ? 'Working…' : hdLabel}</button>
             </div>
+            <StayNote active={busy && exporting.current} />
             {confirmPay && !busy && (
               <p className="rp-note">₹{price} will be taken from your wallet (balance ₹{wallet.balance ?? '…'}). <button type="button" className="rp-link" onClick={() => setConfirmPay(false)}>Cancel</button></p>
             )}

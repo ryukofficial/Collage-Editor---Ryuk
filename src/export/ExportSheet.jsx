@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, Share2, Sparkles, Lock, Check, Zap, ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { Sheet, Spinner, Progress } from '../ui/Sheet.jsx'
+import { Sheet, Spinner, Progress, StayNote } from '../ui/Sheet.jsx'
 import { useCollage } from '../lib/store.js'
 import { planExport } from './exporter.js'
 import { useWallet, walletEnabled, walletError, chargeProExport, PRO_EXPORT_PRICE } from '../lib/wallet.js'
@@ -106,7 +106,10 @@ export default function ExportSheet({ onClose, onOpenWallet }) {
     } finally { ctrl.current = null }
   }
 
+  const paying = useRef(false)
   async function pay(res = result) {
+    if (paying.current) return                   // a second tap never charges twice
+    paying.current = true
     setError('')
     try {
       await chargeProExport()
@@ -114,7 +117,7 @@ export default function ExportSheet({ onClose, onOpenWallet }) {
     } catch (err) {
       setError(walletError(err))
       if (/insufficient_balance|not_logged_in/.test(`${err?.code} ${err?.message}`)) onOpenWallet(walletError(err))
-    }
+    } finally { paying.current = false }
   }
 
   async function finish(res) {
@@ -208,14 +211,15 @@ export default function ExportSheet({ onClose, onOpenWallet }) {
               <div className="row" style={{ gap: 8 }}><Zap size={16} color="var(--amber)" /> HD enhance · {Math.round(hdInfo.f * 100)}% · about {hdInfo.mins} min left</div>
             </div>
           )}
-          <div className="tiny muted" style={{ marginTop: 18 }}>Keep this page open until it finishes.</div>
+          <StayNote />
         </div>
       )}
 
       {phase === 'pay' && (
         <div className="center-fill" style={{ minHeight: 160 }}>
           <div><Check size={34} color="var(--green)" /><div className="h3" style={{ marginTop: 8 }}>Your picture is ready</div>
-            <div className="small muted">{result && fmtMP(result.width, result.height)}</div></div>
+            <div className="small muted">{result && fmtMP(result.width, result.height)}</div>
+            <StayNote active={!error} /></div>
         </div>
       )}
 
