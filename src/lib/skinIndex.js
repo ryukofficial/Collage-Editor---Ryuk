@@ -39,7 +39,12 @@ export function resolveIndex(files, heroes) {
     const mine = slugs.filter(x => fit(x.s, hero.id, '') > 0)
     for (const skin of hero.skins || []) {
       let hit = null
-      for (const ext of ['jpg', 'png', 'webp']) {
+      // a skin may name its picture file outright ("file": "Gusion KOF" for K')
+      if (skin.file) for (const ext of ['jpg', 'png', 'webp', 'JPG']) {
+        hit = byName.get(`${skin.file}.${ext}`.toLowerCase())
+        if (hit) break
+      }
+      if (!hit) for (const ext of ['jpg', 'png', 'webp']) {
         hit = byName.get(`${hero.name} ${skin.name}.${ext}`.toLowerCase())
         if (hit) break
       }

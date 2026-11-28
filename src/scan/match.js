@@ -133,12 +133,15 @@ export function buildVocabulary(skinsData) {
     for (const skin of hero.skins || []) {
       const sn = norm(skin.name)
       const key = squash(sn)
-      if (key.length < 3) continue
+      if (!key) continue
+      // one- or two-letter names (Gusion's "K'") are only ever trusted when
+      // they stand alone right above their own hero's label — see analysePage
+      const tiny = key.length < 3
       for (const t of sn.split(' ')) if (t.length >= 3) tokens.add(t)
       let entry = byKey.get(key)
       if (!entry) {
         const c = codes(key)
-        entry = { key, tokens: sn.split(' '), codes: c, len: key.length, grams: bigramsOf(c), skins: [], fragmentProne: false }
+        entry = { key, tokens: sn.split(' '), codes: c, len: key.length, grams: bigramsOf(c), skins: [], fragmentProne: false, tiny }
         byKey.set(key, entry)
       }
       if (!entry.skins.some(s => s.heroId === hero.id && s.skinName === skin.name)) {
@@ -149,7 +152,8 @@ export function buildVocabulary(skinsData) {
   // A short name that is the start or the end of a longer one ("Vulcan" inside
   // "Vulcan Lionheart") could just be half a longer name whose other half the
   // OCR missed, so the matcher wants a hero label to back those up.
-  const list = [...byKey.values()]
+  const list = [...byKey.values()].filter(e => !e.tiny)
+  const tiny = [...byKey.values()].filter(e => e.tiny)
   for (const a of list) {
     for (const b of list) {
       if (a === b || b.tokens.length <= a.tokens.length) continue
@@ -159,7 +163,7 @@ export function buildVocabulary(skinsData) {
       if (pre || suf) { a.fragmentProne = true; break }
     }
   }
-  return { names: list, heroes, tokens }
+  return { names: list, tiny, heroes, tokens }
 }
 
 // ── OCR words → clean words ──────────────────────────────────────────────────
@@ -356,7 +360,8 @@ function analysePage(layers, vocab) {
     if (u.text.length < 3) continue
     for (const hero of vocab.heroes) {
       if (hero.key.length > u.text.length + 1 || u.text.length > hero.key.length + 2) continue
-      const f = fuzzyFind(hero.codes, u.codes, allowedCost(hero.key.length))
+      // short hero names ("Ling") may have one look-alike letter misread ("Llng")
+      const f = fuzzyFind(hero.codes, u.codes, Math.max(allowedCost(hero.key.length), hero.key.length >= 4 ? 0.4 : 0))
       if (!f) continue
       const ph = u.chain[0]
       heroHits.push({ hero, cost: f.cost, cx: ph.cx, cy: ph.cy, h: ph.h })
@@ -407,6 +412,25 @@ function analysePage(layers, vocab) {
       if (found.cost > 0 && !corroborated && words.some(w => w.conf < 30) &&
           words.some(w => UI_WORDS.has(norm(w.text)))) sure = false
       raw.push({ name, cost: found.cost, sure, box, h, near, corroborated, conf: Math.max(...words.map(w => w.conf)) })
+    }
+  }
+
+  // one- or two-letter names: the whole phrase must read exactly that, and the
+  // label of one of its heroes must sit just below it, under the same card
+  if (vocab.tiny?.length) {
+    for (const s of sets) {
+      for (const p of s.phrases) {
+        const text = p.words.map(w => w.sq).join('')
+        const name = vocab.tiny.find(t => t.key === text)
+        if (!name) continue
+        const heroIds = name.skins.map(x => x.heroId)
+        const below = heroHits.find(hh => heroIds.includes(hh.hero.id) && hh.cost <= 0.4 &&
+          hh.cy > p.cy && hh.cy - p.cy <= 3 * Math.max(p.h, hh.h) &&
+          Math.abs(hh.cx - p.cx) <= 2.5 * Math.max(p.h, hh.h))
+        if (!below) continue
+        const box = boxOf(p.words)
+        raw.push({ name, cost: 0, sure: true, box, h: p.h, near: { hit: below, dist: 1 }, corroborated: true, conf: Math.max(...p.words.map(w => w.conf)) })
+      }
     }
   }
 
